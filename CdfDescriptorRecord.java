@@ -16,22 +16,22 @@ public class CdfDescriptorRecord extends Record {
     private final int rfuE_;
     private final String[] copyright_;
 
-    public CdfDescriptorRecord( long recSize, int recType,
-                                Buf buf, Offset offset12 ) {
-        super( recSize, recType, RECORD_TYPE );
-        Offset off = offset12;
-        gdrOffset_ = buf.readLong( off );
-        version_ = buf.readInt( off );
-        release_ = buf.readInt( off );
-        encoding_ = buf.readInt( off );
-        flags_ = buf.readInt( off );
-        rfuA_ = checkIntValue( buf.readInt( off ), 0 );
-        rfuB_ = checkIntValue( buf.readInt( off ), 0 );
-        increment_ = buf.readInt( off );
-        rfuD_ = checkIntValue( buf.readInt( off ), -1 );
-        rfuE_ = checkIntValue( buf.readInt( off ), -1 );
+    public CdfDescriptorRecord( RecordPlan plan ) {
+        super( plan, RECORD_TYPE );
+        Buf buf = plan.getBuf();
+        Pointer ptr = new Pointer( plan.getContentOffset() );
+        gdrOffset_ = buf.readLong( ptr );
+        version_ = buf.readInt( ptr );
+        release_ = buf.readInt( ptr );
+        encoding_ = buf.readInt( ptr );
+        flags_ = buf.readInt( ptr );
+        rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
+        rfuB_ = checkIntValue( buf.readInt( ptr ), 0 );
+        increment_ = buf.readInt( ptr );
+        rfuD_ = checkIntValue( buf.readInt( ptr ), -1 );
+        rfuE_ = checkIntValue( buf.readInt( ptr ), -1 );
         int crLeng = versionAtLeast( 2, 5 ) ? 256 : 1945;
-        copyright_ = toLines( buf.readAsciiString( off, crLeng ) );
+        copyright_ = toLines( buf.readAsciiString( ptr, crLeng ) );
     }
 
     public boolean versionAtLeast( int targetVersion, int targetRelease ) {

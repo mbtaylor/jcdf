@@ -17,21 +17,21 @@ public class AttributeDescriptorRecord extends Record {
     private final int rfuE_;
     private final String name_;
 
-    public AttributeDescriptorRecord( long recSize, int recType,
-                                      Buf buf, Offset offset12 ) {
-        super( recSize, recType, RECORD_TYPE );
-        Offset off = offset12;
-        aedrNext_ = buf.readLong( off );
-        agrEdrHead_ = buf.readLong( off );
-        scope_ = buf.readInt( off );
-        num_ = buf.readInt( off );
-        ngrEntries_ = buf.readInt( off );
-        maxGrEntry_ = buf.readInt( off );
-        rfuA_ = checkIntValue( buf.readInt( off ), 0 );
-        azEdrHead_ = buf.readLong( off );
-        nzEntries_ = buf.readInt( off );
-        maxzEntry_ = buf.readInt( off );
-        rfuE_ = checkIntValue( buf.readInt( off ), -1 );
-        name_ = buf.readAsciiString( off, 256 );
+    public AttributeDescriptorRecord( RecordPlan plan ) {
+        super( plan, RECORD_TYPE );
+        Buf buf = plan.getBuf();
+        Pointer ptr = new Pointer( plan.getContentOffset() );
+        aedrNext_ = buf.readLong( ptr );
+        agrEdrHead_ = buf.readLong( ptr );
+        scope_ = buf.readInt( ptr );
+        num_ = buf.readInt( ptr );
+        ngrEntries_ = buf.readInt( ptr );
+        maxGrEntry_ = buf.readInt( ptr );
+        rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
+        azEdrHead_ = buf.readLong( ptr );
+        nzEntries_ = buf.readInt( ptr );
+        maxzEntry_ = buf.readInt( ptr );
+        rfuE_ = checkIntValue( buf.readInt( ptr ), -1 );
+        name_ = buf.readAsciiString( ptr, 256 );
     }
 }

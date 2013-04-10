@@ -11,17 +11,17 @@ public class NioBuf implements Buf {
         byteBuf_ = byteBuf;
     }
 
-    public int readInt( Offset offset ) {
-        return byteBuf_.getInt( offset.getAndIncrement( 4 ) );
+    public int readInt( Pointer ptr ) {
+        return byteBuf_.getInt( toInt( ptr.getAndIncrement( 4 ) ) );
     }
 
-    public long readLong( Offset offset ) {
-        return byteBuf_.getLong( offset.getAndIncrement( 8 ) );
+    public long readLong( Pointer ptr ) {
+        return byteBuf_.getLong( toInt( ptr.getAndIncrement( 8 ) ) );
     }
 
-    public String readAsciiString( Offset offset, int nbyte ) {
+    public String readAsciiString( Pointer ptr, int nbyte ) {
         byte[] abuf = new byte[ nbyte ];
-        byteBuf_.get( abuf, offset.getAndIncrement( nbyte ), nbyte );
+        byteBuf_.get( abuf, toInt( ptr.getAndIncrement( nbyte ) ), nbyte );
         StringBuilder sbuf = new StringBuilder( nbyte );
         for ( int i = 0; i < nbyte; i++ ) {
             byte b = abuf[ i ];
@@ -33,5 +33,14 @@ public class NioBuf implements Buf {
             }
         }
         return sbuf.toString();
+    }
+
+    private int toInt( long lvalue ) {
+        int ivalue = (int) lvalue;
+        if ( ivalue != lvalue ) {
+            throw new IllegalArgumentException( "Pointer out of range: "
+                                              + lvalue + " >32 bits" );
+        }
+        return ivalue;
     }
 }

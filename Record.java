@@ -6,20 +6,19 @@ import java.util.logging.Logger;
 
 public abstract class Record {
 
-    private final long recordSize_;
-    private final int recordType_;
+    private final RecordPlan plan_;
     private final Logger logger_ = Logger.getLogger( Record.class.getName() );
 
-    protected Record( long recSize, int recType ) {
-        recordSize_ = recSize;
-        recordType_ = recType;
+    protected Record( RecordPlan plan ) {
+        plan_ = plan;
     }
 
-    protected Record( long recSize, int recType, int fixedType ) {
-        this( recSize, recType );
-        if ( recType != fixedType ) {
+    protected Record( RecordPlan plan, int fixedType ) {
+        this( plan );
+        int planType = plan.getRecordType();
+        if ( planType != fixedType ) {
             throw new IllegalArgumentException( "Incorrect record type ("
-                                              + recType + " != " + fixedType );
+                                              + planType + " != " + fixedType );
         }
     }
 
@@ -37,10 +36,10 @@ public abstract class Record {
      * Reads a moderately-sized integer array.
      * If it's bulk data, we should use a different method.
      */
-    public static int[] readIntArray( Buf buf, Offset offset, int count ) {
+    public static int[] readIntArray( Buf buf, Pointer ptr, int count ) {
         int[] array = new int[ count ];
         for ( int i = 0; i < count; i++ ) {
-            array[ i ] = buf.readInt( offset );
+            array[ i ] = buf.readInt( ptr );
         }
         return array;
     }

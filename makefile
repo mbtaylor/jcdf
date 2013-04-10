@@ -11,8 +11,9 @@ JSRC = \
        CdfDescriptorRecord.java \
        GlobalDescriptorRecord.java \
        NioBuf.java \
-       Offset.java \
+       Pointer.java \
        Record.java \
+       RecordPlan.java \
 
 jar: $(JARFILE)
 

@@ -19,24 +19,23 @@ public class GlobalDescriptorRecord extends Record {
     private final int rfuE_;
     private final int[] rDimSizes_;
 
-    public GlobalDescriptorRecord( long recSize, int recType,
-                                   Buf buf, Offset offset12 ) {
-        super( recSize, recType, RECORD_TYPE );
-        Offset off = offset12;
-
-        rVdrHead_ = buf.readLong( off );
-        zVdrHead_ = buf.readLong( off );
-        adrHead_ = buf.readLong( off );
-        eof_ = buf.readLong( off );
-        nrVars_ = buf.readInt( off );
-        numAttr_ = buf.readInt( off );
-        rMaxRec_ = buf.readInt( off );
-        rNumDims_ = buf.readInt( off );
-        nzVars_ = buf.readInt( off );
-        uirHead_ = buf.readLong( off );
-        rfuC_ = checkIntValue( buf.readInt( off ), 0 );
-        rfuD_ = checkIntValue( buf.readInt( off ), -1 );
-        rfuE_ = checkIntValue( buf.readInt( off ), -1 );
-        rDimSizes_ = readIntArray( buf , off, rNumDims_ );
+    public GlobalDescriptorRecord( RecordPlan plan ) {
+        super( plan, RECORD_TYPE );
+        Buf buf = plan.getBuf();
+        Pointer ptr = new Pointer( plan.getContentOffset() );
+        rVdrHead_ = buf.readLong( ptr );
+        zVdrHead_ = buf.readLong( ptr );
+        adrHead_ = buf.readLong( ptr );
+        eof_ = buf.readLong( ptr );
+        nrVars_ = buf.readInt( ptr );
+        numAttr_ = buf.readInt( ptr );
+        rMaxRec_ = buf.readInt( ptr );
+        rNumDims_ = buf.readInt( ptr );
+        nzVars_ = buf.readInt( ptr );
+        uirHead_ = buf.readLong( ptr );
+        rfuC_ = checkIntValue( buf.readInt( ptr ), 0 );
+        rfuD_ = checkIntValue( buf.readInt( ptr ), -1 );
+        rfuE_ = checkIntValue( buf.readInt( ptr ), -1 );
+        rDimSizes_ = readIntArray( buf , ptr, rNumDims_ );
     }
 }

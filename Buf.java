@@ -5,12 +5,12 @@ public interface Buf {
     /**
      * Reads a signed 4-byte integer, big-endian byte ordering.
      */
-    int readInt( Offset offset );
+    int readInt( Pointer ptr );
 
     /**
      * Reads a signed 8-byte integer, big-endian byte ordering.
      */
-    long readLong( Offset offset );
+    long readLong( Pointer ptr );
 
     /**
      * Reads a fixed number of bytes interpreting them as ASCII characters
@@ -19,5 +19,5 @@ public interface Buf {
      *
      * <p>Requirements as per CDF Descriptor Record Copyright field.
      */
-    String readAsciiString( Offset offset, int nbyte );
+    String readAsciiString( Pointer ptr, int nbyte );
 }
