@@ -1,28 +1,46 @@
 package cdf;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
 public abstract class Record {
 
     private final RecordPlan plan_;
-    private final Logger logger_ = Logger.getLogger( Record.class.getName() );
+    private static final Logger logger_ =
+        Logger.getLogger( Record.class.getName() );
 
     protected Record( RecordPlan plan ) {
-        plan_ = plan;
+        this( plan, null );
     }
 
     protected Record( RecordPlan plan, int fixedType ) {
-        this( plan );
-        int planType = plan.getRecordType();
-        if ( planType != fixedType ) {
-            throw new IllegalArgumentException( "Incorrect record type ("
-                                              + planType + " != " + fixedType );
+        this( plan, new int[] { fixedType } );
+    }
+
+    protected Record( RecordPlan plan, int[] fixedTypes ) {
+        plan_ = plan;
+        if ( fixedTypes != null ) {
+            int planType = plan.getRecordType();
+            if ( ! containsValue( fixedTypes, planType ) ) {
+                StringBuffer msgBuf = new StringBuffer()
+                    .append( "Incorrect record type (" )
+                    .append( planType );
+                if ( fixedTypes.length == 1 ) {
+                    msgBuf.append( " != " )
+                          .append( fixedTypes[ 0 ] );
+                }
+                else {
+                    msgBuf.append( " not in " )
+                          .append( Arrays.toString( fixedTypes ) );
+                }
+                throw new IllegalArgumentException( msgBuf.toString() );
+            }
         }
     }
 
-    protected int checkIntValue( int actualValue, int fixedValue ) {
+    public static int checkIntValue( int actualValue, int fixedValue ) {
         if ( actualValue != fixedValue ) {
             String warning = "Unexpected fixed value " + actualValue + " != "
                            + fixedValue;
@@ -70,5 +88,14 @@ public abstract class Record {
             lines.add( sbuf.toString() );
         }
         return lines.toArray( new String[ 0 ] );
+    }
+
+    private static boolean containsValue( int[] haystack, int needle ) {
+        for ( int i = 0; i < haystack.length; i++ ) {
+            if ( needle == haystack[ i ] ) {
+                return true;
+            }
+        }
+        return false;
     }
 }

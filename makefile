@@ -2,11 +2,13 @@
 JAVAC = javac
 JAVA = java
 JAR = jar
+JAVADOC = javadoc
 
 JARFILE = cdf.jar
 
 JSRC = \
        AttributeDescriptorRecord.java \
+       AttributeEntryDescriptorRecord.java \
        Buf.java \
        CdfDescriptorRecord.java \
        GlobalDescriptorRecord.java \
@@ -17,10 +19,15 @@ JSRC = \
 
 jar: $(JARFILE)
 
+docs: $(JSRC)
+	rm -rf docs
+	mkdir docs
+	$(JAVADOC) -quiet -d docs $(JSRC)
+
 build: $(JARFILE)
 
 clean:
-	rm -rf $(JARFILE) tmp
+	rm -rf $(JARFILE) tmp docs
 
 $(JARFILE): $(JSRC)
 	rm -rf tmp
