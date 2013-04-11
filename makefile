@@ -24,7 +24,7 @@ docs: $(JSRC)
 	mkdir docs
 	$(JAVADOC) -quiet -d docs $(JSRC)
 
-build: $(JARFILE)
+build: jar docs
 
 clean:
 	rm -rf $(JARFILE) tmp docs

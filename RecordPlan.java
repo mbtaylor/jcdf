@@ -14,15 +14,19 @@ public class RecordPlan {
         buf_ = buf;
     }
 
+    public long getRecordSize() {
+        return recSize_;
+    }
+
+    public int getRecordType() {
+        return recType_;
+    }
+
     public Buf getBuf() {
         return buf_;
     }
 
     public long getContentOffset() {
         return start_ + 12;
-    }
-
-    public int getRecordType() {
-        return recType_;
     }
 }

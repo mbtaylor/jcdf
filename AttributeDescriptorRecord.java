@@ -2,7 +2,7 @@ package cdf;
 
 public class AttributeDescriptorRecord extends Record {
 
-    public static int RECORD_TYPE = 4;
+    public static final int RECORD_TYPE = 4;
 
     private final long aedrNext_;
     private final long agrEdrHead_;

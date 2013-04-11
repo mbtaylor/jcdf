@@ -22,6 +22,14 @@ public abstract class Record {
         }
     }
 
+    public long getRecordSize() {
+        return plan_.getRecordSize();
+    }
+
+    public int getRecordType() {
+        return plan_.getRecordType();
+    }
+
     protected int checkIntValue( int actualValue, int fixedValue ) {
         if ( actualValue != fixedValue ) {
             String warning = "Unexpected fixed value " + actualValue + " != "
