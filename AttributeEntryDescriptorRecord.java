@@ -2,8 +2,6 @@ package cdf;
 
 public abstract class AttributeEntryDescriptorRecord extends Record {
 
-    public static final int[] RECORD_TYPES = { 5, 9 };
-
     private final long aedrNext_;
     private final int attrNum_;
     private final int dataType_;
@@ -16,8 +14,8 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
     private final int rfuE_;
     private final long valueOffset_;
 
-    public AttributeEntryDescriptorRecord( RecordPlan plan ) {
-        super( plan, RECORD_TYPES );
+    private AttributeEntryDescriptorRecord( RecordPlan plan, int recordType ) {
+        super( plan, recordType );
         Buf buf = plan.getBuf();
         Pointer ptr = new Pointer( plan.getContentOffset() );
         aedrNext_ = buf.readLong( ptr );
@@ -34,4 +32,20 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
     }
 
     public abstract Object readValue();
+
+    public static abstract class GrVariant
+                                 extends AttributeEntryDescriptorRecord {
+        public static final int RECORD_TYPE = 5;
+        public GrVariant( RecordPlan plan ) {
+            super( plan, RECORD_TYPE );
+        }
+    }
+
+    public static abstract class ZVariant
+                                 extends AttributeEntryDescriptorRecord {
+        public static final int RECORD_TYPE = 9;
+        public ZVariant( RecordPlan plan ) {
+            super( plan, RECORD_TYPE );
+        }
+    }
 }
