@@ -71,6 +71,18 @@ public abstract class Record {
     }
 
     /**
+     * Reads a moderately-sized long array.
+     * If it's bulk data, we should use a different method.
+     */
+    public static long[] readLongArray( Buf buf, Pointer ptr, int count ) {
+        long[] array = new long[ count ];
+        for ( int i = 0; i < count; i++ ) {
+            array[ i ] = buf.readLong( ptr );
+        }
+        return array;
+    }
+
+    /**
      * Splits an ASCII string into 0x0A-terminated lines.
      * As per CdfDescriptorRecord copyright field.
      */

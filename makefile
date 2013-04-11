@@ -18,6 +18,7 @@ JSRC = \
        Record.java \
        RecordPlan.java \
        VariableDescriptorRecord.java \
+       VariableIndexRecord.java \
 
 jar: $(JARFILE)
 
