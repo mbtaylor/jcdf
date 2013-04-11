@@ -39,9 +39,11 @@ public abstract class Record {
     }
 
     protected void checkEndRecord( Pointer ptr ) {
-        if ( ptr.get() != getRecordSize() ) {
+        long readCount = plan_.getReadCount( ptr );
+        long recSize = getRecordSize();
+        if ( readCount != recSize ) {
             warnFormat( "Bytes read in record not equal to record size ("
-                      + ptr.get() + " != " + getRecordSize() + ")" );
+                      + readCount + " != " + recSize + ")" );
         }
     }
 
@@ -51,7 +53,7 @@ public abstract class Record {
         return null;
     }
 
-    private void warnFormat( String msg ) {
+    protected void warnFormat( String msg ) {
         assert false : msg;
         logger_.warning( msg );
     }

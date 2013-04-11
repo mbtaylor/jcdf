@@ -29,4 +29,8 @@ public class RecordPlan {
     public long getContentOffset() {
         return start_ + 12;
     }
+
+    public long getReadCount( Pointer ptr ) {
+        return ptr.get() - start_;
+    }
 }
