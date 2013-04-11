@@ -11,6 +11,7 @@ JSRC = \
        AttributeEntryDescriptorRecord.java \
        Buf.java \
        CdfDescriptorRecord.java \
+       DataType.java \
        GlobalDescriptorRecord.java \
        NioBuf.java \
        Pointer.java \

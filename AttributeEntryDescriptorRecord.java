@@ -4,7 +4,7 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
 
     private final long aedrNext_;
     private final int attrNum_;
-    private final int dataType_;
+    private final DataType dataType_;
     private final int num_;
     private final int numElems_;
     private final int rfuA_;
@@ -20,7 +20,7 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
         Pointer ptr = new Pointer( plan.getContentOffset() );
         aedrNext_ = buf.readLong( ptr );
         attrNum_ = buf.readInt( ptr );
-        dataType_ = buf.readInt( ptr );
+        dataType_ = getDataType( buf.readInt( ptr ) );
         num_ = buf.readInt( ptr );
         numElems_ = buf.readInt( ptr );
         rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );

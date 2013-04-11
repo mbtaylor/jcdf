@@ -45,6 +45,12 @@ public abstract class Record {
         }
     }
 
+    protected DataType getDataType( int itype ) {
+
+        // Dummy implementation, need to actually write this.
+        return null;
+    }
+
     private void warnFormat( String msg ) {
         assert false : msg;
         logger_.warning( msg );
@@ -88,5 +94,9 @@ public abstract class Record {
             lines.add( sbuf.toString() );
         }
         return lines.toArray( new String[ 0 ] );
+    }
+
+    public static boolean hasBit( int flags, int ibit ) {
+        return ( flags >> ibit ) % 2 == 1;
     }
 }
