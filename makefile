@@ -17,6 +17,7 @@ JSRC = \
        Pointer.java \
        Record.java \
        RecordPlan.java \
+       VariableDescriptorRecord.java \
 
 jar: $(JARFILE)
 
