@@ -33,5 +33,6 @@ public class AttributeDescriptorRecord extends Record {
         maxzEntry_ = buf.readInt( ptr );
         rfuE_ = checkIntValue( buf.readInt( ptr ), -1 );
         name_ = buf.readAsciiString( ptr, 256 );
+        checkEndRecord( ptr );
     }
 }

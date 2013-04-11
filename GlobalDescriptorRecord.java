@@ -37,5 +37,6 @@ public class GlobalDescriptorRecord extends Record {
         rfuD_ = checkIntValue( buf.readInt( ptr ), -1 );
         rfuE_ = checkIntValue( buf.readInt( ptr ), -1 );
         rDimSizes_ = readIntArray( buf , ptr, rNumDims_ );
+        checkEndRecord( ptr );
     }
 }

@@ -32,12 +32,22 @@ public abstract class Record {
 
     protected int checkIntValue( int actualValue, int fixedValue ) {
         if ( actualValue != fixedValue ) {
-            String warning = "Unexpected fixed value " + actualValue + " != "
-                           + fixedValue;
-            assert false : warning;
-            logger_.warning( warning );
+            warnFormat( "Unexpected fixed value " + actualValue + " != "
+                       + fixedValue );
         }
         return actualValue;
+    }
+
+    protected void checkEndRecord( Pointer ptr ) {
+        if ( ptr.get() != getRecordSize() ) {
+            warnFormat( "Bytes read in record not equal to record size ("
+                      + ptr.get() + " != " + getRecordSize() + ")" );
+        }
+    }
+
+    private void warnFormat( String msg ) {
+        assert false : msg;
+        logger_.warning( msg );
     }
 
     /**

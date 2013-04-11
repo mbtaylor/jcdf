@@ -32,6 +32,7 @@ public class CdfDescriptorRecord extends Record {
         rfuE_ = checkIntValue( buf.readInt( ptr ), -1 );
         int crLeng = versionAtLeast( 2, 5 ) ? 256 : 1945;
         copyright_ = toLines( buf.readAsciiString( ptr, crLeng ) );
+        checkEndRecord( ptr );
     }
 
     public boolean versionAtLeast( int targetVersion, int targetRelease ) {
