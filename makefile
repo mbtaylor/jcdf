@@ -11,14 +11,20 @@ JSRC = \
        AttributeEntryDescriptorRecord.java \
        Buf.java \
        CdfDescriptorRecord.java \
+       CompressedCdfRecord.java \
+       CompressedParametersRecord.java \
+       CompressedVariableValuesRecord.java \
        DataType.java \
        GlobalDescriptorRecord.java \
        NioBuf.java \
        Pointer.java \
        Record.java \
        RecordPlan.java \
+       SparsenessParametersRecord.java \
+       UnusedInternalRecord.java \
        VariableDescriptorRecord.java \
        VariableIndexRecord.java \
+       VariableValuesRecord.java \
 
 jar: $(JARFILE)
 
