@@ -26,8 +26,8 @@ public class RecordPlan {
         return buf_;
     }
 
-    public long getContentOffset() {
-        return start_ + 12;
+    public Pointer createContentPointer() {
+        return new Pointer( start_ + 12 );
     }
 
     public long getReadCount( Pointer ptr ) {

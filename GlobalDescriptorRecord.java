@@ -22,7 +22,7 @@ public class GlobalDescriptorRecord extends Record {
     public GlobalDescriptorRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );
         Buf buf = plan.getBuf();
-        Pointer ptr = new Pointer( plan.getContentOffset() );
+        Pointer ptr = plan.createContentPointer();
         rVdrHead_ = buf.readLong( ptr );
         zVdrHead_ = buf.readLong( ptr );
         adrHead_ = buf.readLong( ptr );

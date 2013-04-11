@@ -20,7 +20,7 @@ public class AttributeDescriptorRecord extends Record {
     public AttributeDescriptorRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );
         Buf buf = plan.getBuf();
-        Pointer ptr = new Pointer( plan.getContentOffset() );
+        Pointer ptr = plan.createContentPointer();
         aedrNext_ = buf.readLong( ptr );
         agrEdrHead_ = buf.readLong( ptr );
         scope_ = buf.readInt( ptr );

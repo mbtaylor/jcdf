@@ -12,7 +12,7 @@ public class CompressedCdfRecord extends Record {
     public CompressedCdfRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );
         Buf buf = plan.getBuf();
-        Pointer ptr = new Pointer( plan.getContentOffset() );
+        Pointer ptr = plan.createContentPointer();
         cprOffset_ = buf.readLong( ptr );
         uSize_ = buf.readLong( ptr );
         rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );

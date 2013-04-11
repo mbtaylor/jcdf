@@ -26,7 +26,7 @@ public abstract class VariableDescriptorRecord extends Record {
                                       boolean hasDims ) {
         super( plan, recordType );
         Buf buf = plan.getBuf();
-        Pointer ptr = new Pointer( plan.getContentOffset() );
+        Pointer ptr = plan.createContentPointer();
         vdrNext_ = buf.readLong( ptr );
         dataType_ = getDataType( buf.readInt( ptr ) );
         maxRec_ = buf.readInt( ptr );

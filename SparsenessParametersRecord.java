@@ -12,7 +12,7 @@ public class SparsenessParametersRecord extends Record {
     public SparsenessParametersRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );
         Buf buf = plan.getBuf();
-        Pointer ptr = new Pointer( plan.getContentOffset() );
+        Pointer ptr = plan.createContentPointer();
         sArraysType_ = buf.readInt( ptr );
         rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
         pCount_ = buf.readInt( ptr );

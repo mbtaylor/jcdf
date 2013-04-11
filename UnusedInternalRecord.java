@@ -14,7 +14,7 @@ public class UnusedInternalRecord extends Record {
         // next/prev link offsets here, since they might not exist,
         // and might even if very unlucky cause an error by attempting
         // to read off the end of the file.  Just record their positions.
-        Pointer ptr = new Pointer( plan.getContentOffset() );
+        Pointer ptr = plan.createContentPointer();
         nextUirOffset_ = ptr.getAndIncrement( 8 );
         prevUirOffset_ = ptr.getAndIncrement( 8 );
     }

@@ -11,7 +11,7 @@ public class CompressedVariableValuesRecord extends Record {
     public CompressedVariableValuesRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );
         Buf buf = plan.getBuf();
-        Pointer ptr = new Pointer( plan.getContentOffset() );
+        Pointer ptr = plan.createContentPointer();
         rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
         cSize_ = buf.readLong( ptr );
         dataOffset_ = ptr.get();
