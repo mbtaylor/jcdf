@@ -19,6 +19,7 @@ JSRC = \
        NioBuf.java \
        Pointer.java \
        Record.java \
+       RecordFactory.java \
        RecordPlan.java \
        SparsenessParametersRecord.java \
        UnusedInternalRecord.java \
