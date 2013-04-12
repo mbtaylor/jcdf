@@ -16,7 +16,7 @@ public class RecordFactory {
 
     public Record createRecord( Buf buf, long offset ) {
         Pointer ptr = new Pointer( offset );
-        long recSize = buf.readLong( ptr );
+        long recSize = buf.readOffset( ptr );
         int recType = buf.readInt( ptr );
         RecordPlan plan = new RecordPlan( offset, recSize, recType, buf );
         TypedRecordFactory tfact = factoryMap_.get( recType );

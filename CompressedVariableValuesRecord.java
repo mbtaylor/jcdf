@@ -13,7 +13,7 @@ public class CompressedVariableValuesRecord extends Record {
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
-        cSize_ = buf.readLong( ptr );
+        cSize_ = buf.readOffset( ptr );
         dataOffset_ = ptr.get();
     }
 }

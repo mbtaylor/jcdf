@@ -15,7 +15,7 @@ public class NioBuf implements Buf {
         return byteBuf_.getInt( toInt( ptr.getAndIncrement( 4 ) ) );
     }
 
-    public long readLong( Pointer ptr ) {
+    public long readOffset( Pointer ptr ) {
         return byteBuf_.getLong( toInt( ptr.getAndIncrement( 8 ) ) );
     }
 

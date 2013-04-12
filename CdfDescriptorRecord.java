@@ -20,7 +20,7 @@ public class CdfDescriptorRecord extends Record {
         super( plan, RECORD_TYPE );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        gdrOffset_ = buf.readLong( ptr );
+        gdrOffset_ = buf.readOffset( ptr );
         version_ = buf.readInt( ptr );
         release_ = buf.readInt( ptr );
         encoding_ = buf.readInt( ptr );

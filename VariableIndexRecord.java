@@ -20,7 +20,7 @@ public class VariableIndexRecord extends Record {
         nUsedEntries_ = buf.readInt( ptr );
         first_ = readIntArray( buf, ptr, nEntries_ );
         last_ = readIntArray( buf, ptr, nEntries_ );
-        offset_ = readLongArray( buf, ptr, nEntries_ );
+        offset_ = readOffsetArray( buf, ptr, nEntries_ );
         checkEndRecord( ptr );
     }
 }

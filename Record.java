@@ -71,13 +71,13 @@ public abstract class Record {
     }
 
     /**
-     * Reads a moderately-sized long array.
+     * Reads a moderately-sized offset array.
      * If it's bulk data, we should use a different method.
      */
-    public static long[] readLongArray( Buf buf, Pointer ptr, int count ) {
+    public static long[] readOffsetArray( Buf buf, Pointer ptr, int count ) {
         long[] array = new long[ count ];
         for ( int i = 0; i < count; i++ ) {
-            array[ i ] = buf.readLong( ptr );
+            array[ i ] = buf.readOffset( ptr );
         }
         return array;
     }

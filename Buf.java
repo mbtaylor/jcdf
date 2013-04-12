@@ -8,9 +8,10 @@ public interface Buf {
     int readInt( Pointer ptr );
 
     /**
-     * Reads a signed 8-byte integer, big-endian byte ordering.
+     * Reads a file offset or size.
+     * For CDF V3 this is a signed 8-byte integer, big-endian byte ordering.
      */
-    long readLong( Pointer ptr );
+    long readOffset( Pointer ptr );
 
     /**
      * Reads a fixed number of bytes interpreting them as ASCII characters

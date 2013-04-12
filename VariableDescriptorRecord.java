@@ -27,11 +27,11 @@ public abstract class VariableDescriptorRecord extends Record {
         super( plan, recordType );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        vdrNext_ = buf.readLong( ptr );
+        vdrNext_ = buf.readOffset( ptr );
         dataType_ = getDataType( buf.readInt( ptr ) );
         maxRec_ = buf.readInt( ptr );
-        vxrHead_ = buf.readLong( ptr );
-        vxrTail_ = buf.readLong( ptr );
+        vxrHead_ = buf.readOffset( ptr );
+        vxrTail_ = buf.readOffset( ptr );
         flags_ = buf.readInt( ptr );
         sRecords_ = buf.readInt( ptr );
         rfuB_ = checkIntValue( buf.readInt( ptr ), 0 );
@@ -39,7 +39,7 @@ public abstract class VariableDescriptorRecord extends Record {
         rfuF_ = checkIntValue( buf.readInt( ptr ), -1 );
         numElems_ = buf.readInt( ptr );
         num_ = buf.readInt( ptr );
-        cprOrSprOffset_ = buf.readLong( ptr );
+        cprOrSprOffset_ = buf.readOffset( ptr );
         blockingFactor_ = buf.readInt( ptr );
         name_ = buf.readAsciiString( ptr, 256 );
         if ( hasDims ) {

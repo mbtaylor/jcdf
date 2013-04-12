@@ -18,7 +18,7 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
         super( plan, recordType );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        aedrNext_ = buf.readLong( ptr );
+        aedrNext_ = buf.readOffset( ptr );
         attrNum_ = buf.readInt( ptr );
         dataType_ = getDataType( buf.readInt( ptr ) );
         num_ = buf.readInt( ptr );
