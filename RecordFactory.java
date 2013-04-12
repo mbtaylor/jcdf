@@ -14,13 +14,38 @@ public class RecordFactory {
     private static final Map<Integer,TypedRecordFactory> factoryMap_ =
         createFactoryMap();
 
-    public Record createRecord( Buf buf, long offset ) {
+    public static Record createRecord( Buf buf, long offset ) {
         Pointer ptr = new Pointer( offset );
         long recSize = buf.readOffset( ptr );
         int recType = buf.readInt( ptr );
         RecordPlan plan = new RecordPlan( offset, recSize, recType, buf );
         TypedRecordFactory tfact = factoryMap_.get( recType );
-        return tfact.createRecord( plan );
+        if ( tfact == null ) {
+            throw new CdfFormatException( "Unknown record type " + recType );
+        }
+        else {
+            return tfact.createRecord( plan );
+        }
+    }
+
+    public static <R extends Record> R createRecord( Buf buf, long offset,
+                                                     Class<R> clazz ) {
+        Record rec = createRecord( buf, offset );
+        if ( clazz.isInstance( rec ) ) {
+            return clazz.cast( rec );
+        }
+        else {
+            String msg = new StringBuffer()
+                .append( "Unexpected record type at " )
+                .append( "0x" )
+                .append( Long.toHexString( offset ) )
+                .append( "; got " )
+                .append( rec.getClass().getName() )
+                .append( " not " )
+                .append( clazz.getName() )
+                .toString();
+            throw new CdfFormatException( msg );
+        }
     }
 
     private static Map<Integer,TypedRecordFactory> createFactoryMap() {

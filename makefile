@@ -11,6 +11,7 @@ JSRC = \
        AttributeEntryDescriptorRecord.java \
        Buf.java \
        CdfDescriptorRecord.java \
+       CdfFormatException.java \
        CompressedCdfRecord.java \
        CompressedParametersRecord.java \
        CompressedVariableValuesRecord.java \
