@@ -72,7 +72,8 @@ public abstract class VariableDescriptorRecord extends Record {
             ndim = ( (int) spareBytes ) / 4;
         }
         dimVarys_ = readIntArray( buf, ptr, ndim );
-        padValue_ = hasPad ? dataType_.readPadValue( buf, ptr ) : null;
+        padValue_ = hasPad ? dataType_.readPadValue( buf, ptr, numElems_ )
+                           : null;
         checkEndRecord( ptr );
     }
 
