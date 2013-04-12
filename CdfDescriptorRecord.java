@@ -4,17 +4,17 @@ public class CdfDescriptorRecord extends Record {
 
     public static final int RECORD_TYPE = 1;
 
-    private final long gdrOffset_;
-    private final int version_;
-    private final int release_;
-    private final int encoding_;
-    private final int flags_;
-    private final int rfuA_;
-    private final int rfuB_;
-    private final int increment_;
-    private final int rfuD_;
-    private final int rfuE_;
-    private final String[] copyright_;
+    public final long gdrOffset_;
+    public final int version_;
+    public final int release_;
+    public final int encoding_;
+    public final int flags_;
+    public final int rfuA_;
+    public final int rfuB_;
+    public final int increment_;
+    public final int rfuD_;
+    public final int rfuE_;
+    public final String[] copyright_;
 
     public CdfDescriptorRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );

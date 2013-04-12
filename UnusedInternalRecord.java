@@ -4,8 +4,8 @@ public class UnusedInternalRecord extends Record {
 
     public static final int RECORD_TYPE = -1;
 
-    private final long nextUirOffset_;
-    private final long prevUirOffset_;
+    public final long nextUirOffset_;
+    public final long prevUirOffset_;
 
     public UnusedInternalRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );

@@ -4,18 +4,18 @@ public class AttributeDescriptorRecord extends Record {
 
     public static final int RECORD_TYPE = 4;
 
-    private final long aedrNext_;
-    private final long agrEdrHead_;
-    private final int scope_;
-    private final int num_;
-    private final int ngrEntries_;
-    private final int maxGrEntry_;
-    private final int rfuA_;
-    private final long azEdrHead_;
-    private final int nzEntries_;
-    private final int maxzEntry_;
-    private final int rfuE_;
-    private final String name_;
+    public final long aedrNext_;
+    public final long agrEdrHead_;
+    public final int scope_;
+    public final int num_;
+    public final int ngrEntries_;
+    public final int maxGrEntry_;
+    public final int rfuA_;
+    public final long azEdrHead_;
+    public final int nzEntries_;
+    public final int maxzEntry_;
+    public final int rfuE_;
+    public final String name_;
 
     public AttributeDescriptorRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );

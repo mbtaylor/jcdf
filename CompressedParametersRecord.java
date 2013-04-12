@@ -4,10 +4,10 @@ public class CompressedParametersRecord extends Record {
 
     public static final int RECORD_TYPE = 11;
 
-    private final int cType_;
-    private final int rfuA_;
-    private final int pCount_;
-    private final int[] cParms_;
+    public final int cType_;
+    public final int rfuA_;
+    public final int pCount_;
+    public final int[] cParms_;
 
     public CompressedParametersRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );

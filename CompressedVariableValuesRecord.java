@@ -4,8 +4,8 @@ public class CompressedVariableValuesRecord extends Record {
 
     public static final int RECORD_TYPE = 13;
 
-    private final int rfuA_;
-    private final long cSize_;
+    public final int rfuA_;
+    public final long cSize_;
     private final long dataOffset_;
 
     public CompressedVariableValuesRecord( RecordPlan plan ) {

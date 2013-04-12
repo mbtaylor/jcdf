@@ -4,20 +4,20 @@ public class GlobalDescriptorRecord extends Record {
 
     public static final int RECORD_TYPE = 2;
 
-    private final long rVdrHead_;
-    private final long zVdrHead_;
-    private final long adrHead_;
-    private final long eof_;
-    private final int nrVars_;
-    private final int numAttr_;
-    private final int rMaxRec_;
-    private final int rNumDims_;
-    private final int nzVars_;
-    private final long uirHead_;
-    private final int rfuC_;
-    private final int rfuD_;
-    private final int rfuE_;
-    private final int[] rDimSizes_;
+    public final long rVdrHead_;
+    public final long zVdrHead_;
+    public final long adrHead_;
+    public final long eof_;
+    public final int nrVars_;
+    public final int numAttr_;
+    public final int rMaxRec_;
+    public final int rNumDims_;
+    public final int nzVars_;
+    public final long uirHead_;
+    public final int rfuC_;
+    public final int rfuD_;
+    public final int rfuE_;
+    public final int[] rDimSizes_;
 
     public GlobalDescriptorRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );

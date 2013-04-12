@@ -4,10 +4,10 @@ public class SparsenessParametersRecord extends Record {
 
     public static final int RECORD_TYPE = 12;
 
-    private final int sArraysType_;
-    private final int rfuA_;
-    private final int pCount_;
-    private final int[] sArraysParms_;
+    public final int sArraysType_;
+    public final int rfuA_;
+    public final int pCount_;
+    public final int[] sArraysParms_;
 
     public SparsenessParametersRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );

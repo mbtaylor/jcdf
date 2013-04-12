@@ -2,25 +2,26 @@ package cdf;
 
 public abstract class VariableDescriptorRecord extends Record {
 
-    private final long vdrNext_;
-    private final DataType dataType_;
-    private final int maxRec_;
-    private final long vxrHead_;
-    private final long vxrTail_;
-    private final int flags_;
-    private final int sRecords_;
-    private final int rfuB_;
-    private final int rfuC_;
-    private final int rfuF_;
-    private final int numElems_;
-    private final int num_;
-    private final long cprOrSprOffset_;
-    private final int blockingFactor_;
-    private final String name_;
-    private final int zNumDims_;
-    private final int[] zDimSizes_;
-    private final int[] dimVarys_;
+    public final long vdrNext_;
+    public final int dataType_;
+    public final int maxRec_;
+    public final long vxrHead_;
+    public final long vxrTail_;
+    public final int flags_;
+    public final int sRecords_;
+    public final int rfuB_;
+    public final int rfuC_;
+    public final int rfuF_;
+    public final int numElems_;
+    public final int num_;
+    public final long cprOrSprOffset_;
+    public final int blockingFactor_;
+    public final String name_;
+    public final int zNumDims_;
+    public final int[] zDimSizes_;
+    public final int[] dimVarys_;
     private final Object padValue_;
+    private final DataType dtype_;
 
     private VariableDescriptorRecord( RecordPlan plan, int recordType,
                                       boolean hasDims ) {
@@ -28,7 +29,7 @@ public abstract class VariableDescriptorRecord extends Record {
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         vdrNext_ = buf.readOffset( ptr );
-        dataType_ = getDataType( buf.readInt( ptr ) );
+        dataType_ = buf.readInt( ptr );
         maxRec_ = buf.readInt( ptr );
         vxrHead_ = buf.readOffset( ptr );
         vxrTail_ = buf.readOffset( ptr );
@@ -51,7 +52,8 @@ public abstract class VariableDescriptorRecord extends Record {
             zDimSizes_ = null;
         }
         boolean hasPad = hasBit( flags_, 1 );
-        int padSize = hasPad ? dataType_.getElementSize() : 0;
+        dtype_ = getDataType( dataType_ );
+        int padSize = hasPad ? dtype_.getElementSize() : 0;
         final int ndim;
         if ( hasDims ) {
             ndim = zNumDims_;
@@ -63,7 +65,7 @@ public abstract class VariableDescriptorRecord extends Record {
             // The more direct way would be by using the zNumDims field of
             // the GDR, but we don't have access to that here.
             long runningCount = plan.getReadCount( ptr );
-            int padBytes = hasPad ? dataType_.getElementSize() : 0;
+            int padBytes = hasPad ? dtype_.getElementSize() : 0;
             long spareBytes = getRecordSize() - runningCount - padBytes;
             assert spareBytes == (int) spareBytes;
             if ( spareBytes % 4 != 0 ) {
@@ -72,7 +74,7 @@ public abstract class VariableDescriptorRecord extends Record {
             ndim = ( (int) spareBytes ) / 4;
         }
         dimVarys_ = readIntArray( buf, ptr, ndim );
-        padValue_ = hasPad ? dataType_.readPadValue( buf, ptr, numElems_ )
+        padValue_ = hasPad ? dtype_.readPadValue( buf, ptr, numElems_ )
                            : null;
         checkEndRecord( ptr );
     }

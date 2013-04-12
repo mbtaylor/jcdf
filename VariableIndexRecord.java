@@ -4,12 +4,12 @@ public class VariableIndexRecord extends Record {
 
     public static final int RECORD_TYPE = 6;
 
-    private final long vxrNext_;
-    private final int nEntries_;
-    private final int nUsedEntries_;
-    private final int[] first_;
-    private final int[] last_;
-    private final long[] offset_;
+    public final long vxrNext_;
+    public final int nEntries_;
+    public final int nUsedEntries_;
+    public final int[] first_;
+    public final int[] last_;
+    public final long[] offset_;
 
     public VariableIndexRecord( RecordPlan plan ) {
         super( plan, RECORD_TYPE );

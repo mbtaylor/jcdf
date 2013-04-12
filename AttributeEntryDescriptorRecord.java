@@ -2,16 +2,16 @@ package cdf;
 
 public abstract class AttributeEntryDescriptorRecord extends Record {
 
-    private final long aedrNext_;
-    private final int attrNum_;
-    private final DataType dataType_;
-    private final int num_;
-    private final int numElems_;
-    private final int rfuA_;
-    private final int rfuB_;
-    private final int rfuC_;
-    private final int rfuD_;
-    private final int rfuE_;
+    public final long aedrNext_;
+    public final int attrNum_;
+    public final int dataType_;
+    public final int num_;
+    public final int numElems_;
+    public final int rfuA_;
+    public final int rfuB_;
+    public final int rfuC_;
+    public final int rfuD_;
+    public final int rfuE_;
     private final long valueOffset_;
 
     private AttributeEntryDescriptorRecord( RecordPlan plan, int recordType ) {
@@ -20,7 +20,7 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
         Pointer ptr = plan.createContentPointer();
         aedrNext_ = buf.readOffset( ptr );
         attrNum_ = buf.readInt( ptr );
-        dataType_ = getDataType( buf.readInt( ptr ) );
+        dataType_ = buf.readInt( ptr );
         num_ = buf.readInt( ptr );
         numElems_ = buf.readInt( ptr );
         rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
