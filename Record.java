@@ -30,6 +30,14 @@ public abstract class Record {
         return plan_.getRecordType();
     }
 
+    public Buf getBuf() {
+        return plan_.getBuf();
+    }
+
+    public long getContentOffset() {
+        return plan_.createContentPointer().get();
+    }
+
     protected int checkIntValue( int actualValue, int fixedValue ) {
         if ( actualValue != fixedValue ) {
             warnFormat( "Unexpected fixed value " + actualValue + " != "

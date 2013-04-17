@@ -20,8 +20,7 @@ public abstract class VariableDescriptorRecord extends Record {
     public final int zNumDims_;
     public final int[] zDimSizes_;
     public final int[] dimVarys_;
-    private final Object padValue_;
-    private final DataType dtype_;
+    private final long padOffset_;
 
     private VariableDescriptorRecord( RecordPlan plan, int recordType,
                                       boolean hasDims ) {
@@ -52,8 +51,6 @@ public abstract class VariableDescriptorRecord extends Record {
             zDimSizes_ = null;
         }
         boolean hasPad = hasBit( flags_, 1 );
-        dtype_ = getDataType( dataType_ );
-        int padSize = hasPad ? dtype_.getElementSize() : 0;
         final int ndim;
         if ( hasDims ) {
             ndim = zNumDims_;
@@ -62,10 +59,13 @@ public abstract class VariableDescriptorRecord extends Record {
 
             // Work out the number of dimensions of an rVariable by subtracting
             // the values of all the other fields from the record size.
-            // The more direct way would be by using the zNumDims field of
+            // The more direct way would be by using the rNumDims field of
             // the GDR, but we don't have access to that here.
             long runningCount = plan.getReadCount( ptr );
-            int padBytes = hasPad ? dtype_.getElementSize() : 0;
+            int padBytes =
+                hasPad ? DataReaderFactory.getElementSize( dataType_ )
+                         * numElems_
+                       : 0;
             long spareBytes = getRecordSize() - runningCount - padBytes;
             assert spareBytes == (int) spareBytes;
             if ( spareBytes % 4 != 0 ) {
@@ -74,9 +74,15 @@ public abstract class VariableDescriptorRecord extends Record {
             ndim = ( (int) spareBytes ) / 4;
         }
         dimVarys_ = readIntArray( buf, ptr, ndim );
-        padValue_ = hasPad ? dtype_.readPadValue( buf, ptr, numElems_ )
-                           : null;
+        padOffset_ = hasPad ? ptr.get() : -1L;
         checkEndRecord( ptr );
+    }
+
+    /**
+     * Will be -1 if no pad.
+     */
+    public long getPadOffset() {
+        return padOffset_;
     }
 
     public static class RVariant extends VariableDescriptorRecord {

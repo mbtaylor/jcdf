@@ -31,18 +31,18 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
         valueOffset_ = ptr.get();
     }
 
-    public abstract Object readValue();
+    public long getValueOffset() {
+        return valueOffset_;
+    }
 
-    public static abstract class GrVariant
-                                 extends AttributeEntryDescriptorRecord {
+    public static class GrVariant extends AttributeEntryDescriptorRecord {
         public static final int RECORD_TYPE = 5;
         public GrVariant( RecordPlan plan ) {
             super( plan, RECORD_TYPE );
         }
     }
 
-    public static abstract class ZVariant
-                                 extends AttributeEntryDescriptorRecord {
+    public static class ZVariant extends AttributeEntryDescriptorRecord {
         public static final int RECORD_TYPE = 9;
         public ZVariant( RecordPlan plan ) {
             super( plan, RECORD_TYPE );

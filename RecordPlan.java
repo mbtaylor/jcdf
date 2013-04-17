@@ -27,7 +27,14 @@ public class RecordPlan {
     }
 
     public Pointer createContentPointer() {
-        return new Pointer( start_ + 12 );
+        Pointer ptr = new Pointer( start_ );
+
+        // This is slightly wasteful (reading rather than just calculating
+        // the offset), but it ensures that the content offset is correct -
+        // buf may read 4 or 8 bytes for the record size.
+        buf_.readOffset( ptr );  // record size
+        buf_.readInt( ptr );     // record type
+        return ptr;
     }
 
     public long getReadCount( Pointer ptr ) {
