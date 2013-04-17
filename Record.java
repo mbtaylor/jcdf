@@ -55,12 +55,6 @@ public abstract class Record {
         }
     }
 
-    protected DataType getDataType( int itype ) {
-
-        // Dummy implementation, need to actually write this.
-        return null;
-    }
-
     protected void warnFormat( String msg ) {
         assert false : msg;
         logger_.warning( msg );

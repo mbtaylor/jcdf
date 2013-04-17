@@ -15,7 +15,6 @@ JSRC = \
        CompressedCdfRecord.java \
        CompressedParametersRecord.java \
        CompressedVariableValuesRecord.java \
-       DataType.java \
        GlobalDescriptorRecord.java \
        NioBuf.java \
        Pointer.java \
