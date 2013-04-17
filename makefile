@@ -27,6 +27,18 @@ JSRC = \
        VariableDescriptorRecord.java \
        VariableIndexRecord.java \
        VariableValuesRecord.java \
+       \
+       CdfContent.java \
+       CdfInfo.java \
+       CdfReader.java \
+       DataReader.java \
+       DataReaderFactory.java \
+       Entry.java \
+       GlobalAttribute.java \
+       Variable.java \
+       VariableAttribute.java \
+       VdrVariable.java \
+       WrapperBuf.java \
 
 jar: $(JARFILE)
 
