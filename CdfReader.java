@@ -214,7 +214,7 @@ public class CdfReader {
         int dataType = aedr.dataType_;
         int encoding = info.getEncoding();
         int[] dimSizes = new int[ 0 ];
-        int[] dimVarys = new int[ 0 ];
+        boolean[] dimVarys = new boolean[ 0 ];
         boolean rowMajor = false;
         int numElems = aedr.numElems_;
         final DataReader dataReader =

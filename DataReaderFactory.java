@@ -3,7 +3,8 @@ package cdf;
 public class DataReaderFactory {
 
     public static DataReader createDataReader( int dataType, int encoding,
-                                               int[] dimSizes, int[] dimVarys,
+                                               int[] dimSizes,
+                                               boolean[] dimVarys,
                                                boolean rowMajor,
                                                int numElems ) {
   return null;

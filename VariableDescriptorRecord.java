@@ -19,7 +19,7 @@ public abstract class VariableDescriptorRecord extends Record {
     public final String name_;
     public final int zNumDims_;
     public final int[] zDimSizes_;
-    public final int[] dimVarys_;
+    public final boolean[] dimVarys_;
     private final long padOffset_;
 
     private VariableDescriptorRecord( RecordPlan plan, int recordType,
@@ -73,7 +73,11 @@ public abstract class VariableDescriptorRecord extends Record {
             }
             ndim = ( (int) spareBytes ) / 4;
         }
-        dimVarys_ = readIntArray( buf, ptr, ndim );
+        int[] iDimVarys = readIntArray( buf, ptr, ndim );
+        dimVarys_ = new boolean[ ndim ];
+        for ( int i = 0; i < ndim; i++ ) {
+            dimVarys_[ i ] = iDimVarys[ i ] != 0;
+        }
         padOffset_ = hasPad ? ptr.get() : -1L;
         checkEndRecord( ptr );
     }

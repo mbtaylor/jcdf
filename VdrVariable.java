@@ -23,7 +23,7 @@ class VdrVariable implements Variable {
         int dataType = vdr.dataType_;
         int encoding = info.getEncoding();
         int[] dimSizes = isZVariable_ ? vdr.zDimSizes_ : info.getRDimSizes();
-        int[] dimVarys = vdr.dimVarys_;
+        boolean[] dimVarys = vdr.dimVarys_;
         boolean rowMajor = info.getRowMajor();
         int numElems = vdr.numElems_;
         dataReader_ =
