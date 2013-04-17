@@ -222,8 +222,7 @@ public class CdfReader {
                                                 dimVarys, rowMajor, numElems );
 
         final Object value =
-            dataReader.readRawValue( aedr.getBuf(),
-                                     new Pointer( aedr.getValueOffset() ) );
+            dataReader.readRawValue( aedr.getBuf(), aedr.getValueOffset() );
         return new Entry() {
             public DataReader getDataReader() {
                 return dataReader;

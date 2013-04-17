@@ -33,13 +33,11 @@ class VdrVariable implements Variable {
         long padOffset = vdr.getPadOffset();
         if ( padOffset >= 0 ) {
             rawPadValue_ =
-                dataReader_.readRawValue( buf_, new Pointer( padOffset ) );
+                dataReader_.readRawValue( buf_, padOffset );
             shapedPadValueRowMajor_ =
-                dataReader_.readShapedValue( buf_, new Pointer( padOffset ),
-                                             true );
+                dataReader_.readShapedValue( buf_, padOffset, true );
             shapedPadValueColumnMajor_ =
-                dataReader_.readShapedValue( buf_, new Pointer( padOffset ),
-                                             false );
+                dataReader_.readShapedValue( buf_, padOffset, false );
         }
         else {
             rawPadValue_ = null;
@@ -145,8 +143,7 @@ class VdrVariable implements Variable {
             return ient >= 0
                  ? dataReader_
                   .readRawValue( recMap_.getBuf( ient ),
-                                 new Pointer( recMap_
-                                             .getOffset( ient, irec ) ) )
+                                 recMap_.getOffset( ient, irec ) )
                  : rawPadValue_;
         }
         public Object readShapedRecord( int irec, boolean rowMajor ) {
@@ -154,8 +151,7 @@ class VdrVariable implements Variable {
             return ient >= 0
                  ? dataReader_
                   .readShapedValue( recMap_.getBuf( ient ),
-                                    new Pointer( recMap_
-                                                .getOffset( ient, irec ) ),
+                                    recMap_.getOffset( ient, irec ),
                                     rowMajor )
                  : ( rowMajor ? shapedPadValueRowMajor_
                               : shapedPadValueColumnMajor_ );
@@ -175,8 +171,7 @@ class VdrVariable implements Variable {
             if ( ient >= 0 ) {
                 return dataReader_
                       .readRawValue( recMap_.getBuf( ient ),
-                                     new Pointer( recMap_
-                                                 .getOffset( ient, irec ) ) );
+                                     recMap_.getOffset( ient, irec ) );
             }
             else if ( ient == -1 ) {
                 return rawPadValue_;
@@ -185,8 +180,7 @@ class VdrVariable implements Variable {
                 int iPrevEnt = -ient - 2;
                 long offset = recMap_.getFinalOffsetInEntry( iPrevEnt );
                 return dataReader_
-                      .readRawValue( recMap_.getBuf( iPrevEnt ),
-                                     new Pointer( offset ) );
+                      .readRawValue( recMap_.getBuf( iPrevEnt ), offset );
             }
         }
         public Object readShapedRecord( int irec, boolean rowMajor ) {
@@ -194,8 +188,7 @@ class VdrVariable implements Variable {
             if ( ient >= 0 ) {
                 return dataReader_
                       .readShapedValue( recMap_.getBuf( ient ),
-                                        new Pointer( recMap_
-                                                    .getOffset( ient, irec ) ),
+                                        recMap_.getOffset( ient, irec ),
                                         rowMajor );
             }
             else if ( ient == -1 ) {
@@ -206,8 +199,8 @@ class VdrVariable implements Variable {
                 int iPrevEnt = -ient - 2;
                 long offset = recMap_.getFinalOffsetInEntry( iPrevEnt );
                 return dataReader_
-                      .readShapedValue( recMap_.getBuf( iPrevEnt ),
-                                        new Pointer( offset ), rowMajor );
+                      .readShapedValue( recMap_.getBuf( iPrevEnt ), offset,
+                                        rowMajor );
             }
         }
     }
