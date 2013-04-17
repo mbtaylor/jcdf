@@ -31,10 +31,12 @@ JSRC = \
        CdfContent.java \
        CdfInfo.java \
        CdfReader.java \
+       Compression.java \
        DataReader.java \
        DataReaderFactory.java \
        Entry.java \
        GlobalAttribute.java \
+       RecordMap.java \
        Variable.java \
        VariableAttribute.java \
        VdrVariable.java \

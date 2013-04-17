@@ -16,4 +16,8 @@ public class CompressedVariableValuesRecord extends Record {
         cSize_ = buf.readOffset( ptr );
         dataOffset_ = ptr.get();
     }
+
+    public long getDataOffset() {
+        return dataOffset_;
+    }
 }

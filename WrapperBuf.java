@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.InputStream;
+
 class WrapperBuf implements Buf {
 
     private final Buf base_;
@@ -18,5 +20,9 @@ class WrapperBuf implements Buf {
 
     public String readAsciiString( Pointer ptr, int nbyte ) {
         return base_.readAsciiString( ptr, nbyte );
+    }
+
+    public InputStream createInputStream( long offset ) {
+        return base_.createInputStream( offset );
     }
 }

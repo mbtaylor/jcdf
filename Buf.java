@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.InputStream;
+
 public interface Buf {
 
     /**
@@ -21,4 +23,6 @@ public interface Buf {
      * <p>Requirements as per CDF Descriptor Record Copyright field.
      */
     String readAsciiString( Pointer ptr, int nbyte );
+
+    InputStream createInputStream( long offset );
 }
