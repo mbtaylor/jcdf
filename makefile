@@ -36,6 +36,7 @@ JSRC = \
        Entry.java \
        GlobalAttribute.java \
        RecordMap.java \
+       Shaper.java \
        Variable.java \
        VariableAttribute.java \
        VdrVariable.java \

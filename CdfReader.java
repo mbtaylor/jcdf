@@ -213,16 +213,14 @@ public class CdfReader {
                                CdfInfo info ) {
         int dataType = aedr.dataType_;
         int encoding = info.getEncoding();
-        int[] dimSizes = new int[ 0 ];
-        boolean[] dimVarys = new boolean[ 0 ];
-        boolean rowMajor = false;
         int numElems = aedr.numElems_;
         final DataReader dataReader =
-            DataReaderFactory.createDataReader( dataType, encoding, dimSizes,
-                                                dimVarys, rowMajor, numElems );
-
-        final Object value =
-            dataReader.readRawValue( aedr.getBuf(), aedr.getValueOffset() );
+            DataReaderFactory
+           .createDataReader( dataType, encoding, numElems, 1 );
+        Object rawValue =
+            dataReader.readValue( aedr.getBuf(), aedr.getValueOffset() );
+        final Object value = new Shaper( new int[ 0 ], new boolean[ 0 ], true )
+                            .shape( rawValue, true );
         return new Entry() {
             public DataReader getDataReader() {
                 return dataReader;

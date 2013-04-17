@@ -1,7 +1,6 @@
 package cdf;
 
 public interface DataReader {
-    Object readRawValue( Buf buf, long offset );
-    Object readShapedValue( Buf buf, long offset, boolean rowMajor );
+    Object readValue( Buf buf, long offset );
     int getRecordSize();
 }
