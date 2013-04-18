@@ -63,7 +63,7 @@ public abstract class VariableDescriptorRecord extends Record {
             // the GDR, but we don't have access to that here.
             long runningCount = plan.getReadCount( ptr );
             int padBytes =
-                hasPad ? DataReaderFactory.getElementSize( dataType_ )
+                hasPad ? DataType.getDataType( dataType_ ).getByteCount()
                          * numElems_
                        : 0;
             long spareBytes = getRecordSize() - runningCount - padBytes;

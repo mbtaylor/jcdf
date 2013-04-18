@@ -32,7 +32,7 @@ JSRC = \
        CdfReader.java \
        Compression.java \
        DataReader.java \
-       DataReaderFactory.java \
+       DataType.java \
        Entry.java \
        GlobalAttribute.java \
        RecordMap.java \

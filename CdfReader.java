@@ -211,12 +211,10 @@ public class CdfReader {
 
     private Entry createEntry( AttributeEntryDescriptorRecord aedr,
                                CdfInfo info ) {
-        int dataType = aedr.dataType_;
+        DataType dataType = DataType.getDataType( aedr.dataType_ );
         int encoding = info.getEncoding();
         int numElems = aedr.numElems_;
-        final DataReader dataReader =
-            DataReaderFactory
-           .createDataReader( dataType, encoding, numElems, 1 );
+        final DataReader dataReader = new DataReader( dataType, numElems, 1 );
         Shaper shaper =
             Shaper.createShaper( new int[ 0 ], new boolean[ 0 ], true );
         Object va = dataReader.createValueArray();
