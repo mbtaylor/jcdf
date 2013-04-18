@@ -1,25 +1,210 @@
 package cdf;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+
 public abstract class Shaper {
 
-    /**
-     * grpSize is the number of array (primitive or String) elements
-     * per shaped value element.
-     * It's like numElems, but usually not the same value (since numElems
-     * is taken care of by grouping bytes into strings elsewhere).
-     * It has the value 1, except for EPOCH16 data type, which is represented
-     * by a pair of doubles.  
-     */
-    public Shaper( int[] dimSizes, boolean[] dimVarys, boolean grpSize,
-                   boolean rowMajor ) {
-    }
     public abstract int getRawItemCount();
+
     public abstract int getShapedItemCount();
+
+    /**
+     * The returned object is new; it is not rawValue.
+     */
     public abstract Object shape( Object rawValue, boolean rowMajor );
-    public abstract Object getItem( Object rawValue, boolean rowMajor,
-                                    int[] coords );
-    public static Shaper createShaper( int[] dimSizes, boolean[] dimVarys,
+
+    public abstract int getArrayIndex( int[] coords, boolean rowMajor );
+
+    public static Shaper createShaper( DataType dataType, int numElems,
+                                       int[] dimSizes, boolean[] dimVarys,
                                        boolean rowMajor ) {
-  return null;
+        int rawItemCount = 1;
+        int shapedItemCount = 1;
+        int nDimVary = 0;
+        int ndim = dimSizes.length;
+        for ( int idim = 0; idim < dimSizes.length; idim++ ) {
+            int dimSize = dimSizes[ idim ];
+            shapedItemCount *= dimSize;
+            if ( dimVarys[ idim ] ) {
+                nDimVary++;
+                rawItemCount *= dimSize;
+            }
+        }
+        if ( shapedItemCount == 1 ) {
+            return new ScalarShaper( dataType, numElems );
+        }
+        else if ( ndim == 1  && nDimVary == 1 ) {
+            assert shapedItemCount == rawItemCount;
+            return new VectorShaper( dataType, numElems, shapedItemCount );
+        }
+        else if ( nDimVary == ndim ) {
+            return new SimpleArrayShaper( dataType, numElems, dimSizes,
+                                          rowMajor );
+        }
+        else {
+            return new GeneralShaper( dataType, numElems, dimSizes, dimVarys,
+                                      rowMajor );
+        }
+    }
+
+    private static class ScalarShaper extends Shaper {
+        private final DataType dataType_;
+        private final int numElems_;
+        ScalarShaper( DataType dataType, int numElems ) {
+            dataType_ = dataType;
+            numElems_ = numElems;
+        }
+        public int getRawItemCount() {
+            return 1;
+        }
+        public int getShapedItemCount() {
+            return 1;
+        }
+        public Object shape( Object rawValue, boolean rowMajor ) {
+            return dataType_.getScalar( rawValue, 0, numElems_ );
+        }
+        public int getArrayIndex( int[] coords, boolean rowMajor ) {
+            for ( int i = 0; i < coords.length; i++ ) {
+                if ( coords[ i ] != 0 ) {
+                    throw new IllegalArgumentException( "Out of bounds" );
+                }
+            }
+            return 0;
+        }
+    }
+
+    private static class VectorShaper extends Shaper {
+        private final int itemCount_;
+        private final int step_;
+        VectorShaper( DataType dataType, int numElems, int itemCount ) {
+            itemCount_ = itemCount;
+            step_ = numElems * dataType.getGroupSize();
+        }
+        public int getRawItemCount() {
+            return itemCount_;
+        }
+        public int getShapedItemCount() {
+            return itemCount_;
+        }
+        public Object shape( Object rawValue, boolean rowMajor ) {
+            return rawValue;
+        }
+        public int getArrayIndex( int[] coords, boolean rowMajor ) {
+            return coords[ 0 ] * step_;
+        }
+    }
+
+    private static class GeneralShaper extends Shaper {
+
+        private final DataType dataType_;
+        private final int[] dimSizes_;
+        private final boolean[] dimVarys_;
+        private final boolean rowMajor_;
+        private final int ndim_;
+        private final int rawItemCount_;
+        private final int shapedItemCount_;
+        private final int[] strides_;
+        private final int itemSize_;
+        
+        GeneralShaper( DataType dataType, int numElems, int[] dimSizes,
+                       boolean[] dimVarys, boolean rowMajor ) {
+            dataType_ = dataType;
+            dimSizes_ = dimSizes;
+            dimVarys_ = dimVarys;
+            rowMajor_ = rowMajor;
+            ndim_ = dimSizes.length;
+
+            int rawItemCount = 1;
+            int shapedItemCount = 1;
+            int nDimVary = 0;
+            int ndim = dimSizes.length;
+            strides_ = new int[ ndim_ ];
+            for ( int idim = 0; idim < ndim_; idim++ ) {
+                int jdim = rowMajor ? ndim_ - idim - 1 : idim;
+                int dimSize = dimSizes[ jdim ];
+                shapedItemCount *= dimSize;
+                if ( dimVarys[ jdim ] ) {
+                    nDimVary++;
+                    rawItemCount *= dimSize;
+                    strides_[ jdim ] = rawItemCount;
+                }
+            }
+            rawItemCount_ = rawItemCount;
+            shapedItemCount_ = shapedItemCount;
+            itemSize_ = numElems * dataType_.getGroupSize();
+        }
+
+        public int getRawItemCount() {
+            return rawItemCount_;
+        }
+
+        public int getShapedItemCount() {
+            return shapedItemCount_;
+        }
+
+        public int getArrayIndex( int[] coords, boolean rowMajor ) {
+            int index = 0;
+            for ( int idim = 0; idim < ndim_; idim++ ) {
+                int jdim = rowMajor ? ndim_ - idim - 1 : idim;
+                index += coords[ idim ] * strides_[ jdim ];
+            }
+            return index * itemSize_;
+        }
+
+        public Object shape( Object rawValue, boolean rowMajor ) {
+            Object out = Array.newInstance( dataType_.getArrayElementClass(),
+                                            shapedItemCount_ * itemSize_ );
+            int[] coords = new int[ ndim_ ];
+            for ( int ix = 0; ix < shapedItemCount_; ix++ ) {
+                for ( int idim = 0; idim < ndim_; idim++ ) {
+                    int jdim = rowMajor ? ndim_ - idim - 1 : idim;
+                    if ( ++coords[ jdim ] % dimSizes_[ jdim ] != 0 ) {
+                        break;
+                    }
+                }
+                System.arraycopy( rawValue, getArrayIndex( coords, rowMajor ),
+                                  out, ix * itemSize_, itemSize_ );
+            }
+            return out;
+        }
+    }
+
+    private static class SimpleArrayShaper extends GeneralShaper {
+
+        private final DataType dataType_;
+        private final boolean rowMajor_;
+
+        public SimpleArrayShaper( DataType dataType, int numElems,
+                                  int[] dimSizes, boolean rowMajor ) {
+            super( dataType, numElems, dimSizes, trueArray( dimSizes.length ),
+                   rowMajor );
+            dataType_ = dataType;
+            rowMajor_ = rowMajor;
+        }
+
+        public Object shape( Object rawValue, boolean rowMajor ) {
+            if ( rowMajor == rowMajor_ ) {
+                int count = Array.getLength( rawValue );
+                Object out =
+                    Array.newInstance( dataType_.getArrayElementClass(),
+                                       count );
+                System.arraycopy( rawValue, 0, out, 0, count );
+                return out;
+            }
+            else {
+                // Probably there's a more efficient way to do this -
+                // it's an n-dimensional generalisation of transposing
+                // a matrix (though don't forget to keep units of
+                // groupSize * numElems intact).
+                return super.shape( rawValue, rowMajor );
+            }
+        }
+
+        private static boolean[] trueArray( int n ) {
+            boolean[] a = new boolean[ n ];
+            Arrays.fill( a, true );
+            return a;
+        }
     }
 }

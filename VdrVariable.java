@@ -28,7 +28,8 @@ class VdrVariable implements Variable {
         boolean[] dimVarys = vdr.dimVarys_;
         boolean rowMajor = info.getRowMajor();
         int numElems = vdr.numElems_;
-        shaper_ = Shaper.createShaper( dimSizes, dimVarys, rowMajor );
+        shaper_ = Shaper.createShaper( dataType, numElems, dimSizes, dimVarys,
+                                       rowMajor );
         dataReader_ =
             new DataReader( dataType, numElems, shaper_.getRawItemCount() );
         rvaleng_ = Array.getLength( dataReader_.createValueArray() );

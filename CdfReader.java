@@ -215,8 +215,8 @@ public class CdfReader {
         int encoding = info.getEncoding();
         int numElems = aedr.numElems_;
         final DataReader dataReader = new DataReader( dataType, numElems, 1 );
-        Shaper shaper =
-            Shaper.createShaper( new int[ 0 ], new boolean[ 0 ], true );
+        Shaper shaper = Shaper.createShaper( dataType, numElems, new int[ 0 ],
+                                             new boolean[ 0 ], true );
         Object va = dataReader.createValueArray();
         dataReader.readValue( aedr.getBuf(), aedr.getValueOffset(), va );
         final Object value = shaper.shape( va, true );
