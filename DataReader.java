@@ -1,6 +1,11 @@
 package cdf;
 
 public interface DataReader {
-    Object readValue( Buf buf, long offset );
+
+    /**
+     * Will return an array of a primitive type or String.
+     */
+    Object createValueArray();
+    void readValue( Buf buf, long offset, Object valueArray );
     int getRecordSize();
 }

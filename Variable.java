@@ -7,6 +7,12 @@ public interface Variable {
     int getMaxRec();
     DataReader getDataReader();
     boolean hasRecord( int irec );
-    Object readRawRecord( int irec );
-    Object readShapedRecord( int irec, boolean rowMajor );
+
+    /**
+     * Will return an array of a primitive type or String.
+     */
+    Object createRawValueArray();
+    void readRawRecord( int irec, Object rawValueArray );
+    Object readShapedRecord( int irec, boolean rowMajor,
+                             Object rawValueArrayWorkspace );
 }

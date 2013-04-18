@@ -217,10 +217,11 @@ public class CdfReader {
         final DataReader dataReader =
             DataReaderFactory
            .createDataReader( dataType, encoding, numElems, 1 );
-        Object rawValue =
-            dataReader.readValue( aedr.getBuf(), aedr.getValueOffset() );
-        final Object value = new Shaper( new int[ 0 ], new boolean[ 0 ], true )
-                            .shape( rawValue, true );
+        Shaper shaper =
+            Shaper.createShaper( new int[ 0 ], new boolean[ 0 ], true );
+        Object va = dataReader.createValueArray();
+        dataReader.readValue( aedr.getBuf(), aedr.getValueOffset(), va );
+        final Object value = shaper.shape( va, true );
         return new Entry() {
             public DataReader getDataReader() {
                 return dataReader;

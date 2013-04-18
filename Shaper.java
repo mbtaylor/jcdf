@@ -1,12 +1,13 @@
 package cdf;
 
-public class Shaper {
+public abstract class Shaper {
     public Shaper( int[] dimSizes, boolean[] dimVarys, boolean rowMajor ) {
     }
-    public int getItemCount() {
-  return -1;
-    }
-    public Object shape( Object rawValue, boolean rowMajor ) {
+    public abstract int getItemCount();
+    public abstract Object shape( Object rawValue, boolean rowMajor );
+
+    public static Shaper createShaper( int[] dimSizes, boolean[] dimVarys,
+                                       boolean rowMajor ) {
   return null;
     }
 }
