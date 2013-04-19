@@ -103,7 +103,7 @@ public abstract class Compression {
             ReadableByteChannel gzchan = Channels.newChannel( gzin );
             gzchan.read( bbuf );
             gzchan.close();
-            return new NioBuf( bbuf );
+            return new NioBuf( bbuf, inBuf.isBigendian() );
         }
     }
 }

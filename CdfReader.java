@@ -47,7 +47,7 @@ public class CdfReader {
             };
         }
 
-        // Get CDF and Global descriptor records.
+        // Get CDF descriptor records.
         CdfDescriptorRecord cdr =
             RecordFactory.createRecord( buf, ptr.get(),
                                         CdfDescriptorRecord.class );
@@ -55,12 +55,19 @@ public class CdfReader {
         if ( ! isSingleFile ) {
             throw new CdfFormatException( "Multi-file CDFs not supported" );
         }
+        NumericEncoding encoding = NumericEncoding.getEncoding( cdr.encoding_ );
+        Boolean bigEndian = encoding.isBigendian();
+        if ( bigEndian == null ) {
+            throw new CdfFormatException( "Unsupported encoding " + encoding );
+        }
+        buf.setEncoding( bigEndian.booleanValue() );
+
+        // Get global descriptor record.
         GlobalDescriptorRecord gdr =
             RecordFactory.createRecord( buf, cdr.gdrOffset_,
                                         GlobalDescriptorRecord.class );
 
         // Store global format information.
-        int encoding = cdr.encoding_;
         boolean rowMajor = Record.hasBit( cdr.flags_, 0 );
         int[] rDimSizes = gdr.rDimSizes_;
         CdfInfo cdfInfo = new CdfInfo( encoding, rowMajor, rDimSizes );
@@ -212,10 +219,9 @@ public class CdfReader {
     private Entry createEntry( AttributeEntryDescriptorRecord aedr,
                                CdfInfo info ) {
         DataType dataType = DataType.getDataType( aedr.dataType_ );
-        int encoding = info.getEncoding();
         int numElems = aedr.numElems_;
         final DataReader dataReader = new DataReader( dataType, numElems, 1 );
-        Shaper shaper = Shaper.createShaper( dataType, numElems, new int[ 0 ],
+        Shaper shaper = Shaper.createShaper( dataType, new int[ 0 ],
                                              new boolean[ 0 ], true );
         Object va = dataReader.createValueArray();
         dataReader.readValue( aedr.getBuf(), aedr.getValueOffset(), va );

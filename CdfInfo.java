@@ -1,17 +1,18 @@
 package cdf;
 
 public class CdfInfo {
-    private final int encoding_;
+    private final NumericEncoding encoding_;
     private final boolean rowMajor_;
     private final int[] rDimSizes_;
 
-    public CdfInfo( int encoding, boolean rowMajor, int[] rDimSizes ) {
+    public CdfInfo( NumericEncoding encoding, boolean rowMajor,
+                    int[] rDimSizes ) {
         encoding_ = encoding;
         rowMajor_ = rowMajor;
         rDimSizes_ = rDimSizes;
     }
 
-    public int getEncoding() {
+    public NumericEncoding getEncoding() {
         return encoding_;
     }
 

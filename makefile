@@ -35,6 +35,7 @@ JSRC = \
        DataType.java \
        Entry.java \
        GlobalAttribute.java \
+       NumericEncoding.java \
        RecordMap.java \
        Shaper.java \
        Variable.java \

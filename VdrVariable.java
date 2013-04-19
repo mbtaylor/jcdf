@@ -23,13 +23,11 @@ class VdrVariable implements Variable {
         buf_ = vdr.getBuf();
         isZVariable_ = vdr.getRecordType() == 8;
         DataType dataType = DataType.getDataType( vdr.dataType_ );
-        int encoding = info.getEncoding();
         int[] dimSizes = isZVariable_ ? vdr.zDimSizes_ : info.getRDimSizes();
         boolean[] dimVarys = vdr.dimVarys_;
         boolean rowMajor = info.getRowMajor();
         int numElems = vdr.numElems_;
-        shaper_ = Shaper.createShaper( dataType, numElems, dimSizes, dimVarys,
-                                       rowMajor );
+        shaper_ = Shaper.createShaper( dataType, dimSizes, dimVarys, rowMajor );
         dataReader_ =
             new DataReader( dataType, numElems, shaper_.getRawItemCount() );
         rvaleng_ = Array.getLength( dataReader_.createValueArray() );

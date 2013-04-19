@@ -2,14 +2,23 @@ package cdf;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 
 public class NioBuf implements Buf {
 
     private final ByteBuffer byteBuf_;
+    private final ByteBuffer dataBuf_;
+    private boolean isBigendian_;
 
-    public NioBuf( ByteBuffer byteBuf ) {
+    public NioBuf( ByteBuffer byteBuf, boolean isBigendian ) {
         byteBuf_ = byteBuf;
+        dataBuf_ = byteBuf.duplicate();
+        setEncoding( isBigendian );
+    }
+
+    public int readUnsignedByte( Pointer ptr ) {
+        return byteBuf_.get( toInt( ptr.getAndIncrement( 1 ) ) ) & 0xff;
     }
 
     public int readInt( Pointer ptr ) {
@@ -34,6 +43,88 @@ public class NioBuf implements Buf {
             }
         }
         return sbuf.toString();
+    }
+
+    public synchronized void setEncoding( boolean bigend ) {
+        dataBuf_.order( bigend ? ByteOrder.BIG_ENDIAN
+                               : ByteOrder.LITTLE_ENDIAN );
+        isBigendian_ = bigend;
+    }
+
+    public boolean isBigendian() {
+        return isBigendian_;
+    }
+
+    public void readDataBytes( long offset, int count, byte[] array ) {
+        if ( count == 1 ) {
+            array[ 0 ] = dataBuf_.get( toInt( offset ) );
+        }
+        else {
+            synchronized ( dataBuf_ ) {
+                dataBuf_.position( toInt( offset ) );
+                dataBuf_.get( array, 0, count );
+            }
+        }
+    }
+
+    public void readDataShorts( long offset, int count, short[] array ) {
+        if ( count == 1 ) {
+            array[ 0 ] = dataBuf_.getShort( toInt( offset ) );
+        }
+        else {
+            synchronized ( dataBuf_ ) {
+                dataBuf_.position( toInt( offset ) );
+                dataBuf_.asShortBuffer().get( array, 0, count );
+            }
+        }
+    }
+
+    public void readDataInts( long offset, int count, int[] array ) {
+        if ( count == 1 ) {
+            array[ 0 ] = dataBuf_.getInt( toInt( offset ) );
+        }
+        else {
+            synchronized ( dataBuf_ ) {
+                dataBuf_.position( toInt( offset ) );
+                dataBuf_.asIntBuffer().get( array, 0, count );
+            }
+        }
+    }
+
+    public void readDataLongs( long offset, int count, long[] array ) {
+        if ( count == 1 ) {
+            array[ 0 ] = dataBuf_.getLong( toInt( offset ) );
+        }
+        else {
+            synchronized ( dataBuf_ ) {
+                dataBuf_.position( toInt( offset ) );
+                dataBuf_.asLongBuffer().get( array, 0, count );
+            }
+        }
+    }
+
+    public void readDataFloats( long offset, int count, float[] array ) {
+        if ( count == 1 ) {
+            array[ 0 ] = dataBuf_.getFloat( toInt( offset ) );
+        }
+        else {
+            synchronized ( dataBuf_ ) {
+                dataBuf_.position( toInt( offset ) );
+                dataBuf_.asFloatBuffer().get( array, 0, count );
+            }
+        }
+    }
+
+    public void readDataDoubles( long offset, int count, double[] array ) {
+        if ( count == 1 ) {
+            array[ 0 ] = dataBuf_.getDouble( toInt( offset ) );
+        }
+        else {
+            synchronized ( dataBuf_ ) {
+                dataBuf_.position( toInt( offset ) );
+                dataBuf_.asDoubleBuffer().get( array, 0, count );
+            }
+        }
     }
 
     public InputStream createInputStream( long offset ) {

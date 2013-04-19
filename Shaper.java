@@ -16,7 +16,7 @@ public abstract class Shaper {
 
     public abstract int getArrayIndex( int[] coords, boolean rowMajor );
 
-    public static Shaper createShaper( DataType dataType, int numElems,
+    public static Shaper createShaper( DataType dataType,
                                        int[] dimSizes, boolean[] dimVarys,
                                        boolean rowMajor ) {
         int rawItemCount = 1;
@@ -32,28 +32,24 @@ public abstract class Shaper {
             }
         }
         if ( shapedItemCount == 1 ) {
-            return new ScalarShaper( dataType, numElems );
+            return new ScalarShaper( dataType );
         }
         else if ( ndim == 1  && nDimVary == 1 ) {
             assert shapedItemCount == rawItemCount;
-            return new VectorShaper( dataType, numElems, shapedItemCount );
+            return new VectorShaper( dataType, shapedItemCount );
         }
         else if ( nDimVary == ndim ) {
-            return new SimpleArrayShaper( dataType, numElems, dimSizes,
-                                          rowMajor );
+            return new SimpleArrayShaper( dataType, dimSizes, rowMajor );
         }
         else {
-            return new GeneralShaper( dataType, numElems, dimSizes, dimVarys,
-                                      rowMajor );
+            return new GeneralShaper( dataType, dimSizes, dimVarys, rowMajor );
         }
     }
 
     private static class ScalarShaper extends Shaper {
         private final DataType dataType_;
-        private final int numElems_;
-        ScalarShaper( DataType dataType, int numElems ) {
+        ScalarShaper( DataType dataType ) {
             dataType_ = dataType;
-            numElems_ = numElems;
         }
         public int getRawItemCount() {
             return 1;
@@ -62,7 +58,7 @@ public abstract class Shaper {
             return 1;
         }
         public Object shape( Object rawValue, boolean rowMajor ) {
-            return dataType_.getScalar( rawValue, 0, numElems_ );
+            return dataType_.getScalar( rawValue, 0 );
         }
         public int getArrayIndex( int[] coords, boolean rowMajor ) {
             for ( int i = 0; i < coords.length; i++ ) {
@@ -77,9 +73,9 @@ public abstract class Shaper {
     private static class VectorShaper extends Shaper {
         private final int itemCount_;
         private final int step_;
-        VectorShaper( DataType dataType, int numElems, int itemCount ) {
+        VectorShaper( DataType dataType, int itemCount ) {
             itemCount_ = itemCount;
-            step_ = numElems * dataType.getGroupSize();
+            step_ = dataType.getGroupSize();
         }
         public int getRawItemCount() {
             return itemCount_;
@@ -107,8 +103,8 @@ public abstract class Shaper {
         private final int[] strides_;
         private final int itemSize_;
         
-        GeneralShaper( DataType dataType, int numElems, int[] dimSizes,
-                       boolean[] dimVarys, boolean rowMajor ) {
+        GeneralShaper( DataType dataType, int[] dimSizes, boolean[] dimVarys,
+                       boolean rowMajor ) {
             dataType_ = dataType;
             dimSizes_ = dimSizes;
             dimVarys_ = dimVarys;
@@ -132,7 +128,7 @@ public abstract class Shaper {
             }
             rawItemCount_ = rawItemCount;
             shapedItemCount_ = shapedItemCount;
-            itemSize_ = numElems * dataType_.getGroupSize();
+            itemSize_ = dataType_.getGroupSize();
         }
 
         public int getRawItemCount() {
@@ -175,9 +171,9 @@ public abstract class Shaper {
         private final DataType dataType_;
         private final boolean rowMajor_;
 
-        public SimpleArrayShaper( DataType dataType, int numElems,
-                                  int[] dimSizes, boolean rowMajor ) {
-            super( dataType, numElems, dimSizes, trueArray( dimSizes.length ),
+        public SimpleArrayShaper( DataType dataType, int[] dimSizes,
+                                  boolean rowMajor ) {
+            super( dataType, dimSizes, trueArray( dimSizes.length ),
                    rowMajor );
             dataType_ = dataType;
             rowMajor_ = rowMajor;
@@ -196,7 +192,7 @@ public abstract class Shaper {
                 // Probably there's a more efficient way to do this -
                 // it's an n-dimensional generalisation of transposing
                 // a matrix (though don't forget to keep units of
-                // groupSize * numElems intact).
+                // groupSize intact).
                 return super.shape( rawValue, rowMajor );
             }
         }
