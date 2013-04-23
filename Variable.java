@@ -4,7 +4,12 @@ public interface Variable {
     String getName();
     int getNum();
     boolean isZVariable();
-    int getMaxRec();
+
+    /**
+     * Limit of records that may have values.
+     * The actual number of records may be lower than this in case of sparsity.
+     */
+    int getRecordCount();
     DataReader getDataReader();
 
     /**

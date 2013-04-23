@@ -9,6 +9,7 @@ import cdf.VariableAttribute;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -18,10 +19,12 @@ public class CdfList {
 
     private final CdfReader crdr_;
     private final PrintStream out_;
+    private final boolean writeData_;
 
-    public CdfList( CdfReader crdr, PrintStream out ) {
+    public CdfList( CdfReader crdr, PrintStream out, boolean writeData ) {
         crdr_ = crdr;
         out_ = out;
+        writeData_ = writeData;
     }
 
     public void run() {
@@ -51,7 +54,46 @@ public class CdfList {
                                 + ":\t" + entry.getValue() );
                 }
             }
+            if ( writeData_ ) {
+                Object abuf = var.createRawValueArray();
+                int nrec = var.getRecordCount();
+                for ( int ir = 0; ir < nrec; ir++ ) {
+                    var.readRawRecord( ir, abuf );
+                    StringBuffer sbuf = new StringBuffer();
+                    boolean hasRec = var.hasRecord( ir );
+                    if ( ! hasRec ) {
+                        sbuf.append( '[' );
+                    }
+                    sbuf.append( Integer.toString( ir ) );
+                    if ( ! hasRec ) {
+                        sbuf.append( ']' );
+                    }
+                    sbuf.append( ':' );
+                    sbuf.append( '\t' );
+                    sbuf.append( formatValues( abuf ) );
+                    out_.println( sbuf.toString() );
+                }
+            }
         }
+    }
+
+    private String formatValues( Object abuf ) {
+        StringBuffer sbuf = new StringBuffer();
+        if ( abuf == null ) {
+        }
+        else if ( abuf.getClass().isArray() ) {
+            int len = Array.getLength( abuf );
+            for ( int i = 0; i < len; i++ ) {
+                if ( i > 0 ) {
+                    sbuf.append( ", " );
+                }
+                sbuf.append( Array.get( abuf, i ) );
+            }
+        }
+        else {
+            sbuf.append( abuf.toString() );
+        }
+        return sbuf.toString();
     }
 
     private void header( String txt ) {
@@ -68,18 +110,24 @@ public class CdfList {
            .append( "\n   Usage: " )
            .append( CdfList.class.getName() )
            .append( " [-help]" )
+           .append( " [-data]" )
            .append( " <cdf-file>" )
            .append( "\n" )
            .toString();
 
         List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         File file = null;
+        boolean writeData = false;
         for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
             String arg = it.next();
             if ( arg.startsWith( "-h" ) ) {
                 it.remove();
                 System.out.println( usage );
                 return 0;
+            }
+            else if ( arg.equals( "-data" ) ) {
+                it.remove();
+                writeData = true;
             }
             else if ( file == null ) {
                 it.remove();
@@ -95,7 +143,7 @@ public class CdfList {
             System.err.println( usage );
         }
 
-        new CdfList( new CdfReader( file ), System.out ).run();
+        new CdfList( new CdfReader( file ), System.out, writeData ).run();
         return 0;
     }
 

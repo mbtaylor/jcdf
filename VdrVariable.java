@@ -62,8 +62,8 @@ class VdrVariable implements Variable {
         return isZVariable_;
     }
 
-    public int getMaxRec() {
-        return vdr_.maxRec_;
+    public int getRecordCount() {
+        return vdr_.maxRec_ + 1;
     }
 
     public DataReader getDataReader() {
