@@ -51,6 +51,9 @@ public abstract class VariableDescriptorRecord extends Record {
             zDimSizes_ = null;
         }
         boolean hasPad = hasBit( flags_, 1 );
+        int padBytes = hasPad ? DataType.getDataType( dataType_ ).getByteCount()
+                              * numElems_
+                              : 0;
         final int ndim;
         if ( hasDims ) {
             ndim = zNumDims_;
@@ -62,10 +65,6 @@ public abstract class VariableDescriptorRecord extends Record {
             // The more direct way would be by using the rNumDims field of
             // the GDR, but we don't have access to that here.
             long runningCount = plan.getReadCount( ptr );
-            int padBytes =
-                hasPad ? DataType.getDataType( dataType_ ).getByteCount()
-                         * numElems_
-                       : 0;
             long spareBytes = getRecordSize() - runningCount - padBytes;
             assert spareBytes == (int) spareBytes;
             if ( spareBytes % 4 != 0 ) {
@@ -79,6 +78,7 @@ public abstract class VariableDescriptorRecord extends Record {
             dimVarys_[ i ] = iDimVarys[ i ] != 0;
         }
         padOffset_ = hasPad ? ptr.get() : -1L;
+        ptr.increment( padBytes );
         checkEndRecord( ptr );
     }
 
