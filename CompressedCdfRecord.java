@@ -2,15 +2,13 @@ package cdf;
 
 public class CompressedCdfRecord extends Record {
 
-    public static final int RECORD_TYPE = 10;
-
     public final long cprOffset_;
     public final long uSize_;
     public final int rfuA_;
     private final long dataOffset_;
 
     public CompressedCdfRecord( RecordPlan plan ) {
-        super( plan, RECORD_TYPE );
+        super( plan, 10 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         cprOffset_ = buf.readOffset( ptr );

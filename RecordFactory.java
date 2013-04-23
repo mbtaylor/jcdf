@@ -1,12 +1,8 @@
 package cdf;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class RecordFactory {
@@ -51,38 +47,76 @@ public class RecordFactory {
     private static Map<Integer,TypedRecordFactory> createFactoryMap() {
         Map<Integer,TypedRecordFactory> map =
             new HashMap<Integer,TypedRecordFactory>();
-        List<Class<? extends Record>> recordClasses =
-            new ArrayList<Class<? extends Record>>();
-        recordClasses.add( CdfDescriptorRecord.class );
-        recordClasses.add( GlobalDescriptorRecord.class );
-        recordClasses.add( AttributeDescriptorRecord.class );
-        recordClasses.add( AttributeEntryDescriptorRecord.GrVariant.class );
-        recordClasses.add( AttributeEntryDescriptorRecord.ZVariant.class );
-        recordClasses.add( VariableDescriptorRecord.RVariant.class );
-        recordClasses.add( VariableDescriptorRecord.ZVariant.class );
-        recordClasses.add( VariableIndexRecord.class );
-        recordClasses.add( VariableValuesRecord.class );
-        recordClasses.add( CompressedCdfRecord.class );
-        recordClasses.add( CompressedParametersRecord.class );
-        recordClasses.add( SparsenessParametersRecord.class );
-        recordClasses.add( CompressedVariableValuesRecord.class );
-        recordClasses.add( UnusedInternalRecord.class );
-        for ( Class<? extends Record> clazz : recordClasses ) {
-            final TypedRecordFactory<?> trf;
-            try {
-                trf = createTypedRecordFactory( clazz );
+        map.put( 1, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new CdfDescriptorRecord( plan );
             }
-            catch ( NoSuchMethodException e ) {
-                throw createBadRecordException( clazz, e );
+        } );
+        map.put( 2, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new GlobalDescriptorRecord( plan );
             }
-            catch ( NoSuchFieldException e ) {
-                throw createBadRecordException( clazz, e );
+        } );
+        map.put( 4, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new AttributeDescriptorRecord( plan );
             }
-            catch ( IllegalAccessException e ) {
-                throw createBadRecordException( clazz, e );
+        } );
+        map.put( 5, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new AttributeEntryDescriptorRecord.GrVariant( plan );
             }
-            map.put( trf.getRecordType(), trf );
-        }
+        } );
+        map.put( 9, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new AttributeEntryDescriptorRecord.ZVariant( plan );
+            }
+        } );
+        map.put( 3, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new VariableDescriptorRecord.RVariant( plan );
+            }
+        } );
+        map.put( 8, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new VariableDescriptorRecord.ZVariant( plan );
+            }
+        } );
+        map.put( 6, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new VariableIndexRecord( plan );
+            }
+        } );
+        map.put( 7, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new VariableValuesRecord( plan );
+            }
+        } );
+        map.put( 10, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new CompressedCdfRecord( plan );
+            }
+        } );
+        map.put( 11, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new CompressedParametersRecord( plan );
+            }
+        } );
+        map.put( 12, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new SparsenessParametersRecord( plan );
+            }
+        } );
+        map.put( 13, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new CompressedVariableValuesRecord( plan );
+            }
+        } );
+        map.put( -1, new TypedRecordFactory() {
+            public Record createRecord( RecordPlan plan ) {
+                return new UnusedInternalRecord( plan );
+            }
+        } );
         int[] recTypes = new int[ map.size() ];
         int irt = 0;
         for ( int recType : map.keySet() ) {
@@ -94,51 +128,7 @@ public class RecordFactory {
         return Collections.unmodifiableMap( map );
     }
 
-    private static <R extends Record> TypedRecordFactory<R>
-                   createTypedRecordFactory( Class<R> clazz )
-            throws NoSuchMethodException, NoSuchFieldException,
-                   IllegalAccessException {
-        return new TypedRecordFactory<R>( clazz );
-    }
-
-    private static RuntimeException
-                   createBadRecordException( Class<? extends Record> clazz,
-                                             Throwable error ) {
-        return new RuntimeException( "Badly specified CDF Record class "
-                                   + "(programming error)", error );
-    }
-
-    private static class TypedRecordFactory<R extends Record> {
-
-        private final Class<R> clazz_;
-        private final Constructor<R> constructor_;
-        private final int recordType_;
-
-        TypedRecordFactory( Class<R> clazz )
-                throws NoSuchMethodException, NoSuchFieldException,
-                       IllegalAccessException {
-            clazz_ = clazz;
-            constructor_ = clazz.getConstructor( RecordPlan.class );
-            recordType_ = clazz.getField( "RECORD_TYPE" ).getInt( null );
-        }
-
-        int getRecordType() {
-            return recordType_;
-        }
-
-        Record createRecord( RecordPlan plan ) {
-            try {
-                return constructor_.newInstance( plan );
-            }
-            catch ( IllegalAccessException e ) {
-                throw new AssertionError( e );
-            }
-            catch ( InstantiationException e ) {
-                throw new AssertionError( e );
-            }
-            catch ( InvocationTargetException e ) {
-                throw new RuntimeException( e );
-            }
-        }
+    private static interface TypedRecordFactory<R extends Record> {
+        Record createRecord( RecordPlan plan );
     }
 }

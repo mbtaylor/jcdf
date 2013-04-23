@@ -2,13 +2,11 @@ package cdf;
 
 public class UnusedInternalRecord extends Record {
 
-    public static final int RECORD_TYPE = -1;
-
     public final long nextUirOffset_;
     public final long prevUirOffset_;
 
     public UnusedInternalRecord( RecordPlan plan ) {
-        super( plan, RECORD_TYPE );
+        super( plan, -1 );
 
         // In case this is an Unsociable UIR, don't actually read the
         // next/prev link offsets here, since they might not exist,

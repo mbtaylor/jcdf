@@ -2,8 +2,6 @@ package cdf;
 
 public class CdfDescriptorRecord extends Record {
 
-    public static final int RECORD_TYPE = 1;
-
     public final long gdrOffset_;
     public final int version_;
     public final int release_;
@@ -17,7 +15,7 @@ public class CdfDescriptorRecord extends Record {
     public final String[] copyright_;
 
     public CdfDescriptorRecord( RecordPlan plan ) {
-        super( plan, RECORD_TYPE );
+        super( plan, 1 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         gdrOffset_ = buf.readOffset( ptr );

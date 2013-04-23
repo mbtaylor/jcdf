@@ -2,8 +2,6 @@ package cdf;
 
 public class AttributeDescriptorRecord extends Record {
 
-    public static final int RECORD_TYPE = 4;
-
     public final long adrNext_;
     public final long agrEdrHead_;
     public final int scope_;
@@ -18,7 +16,7 @@ public class AttributeDescriptorRecord extends Record {
     public final String name_;
 
     public AttributeDescriptorRecord( RecordPlan plan ) {
-        super( plan, RECORD_TYPE );
+        super( plan, 4 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         adrNext_ = buf.readOffset( ptr );

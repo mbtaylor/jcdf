@@ -90,16 +90,14 @@ public abstract class VariableDescriptorRecord extends Record {
     }
 
     public static class RVariant extends VariableDescriptorRecord {
-        public static final int RECORD_TYPE = 3;
         public RVariant( RecordPlan plan ) {
-            super( plan, RECORD_TYPE, false );
+            super( plan, 3, false );
         }
     }
 
     public static class ZVariant extends VariableDescriptorRecord {
-        public static final int RECORD_TYPE = 8;
         public ZVariant( RecordPlan plan ) {
-            super( plan, RECORD_TYPE, true );
+            super( plan, 8, true );
         }
     }
 }

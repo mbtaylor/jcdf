@@ -2,8 +2,6 @@ package cdf;
 
 public class GlobalDescriptorRecord extends Record {
 
-    public static final int RECORD_TYPE = 2;
-
     public final long rVdrHead_;
     public final long zVdrHead_;
     public final long adrHead_;
@@ -20,7 +18,7 @@ public class GlobalDescriptorRecord extends Record {
     public final int[] rDimSizes_;
 
     public GlobalDescriptorRecord( RecordPlan plan ) {
-        super( plan, RECORD_TYPE );
+        super( plan, 2 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         rVdrHead_ = buf.readOffset( ptr );
