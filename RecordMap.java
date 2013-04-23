@@ -100,27 +100,29 @@ class RecordMap {
     }
 
     public static RecordMap createRecordMap( VariableDescriptorRecord vdr,
+                                             RecordFactory recFact,
                                              int recSize ) {
-        Compression compress = getCompression( vdr );
+        Compression compress = getCompression( vdr, recFact );
         Buf buf = vdr.getBuf();
         List<Entry> entryList = new ArrayList<Entry>();
         for ( long vxrOffset = vdr.vxrHead_; vxrOffset != 0; ) {
             VariableIndexRecord vxr =
-                RecordFactory.createRecord( buf, vxrOffset,
-                                            VariableIndexRecord.class );
-            readEntries( vxr, buf, compress, entryList );
+                recFact.createRecord( buf, vxrOffset,
+                                      VariableIndexRecord.class );
+            readEntries( vxr, buf, recFact, compress, entryList );
             vxrOffset = vxr.vxrNext_;
         }
         Entry[] entries = entryList.toArray( new Entry[ 0 ] );
         return new RecordMap( entries, recSize );
     }
 
-    private static Compression getCompression( VariableDescriptorRecord vdr ) {
+    private static Compression getCompression( VariableDescriptorRecord vdr,
+                                               RecordFactory recFact ) {
         boolean hasCompress = Record.hasBit( vdr.flags_, 2 );
         if ( hasCompress && vdr.cprOrSprOffset_ != -1 ) {
             CompressedParametersRecord cpr =
-                RecordFactory.createRecord( vdr.getBuf(), vdr.cprOrSprOffset_,
-                                            CompressedParametersRecord.class );
+                recFact.createRecord( vdr.getBuf(), vdr.cprOrSprOffset_,
+                                      CompressedParametersRecord.class );
             return Compression.getCompression( cpr.cType_ );
         }
         else {
@@ -129,12 +131,13 @@ class RecordMap {
     }
 
     private static void readEntries( VariableIndexRecord vxr, Buf buf,
+                                     RecordFactory recFact,
                                      Compression compress, List<Entry> list ) {
         int nent = vxr.nUsedEntries_;
         for ( int ie = 0; ie < nent; ie++ ) {
             int first = vxr.first_[ ie ];
             int last = vxr.last_[ ie ];
-            Record rec = RecordFactory.createRecord( buf, vxr.offset_[ ie ] );
+            Record rec = recFact.createRecord( buf, vxr.offset_[ ie ] );
             if ( rec instanceof VariableValuesRecord ) {
                 list.add( new Entry( first, last, buf,
                                      rec.getContentOffset() ) );
@@ -148,7 +151,7 @@ class RecordMap {
             }
             else if ( rec instanceof VariableIndexRecord ) {
                 VariableIndexRecord subVxr = (VariableIndexRecord) rec;
-                readEntries( subVxr, buf, compress, list );
+                readEntries( subVxr, buf, recFact, compress, list );
             }
             else {
                 String msg = new StringBuffer()

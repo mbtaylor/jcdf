@@ -12,6 +12,7 @@ public class CdfReader {
 
     private final CdfDescriptorRecord cdr_;
     private final Buf buf_;
+    private final RecordFactory recordFactory_;
 
     private static final Logger logger_ =
         Logger.getLogger( CdfReader.class.getName() );
@@ -53,6 +54,10 @@ public class CdfReader {
             };
         }
 
+        // The lengths of some fields differ according to CDF version.
+        // Get a record factory that does it right.
+        recordFactory_ = new RecordFactory( variant.nameLeng_ );
+
         // Get the CDF Descriptor Record.  This may be the first record,
         // or it may be in a compressed form along with the rest of
         // the internal records.
@@ -60,19 +65,19 @@ public class CdfReader {
         final CdfDescriptorRecord cdr;
         if ( variant.compressed_ ) {
             CompressedCdfRecord ccr =
-                RecordFactory.createRecord( buf, offsetRec0,
-                                            CompressedCdfRecord.class );
+                recordFactory_.createRecord( buf, offsetRec0,
+                                             CompressedCdfRecord.class );
             CompressedParametersRecord cpr =
-                RecordFactory.createRecord( buf, ccr.cprOffset_,
-                                            CompressedParametersRecord.class );
+                recordFactory_.createRecord( buf, ccr.cprOffset_,
+                                             CompressedParametersRecord.class );
             Compression compress = Compression.getCompression( cpr.cType_ );
             buf = compress.uncompress( buf, ccr.getDataOffset(), ccr.uSize_ );
-            cdr = RecordFactory
+            cdr = recordFactory_
                  .createRecord( buf, 0, CdfDescriptorRecord.class );
         }
         else {
-            cdr = RecordFactory.createRecord( buf, offsetRec0,
-                                              CdfDescriptorRecord.class );
+            cdr = recordFactory_.createRecord( buf, offsetRec0,
+                                               CdfDescriptorRecord.class );
         }
 
         // Interrogate CDR for required information.
@@ -98,10 +103,13 @@ public class CdfReader {
         return buf_;
     }
 
+    public RecordFactory getRecordFactory() {
+        return recordFactory_;
+    }
+
     public CdfDescriptorRecord getCdr() {
         return cdr_;
     }
- 
 
     public CdfContent readCdf() {
         CdfDescriptorRecord cdr = cdr_;
@@ -109,8 +117,8 @@ public class CdfReader {
 
         // Get global descriptor record.
         GlobalDescriptorRecord gdr =
-            RecordFactory.createRecord( buf, cdr.gdrOffset_,
-                                        GlobalDescriptorRecord.class );
+            recordFactory_.createRecord( buf, cdr.gdrOffset_,
+                                         GlobalDescriptorRecord.class );
 
         // Store global format information.
         boolean rowMajor = Record.hasBit( cdr.flags_, 0 );
@@ -178,8 +186,8 @@ public class CdfReader {
         long off = head;
         for ( int iv = 0; iv < nvar; iv++ ) {
             VariableDescriptorRecord vdr =
-                RecordFactory.createRecord( buf, off,
-                                            VariableDescriptorRecord.class );
+                recordFactory_.createRecord( buf, off,
+                                             VariableDescriptorRecord.class );
             vdrs[ iv ] = vdr;
             off = vdr.vdrNext_;
         }
@@ -193,8 +201,8 @@ public class CdfReader {
         long off = head;
         for ( int ia = 0; ia < natt; ia++ ) {
             AttributeDescriptorRecord adr =
-                RecordFactory.createRecord( buf, off,
-                                            AttributeDescriptorRecord.class );
+                recordFactory_.createRecord( buf, off,
+                                             AttributeDescriptorRecord.class );
             adrs[ ia ] = adr;
             off = adr.adrNext_;
         }
@@ -207,7 +215,7 @@ public class CdfReader {
         long off = head;
         for ( int ie = 0; ie < nent; ie++ ) {
             AttributeEntryDescriptorRecord aedr =
-                RecordFactory
+                recordFactory_
                .createRecord( buf, off, AttributeEntryDescriptorRecord.class );
             entries[ aedr.num_ ] = createEntry( aedr, info );
             off = aedr.aedrNext_;
@@ -237,7 +245,7 @@ public class CdfReader {
 
     private Variable createVariable( VariableDescriptorRecord vdr,
                                      CdfInfo info ) {
-        return new VdrVariable( vdr, info );
+        return new VdrVariable( vdr, info, recordFactory_ );
     }
 
     private GlobalAttribute
@@ -274,10 +282,12 @@ public class CdfReader {
     private static CdfVariant decodeMagic( int magic1, int magic2 ) {
         final String label;
         final boolean longOffsets;
+        final int nameLeng;
         final boolean compressed;
         if ( magic1 == 0xcdf30001 ) {
             label = "V3";
             longOffsets = true;
+            nameLeng = 256;
             if ( magic2 == 0x0000ffff ) {
                 compressed = false;
             }
@@ -291,6 +301,7 @@ public class CdfReader {
         else if ( magic1 == 0xcdf26002 ) {  // version 2.6/2.7
             label = "V2.6/2.7";
             longOffsets = false;
+            nameLeng = 64;
             if ( magic2 == 0x0000ffff ) {
                 compressed = false;
             }
@@ -304,6 +315,7 @@ public class CdfReader {
         else if ( magic1 == 0x0000ffff ) { // pre-version 2.6
             label = "pre-V2.6";
             longOffsets = false;
+            nameLeng = 64; // ??
             if ( magic2 == 0x0000ffff ) {
                 compressed = false;
             }
@@ -314,7 +326,7 @@ public class CdfReader {
         else {
             return null;
         }
-        return new CdfVariant( label, longOffsets, compressed );
+        return new CdfVariant( label, longOffsets, nameLeng, compressed );
     }
 
     /**
@@ -339,10 +351,13 @@ public class CdfReader {
     private static class CdfVariant {
         final String label_;
         final boolean longOffsets_;
+        final int nameLeng_;
         final boolean compressed_;
-        CdfVariant( String label, boolean longOffsets, boolean compressed ) {
+        CdfVariant( String label, boolean longOffsets, int nameLeng,
+                    boolean compressed ) {
             label_ = label;
             longOffsets_ = longOffsets;
+            nameLeng_ = nameLeng;
             compressed_ = compressed;
         }
     }

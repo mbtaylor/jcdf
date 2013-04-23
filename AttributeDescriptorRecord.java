@@ -15,7 +15,7 @@ public class AttributeDescriptorRecord extends Record {
     public final int rfuE_;
     public final String name_;
 
-    public AttributeDescriptorRecord( RecordPlan plan ) {
+    public AttributeDescriptorRecord( RecordPlan plan, int nameLeng ) {
         super( plan, 4 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
@@ -30,7 +30,7 @@ public class AttributeDescriptorRecord extends Record {
         nZEntries_ = buf.readInt( ptr );
         maxZEntry_ = buf.readInt( ptr );
         rfuE_ = checkIntValue( buf.readInt( ptr ), -1 );
-        name_ = buf.readAsciiString( ptr, 256 );
+        name_ = buf.readAsciiString( ptr, nameLeng );
         checkEndRecord( ptr );
     }
 }

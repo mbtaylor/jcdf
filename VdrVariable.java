@@ -9,6 +9,7 @@ class VdrVariable implements Variable {
 
     private final VariableDescriptorRecord vdr_;
     private final Buf buf_;
+    private final RecordFactory recFact_;
     private final boolean isZVariable_;
     private final Shaper shaper_;
     private final int rvaleng_;
@@ -18,9 +19,11 @@ class VdrVariable implements Variable {
     private final Object shapedPadValueColumnMajor_;
     private RecordReader recordReader_;
 
-    public VdrVariable( VariableDescriptorRecord vdr, CdfInfo info ) {
+    public VdrVariable( VariableDescriptorRecord vdr, CdfInfo info,
+                        RecordFactory recFact ) {
         vdr_ = vdr;
         buf_ = vdr.getBuf();
+        recFact_ = recFact;
         isZVariable_ = vdr.getRecordType() == 8;
         DataType dataType = DataType.getDataType( vdr.dataType_ );
         int[] dimSizes = isZVariable_ ? vdr.zDimSizes_ : info.getRDimSizes();
@@ -94,7 +97,8 @@ class VdrVariable implements Variable {
 
     private RecordReader createRecordReader() {
         RecordMap recMap =
-            RecordMap.createRecordMap( vdr_, dataReader_.getRecordSize() );
+            RecordMap.createRecordMap( vdr_, recFact_,
+                                       dataReader_.getRecordSize() );
         boolean recVary = Record.hasBit( vdr_.flags_, 0 );
         if ( ! recVary ) {
             return new NoVaryRecordReader( recMap );

@@ -23,7 +23,7 @@ public abstract class VariableDescriptorRecord extends Record {
     private final long padOffset_;
 
     private VariableDescriptorRecord( RecordPlan plan, int recordType,
-                                      boolean hasDims ) {
+                                      boolean hasDims, int nameLeng ) {
         super( plan, recordType );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
@@ -41,7 +41,7 @@ public abstract class VariableDescriptorRecord extends Record {
         num_ = buf.readInt( ptr );
         cprOrSprOffset_ = buf.readOffset( ptr );
         blockingFactor_ = buf.readInt( ptr );
-        name_ = buf.readAsciiString( ptr, 256 );
+        name_ = buf.readAsciiString( ptr, nameLeng );
         if ( hasDims ) {
             zNumDims_ = buf.readInt( ptr );
             zDimSizes_ = readIntArray( buf, ptr, zNumDims_ );
@@ -90,14 +90,14 @@ public abstract class VariableDescriptorRecord extends Record {
     }
 
     public static class RVariant extends VariableDescriptorRecord {
-        public RVariant( RecordPlan plan ) {
-            super( plan, 3, false );
+        public RVariant( RecordPlan plan, int nameLeng ) {
+            super( plan, 3, false, nameLeng );
         }
     }
 
     public static class ZVariant extends VariableDescriptorRecord {
-        public ZVariant( RecordPlan plan ) {
-            super( plan, 8, true );
+        public ZVariant( RecordPlan plan, int nameLeng ) {
+            super( plan, 8, true, nameLeng );
         }
     }
 }

@@ -7,10 +7,13 @@ import java.util.Map;
 
 public class RecordFactory {
 
-    private static final Map<Integer,TypedRecordFactory> factoryMap_ =
-        createFactoryMap();
+    private final Map<Integer,TypedRecordFactory> factoryMap_;
 
-    public static Record createRecord( Buf buf, long offset ) {
+    public RecordFactory( int nameLeng ) {
+        factoryMap_ = createFactoryMap( nameLeng );
+    }
+
+    public Record createRecord( Buf buf, long offset ) {
         Pointer ptr = new Pointer( offset );
         long recSize = buf.readOffset( ptr );
         int recType = buf.readInt( ptr );
@@ -24,8 +27,8 @@ public class RecordFactory {
         }
     }
 
-    public static <R extends Record> R createRecord( Buf buf, long offset,
-                                                     Class<R> clazz ) {
+    public <R extends Record> R createRecord( Buf buf, long offset,
+                                              Class<R> clazz ) {
         Record rec = createRecord( buf, offset );
         if ( clazz.isInstance( rec ) ) {
             return clazz.cast( rec );
@@ -44,7 +47,8 @@ public class RecordFactory {
         }
     }
 
-    private static Map<Integer,TypedRecordFactory> createFactoryMap() {
+    private static Map<Integer,TypedRecordFactory>
+            createFactoryMap( final int nameLeng ) {
         Map<Integer,TypedRecordFactory> map =
             new HashMap<Integer,TypedRecordFactory>();
         map.put( 1, new TypedRecordFactory() {
@@ -59,7 +63,7 @@ public class RecordFactory {
         } );
         map.put( 4, new TypedRecordFactory() {
             public Record createRecord( RecordPlan plan ) {
-                return new AttributeDescriptorRecord( plan );
+                return new AttributeDescriptorRecord( plan, nameLeng );
             }
         } );
         map.put( 5, new TypedRecordFactory() {
@@ -74,12 +78,12 @@ public class RecordFactory {
         } );
         map.put( 3, new TypedRecordFactory() {
             public Record createRecord( RecordPlan plan ) {
-                return new VariableDescriptorRecord.RVariant( plan );
+                return new VariableDescriptorRecord.RVariant( plan, nameLeng );
             }
         } );
         map.put( 8, new TypedRecordFactory() {
             public Record createRecord( RecordPlan plan ) {
-                return new VariableDescriptorRecord.ZVariant( plan );
+                return new VariableDescriptorRecord.ZVariant( plan, nameLeng );
             }
         } );
         map.put( 6, new TypedRecordFactory() {
