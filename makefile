@@ -42,6 +42,8 @@ JSRC = \
        VariableAttribute.java \
        VdrVariable.java \
        WrapperBuf.java \
+       \
+       CdfDump.java \
 
 jar: $(JARFILE)
 
