@@ -148,10 +148,10 @@ public class CdfReader {
             AttributeDescriptorRecord adr = adrs[ ia ];
             Entry[] grEntries =
                 walkEntryList( buf, adr.nGrEntries_, adr.agrEdrHead_,
-                               adr.maxGrEntry_, cdfInfo );
+                               adr.maxGrEntry_ + 1, cdfInfo );
             Entry[] zEntries =
                 walkEntryList( buf, adr.nZEntries_, adr.azEdrHead_,
-                               adr.maxZEntry_, cdfInfo );
+                               adr.maxZEntry_ + 1, cdfInfo );
             boolean isGlobal = Record.hasBit( adr.scope_, 0 );
             if ( isGlobal ) {
                 globalAtts.add( createGlobalAttribute( adr, grEntries,
@@ -211,7 +211,7 @@ public class CdfReader {
 
     private Entry[] walkEntryList( Buf buf, int nent, long head, int maxent,
                                    CdfInfo info ) {
-        Entry[] entries = new Entry[ Math.max( 0, maxent ) ];
+        Entry[] entries = new Entry[ maxent ];
         long off = head;
         for ( int ie = 0; ie < nent; ie++ ) {
             AttributeEntryDescriptorRecord aedr =
@@ -273,8 +273,9 @@ public class CdfReader {
                 return name;
             }
             public Entry getEntry( Variable variable ) {
-                return ( variable.isZVariable() ? zEntries : grEntries )
-                       [ variable.getNum() ];
+                Entry[] entries = variable.isZVariable() ? zEntries : grEntries;
+                int ix = variable.getNum();
+                return ix < entries.length ? entries[ ix ] : null;
             }
         };
     }
