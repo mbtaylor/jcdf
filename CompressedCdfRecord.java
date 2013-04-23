@@ -8,7 +8,7 @@ public class CompressedCdfRecord extends Record {
     private final long dataOffset_;
 
     public CompressedCdfRecord( RecordPlan plan ) {
-        super( plan, 10 );
+        super( plan, "CCR", 10 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         cprOffset_ = buf.readOffset( ptr );

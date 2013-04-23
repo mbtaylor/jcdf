@@ -18,7 +18,7 @@ public class GlobalDescriptorRecord extends Record {
     public final int[] rDimSizes_;
 
     public GlobalDescriptorRecord( RecordPlan plan ) {
-        super( plan, 2 );
+        super( plan, "GDR", 2 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         rVdrHead_ = buf.readOffset( ptr );

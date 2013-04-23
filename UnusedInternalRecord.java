@@ -6,7 +6,7 @@ public class UnusedInternalRecord extends Record {
     public final long prevUirOffset_;
 
     public UnusedInternalRecord( RecordPlan plan ) {
-        super( plan, -1 );
+        super( plan, "UIR", -1 );
 
         // In case this is an Unsociable UIR, don't actually read the
         // next/prev link offsets here, since they might not exist,

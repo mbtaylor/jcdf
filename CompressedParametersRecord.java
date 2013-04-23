@@ -8,7 +8,7 @@ public class CompressedParametersRecord extends Record {
     public final int[] cParms_;
 
     public CompressedParametersRecord( RecordPlan plan ) {
-        super( plan, 11 );
+        super( plan, "CPR", 11 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         cType_ = buf.readInt( ptr );

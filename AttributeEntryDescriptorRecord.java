@@ -14,8 +14,9 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
     public final int rfuE_;
     private final long valueOffset_;
 
-    private AttributeEntryDescriptorRecord( RecordPlan plan, int recordType ) {
-        super( plan, recordType );
+    private AttributeEntryDescriptorRecord( RecordPlan plan, String abbrev,
+                                            int recordType ) {
+        super( plan, abbrev, recordType );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         aedrNext_ = buf.readOffset( ptr );
@@ -38,14 +39,14 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
     public static class GrVariant extends AttributeEntryDescriptorRecord {
         public static final int RECORD_TYPE = 5;
         public GrVariant( RecordPlan plan ) {
-            super( plan, 5 );
+            super( plan, "AgrEDR", 5 );
         }
     }
 
     public static class ZVariant extends AttributeEntryDescriptorRecord {
         public static final int RECORD_TYPE = 9;
         public ZVariant( RecordPlan plan ) {
-            super( plan, 9 );
+            super( plan, "AzEDR", 9 );
         }
     }
 }

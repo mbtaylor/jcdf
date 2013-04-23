@@ -8,7 +8,7 @@ public class SparsenessParametersRecord extends Record {
     public final int[] sArraysParms_;
 
     public SparsenessParametersRecord( RecordPlan plan ) {
-        super( plan, 12 );
+        super( plan, "SPR", 12 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         sArraysType_ = buf.readInt( ptr );

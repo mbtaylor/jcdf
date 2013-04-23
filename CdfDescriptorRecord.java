@@ -15,7 +15,7 @@ public class CdfDescriptorRecord extends Record {
     public final String[] copyright_;
 
     public CdfDescriptorRecord( RecordPlan plan ) {
-        super( plan, 1 );
+        super( plan, "CDR", 1 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         gdrOffset_ = buf.readOffset( ptr );

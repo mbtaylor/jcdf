@@ -16,7 +16,7 @@ public class AttributeDescriptorRecord extends Record {
     public final String name_;
 
     public AttributeDescriptorRecord( RecordPlan plan, int nameLeng ) {
-        super( plan, 4 );
+        super( plan, "ADR", 4 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         adrNext_ = buf.readOffset( ptr );

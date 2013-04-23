@@ -10,7 +10,7 @@ public class VariableIndexRecord extends Record {
     public final long[] offset_;
 
     public VariableIndexRecord( RecordPlan plan ) {
-        super( plan, 6 );
+        super( plan, "VXR", 6 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         vxrNext_ = buf.readOffset( ptr );

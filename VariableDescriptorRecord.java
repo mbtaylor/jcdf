@@ -22,9 +22,10 @@ public abstract class VariableDescriptorRecord extends Record {
     public final boolean[] dimVarys_;
     private final long padOffset_;
 
-    private VariableDescriptorRecord( RecordPlan plan, int recordType,
-                                      boolean hasDims, int nameLeng ) {
-        super( plan, recordType );
+    private VariableDescriptorRecord( RecordPlan plan, String abbrev,
+                                      int recordType, boolean hasDims,
+                                      int nameLeng ) {
+        super( plan, abbrev, recordType );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         vdrNext_ = buf.readOffset( ptr );
@@ -91,13 +92,13 @@ public abstract class VariableDescriptorRecord extends Record {
 
     public static class RVariant extends VariableDescriptorRecord {
         public RVariant( RecordPlan plan, int nameLeng ) {
-            super( plan, 3, false, nameLeng );
+            super( plan, "rVDR", 3, false, nameLeng );
         }
     }
 
     public static class ZVariant extends VariableDescriptorRecord {
         public ZVariant( RecordPlan plan, int nameLeng ) {
-            super( plan, 8, true, nameLeng );
+            super( plan, "zVDR", 8, true, nameLeng );
         }
     }
 }

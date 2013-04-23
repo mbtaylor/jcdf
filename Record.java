@@ -7,14 +7,16 @@ import java.util.logging.Logger;
 public abstract class Record {
 
     private final RecordPlan plan_;
+    private final String abbrev_;
     private final Logger logger_ = Logger.getLogger( Record.class.getName() );
 
-    protected Record( RecordPlan plan ) {
+    protected Record( RecordPlan plan, String abbrev ) {
         plan_ = plan;
+        abbrev_ = abbrev;
     }
 
-    protected Record( RecordPlan plan, int fixedType ) {
-        this( plan );
+    protected Record( RecordPlan plan, String abbrev, int fixedType ) {
+        this( plan, abbrev );
         int planType = plan.getRecordType();
         if ( planType != fixedType ) {
             throw new IllegalArgumentException( "Incorrect record type ("
@@ -32,6 +34,10 @@ public abstract class Record {
 
     public Buf getBuf() {
         return plan_.getBuf();
+    }
+
+    public String getRecordTypeAbbreviation() {
+        return abbrev_;
     }
 
     public long getContentOffset() {
