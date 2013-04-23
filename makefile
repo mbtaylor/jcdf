@@ -44,6 +44,7 @@ JSRC = \
        WrapperBuf.java \
        \
        CdfDump.java \
+       CdfList.java \
 
 jar: $(JARFILE)
 
