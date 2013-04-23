@@ -40,4 +40,6 @@ public interface Buf {
     void readDataDoubles( long offset, int count, double[] array );
 
     InputStream createInputStream( long offset );
+
+    long getLength();
 }

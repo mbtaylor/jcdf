@@ -18,4 +18,8 @@ public class CompressedCdfRecord extends Record {
         rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
         dataOffset_ = ptr.get();
     }
+
+    public long getDataOffset() {
+        return dataOffset_;
+    }
 }

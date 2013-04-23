@@ -61,4 +61,8 @@ class WrapperBuf implements Buf {
     public InputStream createInputStream( long offset ) {
         return base_.createInputStream( offset );
     }
+
+    public long getLength() {
+        return base_.getLength();
+    }
 }

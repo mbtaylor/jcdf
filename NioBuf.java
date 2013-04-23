@@ -1,8 +1,12 @@
 package cdf;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
 public class NioBuf implements Buf {
@@ -15,6 +19,10 @@ public class NioBuf implements Buf {
         byteBuf_ = byteBuf;
         dataBuf_ = byteBuf.duplicate();
         setEncoding( isBigendian );
+    }
+
+    public long getLength() {
+        return byteBuf_.capacity();
     }
 
     public int readUnsignedByte( Pointer ptr ) {
@@ -136,7 +144,16 @@ public class NioBuf implements Buf {
         return new ByteBufferInputStream( strmBuf );
     }
 
-    private int toInt( long lvalue ) {
+    public static NioBuf createBuf( File file, boolean isBigendian )
+            throws IOException {
+        int fleng = toInt( file.length() );
+        ByteBuffer bbuf = new FileInputStream( file )
+                         .getChannel()
+                         .map( FileChannel.MapMode.READ_ONLY, 0, fleng );
+        return new NioBuf( bbuf, isBigendian );
+    }
+
+    private static int toInt( long lvalue ) {
         int ivalue = (int) lvalue;
         if ( ivalue != lvalue ) {
             throw new IllegalArgumentException( "Pointer out of range: "

@@ -1,6 +1,8 @@
 package cdf;
 
 import java.lang.reflect.Array;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -8,10 +10,13 @@ import java.util.logging.Logger;
 
 public class CdfReader {
 
+    private final CdfDescriptorRecord cdr_;
+    private final Buf buf_;
+
     private static final Logger logger_ =
         Logger.getLogger( CdfReader.class.getName() );
 
-    public CdfContent readCdf( Buf buf ) {
+    public CdfReader( Buf buf ) {
         Pointer ptr = new Pointer( 0 );
 
         // Read the CDF magic number bytes.
@@ -33,6 +38,7 @@ public class CdfReader {
             throw new CdfFormatException( msg );
         }
         logger_.info( "CDF magic number for " + variant.label_ );
+        logger_.info( "Whole file compression: " + variant.compressed_ );
 
         // Versions prior to v3 have essentially the same format but
         // use 4-byte file offsets instead of 8-byte ones.
@@ -47,10 +53,29 @@ public class CdfReader {
             };
         }
 
-        // Get CDF descriptor records.
-        CdfDescriptorRecord cdr =
-            RecordFactory.createRecord( buf, ptr.get(),
-                                        CdfDescriptorRecord.class );
+        // Get the CDF Descriptor Record.  This may be the first record,
+        // or it may be in a compressed form along with the rest of
+        // the internal records.
+        long offsetRec0 = ptr.get();
+        final CdfDescriptorRecord cdr;
+        if ( variant.compressed_ ) {
+            CompressedCdfRecord ccr =
+                RecordFactory.createRecord( buf, offsetRec0,
+                                            CompressedCdfRecord.class );
+            CompressedParametersRecord cpr =
+                RecordFactory.createRecord( buf, ccr.cprOffset_,
+                                            CompressedParametersRecord.class );
+            Compression compress = Compression.getCompression( cpr.cType_ );
+            buf = compress.uncompress( buf, ccr.getDataOffset(), ccr.uSize_ );
+            cdr = RecordFactory
+                 .createRecord( buf, 0, CdfDescriptorRecord.class );
+        }
+        else {
+            cdr = RecordFactory.createRecord( buf, offsetRec0,
+                                              CdfDescriptorRecord.class );
+        }
+
+        // Interrogate CDR for required information.
         boolean isSingleFile = Record.hasBit( cdr.flags_, 1 );
         if ( ! isSingleFile ) {
             throw new CdfFormatException( "Multi-file CDFs not supported" );
@@ -61,6 +86,26 @@ public class CdfReader {
             throw new CdfFormatException( "Unsupported encoding " + encoding );
         }
         buf.setEncoding( bigEndian.booleanValue() );
+        cdr_ = cdr;
+        buf_ = buf;
+    }
+
+    public CdfReader( File file ) throws IOException {
+        this( NioBuf.createBuf( file, true ) );
+    }
+
+    public Buf getBuf() {
+        return buf_;
+    }
+
+    public CdfDescriptorRecord getCdr() {
+        return cdr_;
+    }
+ 
+
+    public CdfContent readCdf() {
+        CdfDescriptorRecord cdr = cdr_;
+        Buf buf = buf_;
 
         // Get global descriptor record.
         GlobalDescriptorRecord gdr =
@@ -70,7 +115,7 @@ public class CdfReader {
         // Store global format information.
         boolean rowMajor = Record.hasBit( cdr.flags_, 0 );
         int[] rDimSizes = gdr.rDimSizes_;
-        CdfInfo cdfInfo = new CdfInfo( encoding, rowMajor, rDimSizes );
+        CdfInfo cdfInfo = new CdfInfo( rowMajor, rDimSizes );
 
         // Read the rVariable and zVariable records.
         VariableDescriptorRecord[] rvdrs =
@@ -125,52 +170,6 @@ public class CdfReader {
                 return variables;
             }
         };
-    }
-
-    private CdfVariant decodeMagic( int magic1, int magic2 ) {
-        final String label;
-        final boolean longOffsets;
-        final boolean compressed;
-        if ( magic1 == 0xcdf30001 ) {
-            label = "V3";
-            longOffsets = true;
-            if ( magic2 == 0x0000ffff ) {
-                compressed = false;
-            }
-            else if ( magic2 == 0xcccc0001 ) {
-                compressed = true;
-            }
-            else {
-                return null;
-            }
-        }
-        else if ( magic1 == 0xcdf26002 ) {  // version 2.6/2.7
-            label = "V2.6/2.7";
-            longOffsets = false;
-            if ( magic2 == 0x0000ffff ) {
-                compressed = false;
-            }
-            else if ( magic2 == 0xcccc0001 ) {
-                compressed = true;
-            }
-            else {
-                return null;
-            }
-        }
-        else if ( magic1 == 0x0000ffff ) { // pre-version 2.6
-            label = "pre-V2.6";
-            longOffsets = false;
-            if ( magic2 == 0x0000ffff ) {
-                compressed = false;
-            }
-            else {
-                return null;
-            }
-        }
-        else {
-            return null;
-        }
-        return new CdfVariant( label, longOffsets, compressed );
     }
 
     private VariableDescriptorRecord[] walkVariableList( Buf buf, int nvar,
@@ -270,6 +269,52 @@ public class CdfReader {
                        [ variable.getNum() ];
             }
         };
+    }
+
+    private static CdfVariant decodeMagic( int magic1, int magic2 ) {
+        final String label;
+        final boolean longOffsets;
+        final boolean compressed;
+        if ( magic1 == 0xcdf30001 ) {
+            label = "V3";
+            longOffsets = true;
+            if ( magic2 == 0x0000ffff ) {
+                compressed = false;
+            }
+            else if ( magic2 == 0xcccc0001 ) {
+                compressed = true;
+            }
+            else {
+                return null;
+            }
+        }
+        else if ( magic1 == 0xcdf26002 ) {  // version 2.6/2.7
+            label = "V2.6/2.7";
+            longOffsets = false;
+            if ( magic2 == 0x0000ffff ) {
+                compressed = false;
+            }
+            else if ( magic2 == 0xcccc0001 ) {
+                compressed = true;
+            }
+            else {
+                return null;
+            }
+        }
+        else if ( magic1 == 0x0000ffff ) { // pre-version 2.6
+            label = "pre-V2.6";
+            longOffsets = false;
+            if ( magic2 == 0x0000ffff ) {
+                compressed = false;
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
+        return new CdfVariant( label, longOffsets, compressed );
     }
 
     /**
