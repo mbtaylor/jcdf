@@ -43,7 +43,10 @@ public abstract class Compression {
         name_ = name;
     }
 
-    public abstract Buf uncompress( Buf inBuf, long inOffset, long inSize );
+    /**
+     * @param   outSize  the size of the uncompressed data
+     */
+    public abstract Buf uncompress( Buf inBuf, long inOffset, long outSize );
 
     public String getName() {
         return name_;
@@ -64,7 +67,7 @@ public abstract class Compression {
     private static Compression createFailCompression( String name,
                                                       final String failMsg ) {
         return new Compression( name ) {
-            public Buf uncompress( Buf inBuf, long inOffset, long inSize ) {
+            public Buf uncompress( Buf inBuf, long inOffset, long outSize ) {
                 throw new CdfFormatException( failMsg );
             }
         };

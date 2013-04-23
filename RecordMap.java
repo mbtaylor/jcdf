@@ -109,7 +109,7 @@ class RecordMap {
             VariableIndexRecord vxr =
                 recFact.createRecord( buf, vxrOffset,
                                       VariableIndexRecord.class );
-            readEntries( vxr, buf, recFact, compress, entryList );
+            readEntries( vxr, buf, recFact, recSize, compress, entryList );
             vxrOffset = vxr.vxrNext_;
         }
         Entry[] entries = entryList.toArray( new Entry[ 0 ] );
@@ -131,7 +131,7 @@ class RecordMap {
     }
 
     private static void readEntries( VariableIndexRecord vxr, Buf buf,
-                                     RecordFactory recFact,
+                                     RecordFactory recFact, int recSize,
                                      Compression compress, List<Entry> list ) {
         int nent = vxr.nUsedEntries_;
         for ( int ie = 0; ie < nent; ie++ ) {
@@ -145,13 +145,14 @@ class RecordMap {
             else if ( rec instanceof CompressedVariableValuesRecord ) {
                 CompressedVariableValuesRecord cvvr =
                     (CompressedVariableValuesRecord) rec;
+                int uncompressedSize = ( last - first + 1 ) * recSize;
                 Buf cBuf = compress.uncompress( buf, cvvr.getDataOffset(),
-                                                cvvr.cSize_ );
+                                                uncompressedSize );
                 list.add( new Entry( first, last, cBuf, 0L ) );
             }
             else if ( rec instanceof VariableIndexRecord ) {
                 VariableIndexRecord subVxr = (VariableIndexRecord) rec;
-                readEntries( subVxr, buf, recFact, compress, list );
+                readEntries( subVxr, buf, recFact, recSize, compress, list );
             }
             else {
                 String msg = new StringBuffer()
