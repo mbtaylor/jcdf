@@ -31,7 +31,10 @@ public class NioBuf implements Buf {
 
     public String readAsciiString( Pointer ptr, int nbyte ) {
         byte[] abuf = new byte[ nbyte ];
-        byteBuf_.get( abuf, toInt( ptr.getAndIncrement( nbyte ) ), nbyte );
+        synchronized ( byteBuf_ ) {
+            byteBuf_.position( toInt( ptr.getAndIncrement( nbyte ) ) );
+            byteBuf_.get( abuf, 0, nbyte );
+        }
         StringBuilder sbuf = new StringBuilder( nbyte );
         for ( int i = 0; i < nbyte; i++ ) {
             byte b = abuf[ i ];

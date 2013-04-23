@@ -15,7 +15,7 @@ public class VariableIndexRecord extends Record {
         super( plan, RECORD_TYPE );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        vxrNext_ = buf.readInt( ptr );
+        vxrNext_ = buf.readOffset( ptr );
         nEntries_ = buf.readInt( ptr );
         nUsedEntries_ = buf.readInt( ptr );
         first_ = readIntArray( buf, ptr, nEntries_ );

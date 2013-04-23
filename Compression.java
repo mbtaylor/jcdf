@@ -29,7 +29,7 @@ public abstract class Compression {
     //    #define GZIP_COMPRESSION                5L
     private static final Compression[] KNOWN_COMPRESSIONS;
     static {
-        KNOWN_COMPRESSIONS = new Compression[ 5 ];
+        KNOWN_COMPRESSIONS = new Compression[ 6 ];
         KNOWN_COMPRESSIONS[ 0 ] = NONE;
         KNOWN_COMPRESSIONS[ 1 ] = RLE;
         KNOWN_COMPRESSIONS[ 2 ] = HUFF;
