@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 
 public class NioBuf implements Buf {
@@ -142,6 +144,14 @@ public class NioBuf implements Buf {
         ByteBuffer strmBuf = byteBuf_.duplicate();
         strmBuf.position( (int) offset );
         return new ByteBufferInputStream( strmBuf );
+    }
+
+    public Buf fillNewBuf( long count, InputStream in ) throws IOException {
+        int icount = toInt( count );
+        ByteBuffer bbuf = ByteBuffer.allocateDirect( icount );
+        ReadableByteChannel chan = Channels.newChannel( in );
+        chan.read( bbuf );
+        return new NioBuf( bbuf, isBigendian_ );
     }
 
     public static NioBuf createBuf( File file, boolean isBigendian )

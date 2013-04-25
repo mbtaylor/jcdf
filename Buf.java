@@ -1,5 +1,6 @@
 package cdf;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 public interface Buf {
@@ -40,6 +41,7 @@ public interface Buf {
     void readDataDoubles( long offset, int count, double[] array );
 
     InputStream createInputStream( long offset );
+    Buf fillNewBuf( long count, InputStream in ) throws IOException;
 
     long getLength();
 }

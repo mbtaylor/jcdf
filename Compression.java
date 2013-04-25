@@ -3,9 +3,6 @@ package cdf;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.zip.GZIPInputStream;
 
 public abstract class Compression {
@@ -97,16 +94,9 @@ public abstract class Compression {
                 new GZIPInputStream(
                     new BufferedInputStream(
                         inBuf.createInputStream( inOffset ) ) );
-            int iOutSize = (int) outSize;
-            if ( iOutSize != outSize ) {
-                String msg = "Large (>2Gb) compressed values not supported";
-                throw new CdfFormatException( msg );
-            }
-            ByteBuffer bbuf = ByteBuffer.allocateDirect( iOutSize );
-            ReadableByteChannel gzchan = Channels.newChannel( gzin );
-            gzchan.read( bbuf );
-            gzchan.close();
-            return new NioBuf( bbuf, inBuf.isBigendian() );
+            Buf ubuf = inBuf.fillNewBuf( outSize, gzin );
+            gzin.close();
+            return ubuf;
         }
     }
 }

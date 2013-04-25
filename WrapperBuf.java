@@ -1,5 +1,6 @@
 package cdf;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 class WrapperBuf implements Buf {
@@ -60,6 +61,10 @@ class WrapperBuf implements Buf {
 
     public InputStream createInputStream( long offset ) {
         return base_.createInputStream( offset );
+    }
+
+    public Buf fillNewBuf( long count, InputStream in ) throws IOException {
+        return base_.fillNewBuf( count, in );
     }
 
     public long getLength() {
