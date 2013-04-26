@@ -70,6 +70,10 @@ class VdrVariable implements Variable {
         return dataReader_;
     }
 
+    public Shaper getShaper() {
+        return shaper_;
+    }
+
     public Object createRawValueArray() {
         return dataReader_.createValueArray();
     }

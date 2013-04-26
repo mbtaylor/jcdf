@@ -11,6 +11,7 @@ public interface Variable {
      */
     int getRecordCount();
     DataReader getDataReader();
+    Shaper getShaper();
 
     /**
      * Whether a real distinct file-based record exists for the given index.

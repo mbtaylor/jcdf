@@ -9,6 +9,10 @@ public abstract class Shaper {
 
     public abstract int getShapedItemCount();
 
+    public abstract int[] getDimSizes();
+
+    public abstract Class<?> getShapeClass();
+
     /**
      * The returned object is new; it is not rawValue.
      */
@@ -36,7 +40,7 @@ public abstract class Shaper {
         }
         else if ( ndim == 1  && nDimVary == 1 ) {
             assert shapedItemCount == rawItemCount;
-            return new VectorShaper( dataType, shapedItemCount );
+            return new VectorShaper( dataType, dimSizes, shapedItemCount );
         }
         else if ( nDimVary == ndim ) {
             return new SimpleArrayShaper( dataType, dimSizes, rowMajor );
@@ -57,6 +61,12 @@ public abstract class Shaper {
         public int getShapedItemCount() {
             return 1;
         }
+        public int[] getDimSizes() {
+            return new int[ 0 ];
+        }
+        public Class<?> getShapeClass() {
+            return dataType_.getScalarClass();
+        }
         public Object shape( Object rawValue, boolean rowMajor ) {
             return dataType_.getScalar( rawValue, 0 );
         }
@@ -71,17 +81,27 @@ public abstract class Shaper {
     }
 
     private static class VectorShaper extends Shaper {
+        private final int[] dimSizes_;
         private final int itemCount_;
         private final int step_;
-        VectorShaper( DataType dataType, int itemCount ) {
+        private final Class<?> shapeClass_;
+        VectorShaper( DataType dataType, int[] dimSizes, int itemCount ) {
+            dimSizes_ = dimSizes;
             itemCount_ = itemCount;
             step_ = dataType.getGroupSize();
+            shapeClass_ = getArrayClass( dataType.getArrayElementClass() );
         }
         public int getRawItemCount() {
             return itemCount_;
         }
         public int getShapedItemCount() {
             return itemCount_;
+        }
+        public int[] getDimSizes() {
+            return dimSizes_;
+        }
+        public Class<?> getShapeClass() {
+            return shapeClass_;
         }
         public Object shape( Object rawValue, boolean rowMajor ) {
             return rawValue;
@@ -102,6 +122,7 @@ public abstract class Shaper {
         private final int shapedItemCount_;
         private final int[] strides_;
         private final int itemSize_;
+        private final Class<?> shapeClass_;
         
         GeneralShaper( DataType dataType, int[] dimSizes, boolean[] dimVarys,
                        boolean rowMajor ) {
@@ -122,13 +143,14 @@ public abstract class Shaper {
                 shapedItemCount *= dimSize;
                 if ( dimVarys[ jdim ] ) {
                     nDimVary++;
-                    rawItemCount *= dimSize;
                     strides_[ jdim ] = rawItemCount;
+                    rawItemCount *= dimSize;
                 }
             }
             rawItemCount_ = rawItemCount;
             shapedItemCount_ = shapedItemCount;
             itemSize_ = dataType_.getGroupSize();
+            shapeClass_ = getArrayClass( dataType.getArrayElementClass() );
         }
 
         public int getRawItemCount() {
@@ -137,6 +159,10 @@ public abstract class Shaper {
 
         public int getShapedItemCount() {
             return shapedItemCount_;
+        }
+
+        public int[] getDimSizes() {
+            return dimSizes_;
         }
 
         public int getArrayIndex( int[] coords, boolean rowMajor ) {
@@ -148,14 +174,20 @@ public abstract class Shaper {
             return index * itemSize_;
         }
 
+        public Class<?> getShapeClass() {
+            return shapeClass_;
+        }
+
         public Object shape( Object rawValue, boolean rowMajor ) {
             Object out = Array.newInstance( dataType_.getArrayElementClass(),
                                             shapedItemCount_ * itemSize_ );
             int[] coords = new int[ ndim_ ];
+            Arrays.fill( coords, -1 );
             for ( int ix = 0; ix < shapedItemCount_; ix++ ) {
                 for ( int idim = 0; idim < ndim_; idim++ ) {
                     int jdim = rowMajor ? ndim_ - idim - 1 : idim;
-                    if ( ++coords[ jdim ] % dimSizes_[ jdim ] != 0 ) {
+                    coords[ jdim ] = ( coords[ jdim ] + 1 ) % dimSizes_[ jdim ];
+                    if ( coords[ jdim ] != 0 ) {
                         break;
                     }
                 }
@@ -202,5 +234,9 @@ public abstract class Shaper {
             Arrays.fill( a, true );
             return a;
         }
+    }
+
+    private static Class<?> getArrayClass( Class elementClass ) {
+        return Array.newInstance( elementClass, 0 ).getClass();
     }
 }
