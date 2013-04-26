@@ -5,6 +5,7 @@ JAR = jar
 JAVADOC = javadoc
 
 JARFILE = cdf.jar
+STILJAR = stil.jar
 
 JSRC = \
        AttributeDescriptorRecord.java \
@@ -44,23 +45,30 @@ JSRC = \
        \
        CdfDump.java \
        CdfList.java \
+       \
+       CdfStarTable.java \
+       CdfTableBuilder.java \
+       CdfTableProfile.java \
 
 jar: $(JARFILE)
 
 docs: $(JSRC)
 	rm -rf docs
 	mkdir docs
-	$(JAVADOC) -quiet -d docs $(JSRC)
+	$(JAVADOC) -classpath $(STILJAR) -quiet -d docs $(JSRC)
 
 build: jar docs
 
 clean:
 	rm -rf $(JARFILE) tmp docs
 
-$(JARFILE): $(JSRC)
+$(JARFILE): $(JSRC) $(STILJAR)
 	rm -rf tmp
 	mkdir -p tmp
-	$(JAVAC) -Xlint:unchecked -d tmp $(JSRC) \
+	$(JAVAC) -Xlint:unchecked -classpath $(STILJAR) -d tmp $(JSRC) \
             && $(JAR) cf $(JARFILE) -C tmp .
 	rm -rf tmp
+
+$(STILJAR):
+	curl -L http://www.starlink.ac.uk/stil/stil.jar >$@
 

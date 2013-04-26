@@ -3,7 +3,7 @@ package cdf;
 import java.io.IOException;
 import java.io.InputStream;
 
-class WrapperBuf implements Buf {
+public class WrapperBuf implements Buf {
 
     private final Buf base_;
 

@@ -273,6 +273,20 @@ public class CdfReader {
         };
     }
 
+    public static boolean isMagic( byte[] intro ) {
+        if ( intro.length < 8 ) {
+            return false;
+        }
+        return decodeMagic( readInt( intro, 0 ), readInt( intro, 4 ) ) != null;
+    }
+
+    private static int readInt( byte[] b, int ioff ) {
+        return ( b[ ioff++ ] & 0xff ) << 24
+             | ( b[ ioff++ ] & 0xff ) << 16
+             | ( b[ ioff++ ] & 0xff ) <<  8
+             | ( b[ ioff++ ] & 0xff ) <<  0;
+    }
+
     private static CdfVariant decodeMagic( int magic1, int magic2 ) {
         final String label;
         final boolean longOffsets;
