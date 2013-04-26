@@ -146,10 +146,10 @@ public class CdfReader {
         List<VariableAttribute> varAtts = new ArrayList<VariableAttribute>();
         for ( int ia = 0; ia < adrs.length; ia++ ) {
             AttributeDescriptorRecord adr = adrs[ ia ];
-            Entry[] grEntries =
+            Object[] grEntries =
                 walkEntryList( buf, adr.nGrEntries_, adr.agrEdrHead_,
                                adr.maxGrEntry_ + 1, cdfInfo );
-            Entry[] zEntries =
+            Object[] zEntries =
                 walkEntryList( buf, adr.nZEntries_, adr.azEdrHead_,
                                adr.maxZEntry_ + 1, cdfInfo );
             boolean isGlobal = Record.hasBit( adr.scope_, 0 );
@@ -209,22 +209,22 @@ public class CdfReader {
         return adrs;
     }
 
-    private Entry[] walkEntryList( Buf buf, int nent, long head, int maxent,
-                                   CdfInfo info ) {
-        Entry[] entries = new Entry[ maxent ];
+    private Object[] walkEntryList( Buf buf, int nent, long head, int maxent,
+                                    CdfInfo info ) {
+        Object[] entries = new Object[ maxent ];
         long off = head;
         for ( int ie = 0; ie < nent; ie++ ) {
             AttributeEntryDescriptorRecord aedr =
                 recordFactory_
                .createRecord( buf, off, AttributeEntryDescriptorRecord.class );
-            entries[ aedr.num_ ] = createEntry( aedr, info );
+            entries[ aedr.num_ ] = getEntryValue( aedr, info );
             off = aedr.aedrNext_;
         }
         return entries;
     }
 
-    private Entry createEntry( AttributeEntryDescriptorRecord aedr,
-                               CdfInfo info ) {
+    private Object getEntryValue( AttributeEntryDescriptorRecord aedr,
+                                  CdfInfo info ) {
         DataType dataType = DataType.getDataType( aedr.dataType_ );
         int numElems = aedr.numElems_;
         final DataReader dataReader = new DataReader( dataType, numElems, 1 );
@@ -232,15 +232,7 @@ public class CdfReader {
                                              new boolean[ 0 ], true );
         Object va = dataReader.createValueArray();
         dataReader.readValue( aedr.getBuf(), aedr.getValueOffset(), va );
-        final Object value = shaper.shape( va, true );
-        return new Entry() {
-            public DataReader getDataReader() {
-                return dataReader;
-            }
-            public Object getValue() {
-                return value;
-            }
-        };
+        return shaper.shape( va, true );
     }
 
     private Variable createVariable( VariableDescriptorRecord vdr,
@@ -250,14 +242,14 @@ public class CdfReader {
 
     private GlobalAttribute
             createGlobalAttribute( AttributeDescriptorRecord adr,
-                                   Entry[] grEntries, Entry[] zEntries ) {
-        final Entry[] entries = arrayConcat( grEntries, zEntries );
+                                   Object[] grEntries, Object[] zEntries ) {
+        final Object[] entries = arrayConcat( grEntries, zEntries );
         final String name = adr.name_;
         return new GlobalAttribute() {
             public String getName() {
                 return name;
             }
-            public Entry[] getEntries() {
+            public Object[] getEntries() {
                 return entries;
             }
         };
@@ -265,15 +257,16 @@ public class CdfReader {
 
     private VariableAttribute
             createVariableAttribute( AttributeDescriptorRecord adr,
-                                     final Entry[] grEntries,
-                                     final Entry[] zEntries ) {
+                                     final Object[] grEntries,
+                                     final Object[] zEntries ) {
         final String name = adr.name_;
         return new VariableAttribute() {
             public String getName() {
                 return name;
             }
-            public Entry getEntry( Variable variable ) {
-                Entry[] entries = variable.isZVariable() ? zEntries : grEntries;
+            public Object getEntry( Variable variable ) {
+                Object[] entries = variable.isZVariable() ? zEntries
+                                                          : grEntries;
                 int ix = variable.getNum();
                 return ix < entries.length ? entries[ ix ] : null;
             }

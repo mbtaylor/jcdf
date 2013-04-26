@@ -33,7 +33,6 @@ JSRC = \
        Compression.java \
        DataReader.java \
        DataType.java \
-       Entry.java \
        GlobalAttribute.java \
        NumericEncoding.java \
        RecordMap.java \

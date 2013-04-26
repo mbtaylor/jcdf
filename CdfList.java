@@ -2,7 +2,6 @@ package cdf.util;
 
 import cdf.CdfContent;
 import cdf.CdfReader;
-import cdf.Entry;
 import cdf.GlobalAttribute;
 import cdf.Variable;
 import cdf.VariableAttribute;
@@ -37,9 +36,9 @@ public class CdfList {
         for ( int iga = 0; iga < gAtts.length; iga++ ) {
             GlobalAttribute gAtt = gAtts[ iga ];
             out_.println( "    " + gAtt.getName() );
-            Entry[] entries = gAtt.getEntries();
+            Object[] entries = gAtt.getEntries();
             for ( int ie = 0; ie < entries.length; ie++ ) {
-                out_.println( "        " + entries[ ie ].getValue() );
+                out_.println( "        " + entries[ ie ] );
             }
         }
 
@@ -48,10 +47,9 @@ public class CdfList {
             header( "Variable " + var.getNum() + ": " + var.getName() );
             for ( int ia = 0; ia < vAtts.length; ia++ ) {
                 VariableAttribute vAtt = vAtts[ ia ];
-                Entry entry = vAtt.getEntry( var );
+                Object entry = vAtt.getEntry( var );
                 if ( entry != null ) {
-                    out_.println( "    " + vAtt.getName()
-                                + ":\t" + entry.getValue() );
+                    out_.println( "    " + vAtt.getName() + ":\t" + entry );
                 }
             }
             if ( writeData_ ) {
