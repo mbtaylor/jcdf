@@ -345,6 +345,13 @@ class CefReader implements RowSequence {
         else {
             name = vname;
         }
+        final String fillval;
+        if ( meta.containsKey( "FILLVAL" ) ) {
+            fillval = getText( meta.remove( "FILLVAL" ) );
+        }
+        else {
+            fillval = null;
+        }
         final int[] shape;
         final int nel;
         if ( sizes != null ) {
@@ -388,30 +395,47 @@ class CefReader implements RowSequence {
         }
         info.setAuxData( auxData );
         if ( isArray ) {
-            return new Variable() {
-                public ColumnInfo getColumnInfo() {
-                    return info;
-                }
-                public int getItemCount() {
-                    return nel;
-                }
-                public Object readValue( String[] fields, int start ) {
-                    return valueType.parseArrayValues( fields, start, nel );
-                }
-            };
+            if ( fillval == null ) {
+                return new Variable( info, nel ) {
+                    public Object readValue( String[] fields, int start ) {
+                        return valueType.parseArrayValues( fields, start, nel );
+                    }
+                };
+            }
+            else {
+                final Object fv1 = valueType.createBlankUnitArray( fillval );
+                return new Variable( info, nel ) {
+                    public Object readValue( String[] fields, int start ) {
+                        Object result =
+                            valueType.parseArrayValues( fields, start, nel );
+                        for ( int i = 0; i < nel; i++ ) {
+                            if ( fillval.equals( fields[ start++ ] ) ) {
+                                System.arraycopy( result, i, fv1, 0, 1 );
+                            }
+                        }
+                        return result;
+                    }
+                };
+            }
         }
         else {
-            return new Variable() {
-                public ColumnInfo getColumnInfo() {
-                    return info;
-                }
-                public int getItemCount() {
-                    return 1;
-                }
-                public Object readValue( String[] fields, int start ) {
-                    return valueType.parseScalarValue( fields[ start ] );
-                }
-            };
+            if ( fillval == null ) {
+                return new Variable( info, 1 ) {
+                    public Object readValue( String[] fields, int start ) {
+                        return valueType.parseScalarValue( fields[ start ] );
+                    }
+                };
+            }
+            else {
+                return new Variable( info, 1 ) {
+                    public Object readValue( String[] fields, int start ) {
+                        String field = fields[ start ];
+                        return fillval.equals( field )
+                             ? null
+                             : valueType.parseScalarValue( field );
+                    }
+                };
+            }
         }
     }
 
@@ -444,10 +468,20 @@ class CefReader implements RowSequence {
         }
     }
 
-    private static interface Variable {
-        ColumnInfo getColumnInfo();
-        int getItemCount();
-        Object readValue( String[] fields, int start );
+    private static abstract class Variable {
+        private final ColumnInfo info_;
+        private final int itemCount_;
+        Variable( ColumnInfo info, int itemCount ) {
+            info_ = info;
+            itemCount_ = itemCount;
+        }
+        ColumnInfo getColumnInfo() {
+            return info_;
+        }
+        int getItemCount() {
+            return itemCount_;
+        }
+        abstract Object readValue( String[] fields, int start );
     }
 
     private static abstract class DataLineReader {

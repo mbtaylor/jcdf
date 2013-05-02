@@ -33,6 +33,15 @@ abstract class CefValueType {
     public abstract Object parseArrayValues( String[] entries,
                                              int start, int count );
 
+    /**
+     * Returns a 1-element array containing an array value suitable for
+     * use as a blank value.  The <code>blankEntry</code> value supplied
+     * is the string representation of this blank value.  It should be
+     * ignored if possible, but it may be used as a hint for the 
+     * blank value if required.
+     */
+    public abstract Object createBlankUnitArray( String blankEntry );
+
     void warnFail( String txt ) {
         logger_.warning( "Failed to parse " + name_ + " value "
                        + "\"" + txt + "\"" );
@@ -83,6 +92,9 @@ abstract class CefValueType {
             }
             return results;
         }
+        public Object createBlankUnitArray( String blankEntry ) {
+            return new float[] { Float.NaN };
+        }
     }
 
     private static class DoubleValueType extends CefValueType {
@@ -114,6 +126,9 @@ abstract class CefValueType {
             }
             return results;
         }
+        public Object createBlankUnitArray( String blankEntry ) {
+            return new double[] { Double.NaN };
+        }
     }
 
     private static class IntegerValueType extends CefValueType {
@@ -144,6 +159,17 @@ abstract class CefValueType {
                 results[ i ] = value;
             }
             return results;
+        }
+        public Object createBlankUnitArray( String blankEntry ) {
+            int blankVal = 0;
+            try {
+                blankVal = Integer.parseInt( blankEntry );
+            }
+            catch ( NumberFormatException e ) {
+                // too bad
+                blankVal = 0;
+            }
+            return new int[] { blankVal };
         }
     }
 
@@ -182,6 +208,17 @@ abstract class CefValueType {
             }
             return results;
         }
+        public Object createBlankUnitArray( String blankEntry ) {
+            byte blankVal = 0;
+            try {
+                blankVal = Byte.parseByte( blankEntry );
+            }
+            catch ( NumberFormatException e ) {
+                // too bad
+                blankVal = (byte) 0;
+            }
+            return new byte[] { blankVal };
+        }
     }
 
     private static class StringValueType extends CefValueType {
@@ -195,6 +232,9 @@ abstract class CefValueType {
             String[] results = new String[ count ];
             System.arraycopy( items, start, results, 0, count );
             return results;
+        }
+        public Object createBlankUnitArray( String blankEntry ) {
+            return new String[ 1 ];
         }
     }
 }
