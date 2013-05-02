@@ -332,7 +332,7 @@ class CefReader implements RowSequence {
     private static Variable createVariable( String vname,
                                             Map<String,String> meta )
             throws CefFormatException {
-        final CefValueType valueType =
+        final CefValueType<?,?> valueType =
             CefValueType.getValueType( meta.remove( "VALUE_TYPE" ) );
         String unit = getText( meta.remove( "UNITS" ) );
         String descrip = getText( meta.remove( "FIELDNAM" ) );
@@ -403,17 +403,8 @@ class CefReader implements RowSequence {
                 };
             }
             else {
-                final Object fv1 =
-                    valueType.parseArrayValues( new String[] { fillval },
-                                                0, 1 );
-                return new Variable( info, nel ) {
-                    public Object readValue( String[] fields, int start ) {
-                        Object result =
-                            valueType.parseArrayValues( fields, start, nel );
-                        valueType.substituteBlanks( result, fv1 );
-                        return result;
-                    }
-                };
+                return createArrayFillvalVariable( valueType, info, nel,
+                                                   fillval );
             }
         }
         else {
@@ -438,6 +429,22 @@ class CefReader implements RowSequence {
             }
         }
     }
+
+    private static <S,A> Variable
+            createArrayFillvalVariable( final CefValueType<S,A> valueType,
+                                        ColumnInfo info, final int nel,
+                                        String fillval ) {
+        final A fv1 =
+            valueType.parseArrayValues( new String[] { fillval }, 0, 1 );
+        return new Variable( info, nel ) {
+            public Object readValue( String[] fields, int start ) {
+                A result = valueType.parseArrayValues( fields, start, nel );
+                valueType.substituteBlanks( result, fv1 );
+                return result;
+            }
+        };
+    }
+
 
     private static DataLineReader createDataLineReader( InputStream in,
                                                         String eod,

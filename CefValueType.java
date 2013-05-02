@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-abstract class CefValueType {
+abstract class CefValueType<S,A> {
 
     private static final Map<String,CefValueType> vtMap = createValueTypeMap();
     private static final CefValueType STRING = new StringValueType( "string" );
@@ -14,10 +14,11 @@ abstract class CefValueType {
     private static final Level substLevel_ = Level.WARNING;
 
     private final String name_;
-    private final Class scalarClazz_;
-    private final Class arrayClazz_;
+    private final Class<S> scalarClazz_;
+    private final Class<A> arrayClazz_;
 
-    private CefValueType( String name, Class scalarClazz, Class arrayClazz ) {
+    private CefValueType( String name, Class<S> scalarClazz,
+                          Class<A> arrayClazz ) {
         name_ = name;
         scalarClazz_ = scalarClazz;
         arrayClazz_ = arrayClazz;
@@ -27,17 +28,17 @@ abstract class CefValueType {
         return name_;
     }
 
-    public Class getScalarClass() {
+    public Class<S> getScalarClass() {
         return scalarClazz_;
     }
 
-    public Class getArrayClass() {
+    public Class<A> getArrayClass() {
         return arrayClazz_;
     }
 
-    public abstract Object parseScalarValue( String entry );
-    public abstract Object parseArrayValues( String[] entries,
-                                             int start, int count );
+    public abstract S parseScalarValue( String entry );
+    public abstract A parseArrayValues( String[] entries,
+                                        int start, int count );
 
     /**
      * Substitute a blank value for every occurrence of a given magic
@@ -46,7 +47,7 @@ abstract class CefValueType {
      * @param  array   array whose elements are to be blanked
      * @param  magic1  1-element array containing the magic value
      */
-    public abstract void substituteBlanks( Object array, Object magic1 );
+    public abstract void substituteBlanks( A array, A magic1 );
 
     void warnFail( String txt ) {
         logger_.warning( "Failed to parse " + name_ + " value "
@@ -69,11 +70,11 @@ abstract class CefValueType {
         return map;
     }
 
-    private static class FloatValueType extends CefValueType {
+    private static class FloatValueType extends CefValueType<Float,float[]> {
         FloatValueType( String name ) {
             super( name, Float.class, float[].class );
         }
-        public Object parseScalarValue( String item ) {
+        public Float parseScalarValue( String item ) {
             try {
                 return Float.valueOf( item );
             }
@@ -82,7 +83,8 @@ abstract class CefValueType {
                 return null;
             }
         }
-        public Object parseArrayValues( String[] items, int start, int count ) {
+        public float[] parseArrayValues( String[] items, int start,
+                                         int count ) {
             float[] results = new float[ count ];
             for ( int i = 0; i < count; i++ ) {
                 String item = items[ start++ ];
@@ -98,23 +100,22 @@ abstract class CefValueType {
             }
             return results;
         }
-        public void substituteBlanks( Object array, Object magic1 ) {
-            float magic = ((float[]) magic1)[ 0 ];
-            float[] farray = (float[]) array;
-            int count = farray.length;
+        public void substituteBlanks( float[] array, float[] magic1 ) {
+            float magic = magic1[ 0 ];
+            int count = array.length;
             for ( int i = 0; i < count; i++ ) {
-                if ( farray[ i ] == magic ) {
-                    farray[ i ] = Float.NaN;
+                if ( array[ i ] == magic ) {
+                    array[ i ] = Float.NaN;
                 }
             }
         }
     }
 
-    private static class DoubleValueType extends CefValueType {
+    private static class DoubleValueType extends CefValueType<Double,double[]> {
         DoubleValueType( String name ) {
             super( name, Double.class, double[].class );
         }
-        public Object parseScalarValue( String item ) {
+        public Double parseScalarValue( String item ) {
             try {
                 return Double.valueOf( item );
             }
@@ -123,7 +124,8 @@ abstract class CefValueType {
                 return null;
             }
         }
-        public Object parseArrayValues( String[] items, int start, int count ) {
+        public double[] parseArrayValues( String[] items, int start,
+                                          int count ) {
             double[] results = new double[ count ];
             for ( int i = 0; i < count; i++ ) {
                 String item = items[ start++ ];
@@ -139,23 +141,22 @@ abstract class CefValueType {
             }
             return results;
         }
-        public void substituteBlanks( Object array, Object magic1 ) {
-            double magic = ((double[]) magic1)[ 0 ];
-            double[] darray = (double[]) array;
-            int count = darray.length;
+        public void substituteBlanks( double[] array, double[] magic1 ) {
+            double magic = magic1[ 0 ];
+            int count = array.length;
             for ( int i = 0; i < count; i++ ) {
-                if ( darray[ i ] == magic ) {
-                    darray[ i ] = Double.NaN;
+                if ( array[ i ] == magic ) {
+                    array[ i ] = Double.NaN;
                 }
             }
         }
     }
 
-    private static class IntegerValueType extends CefValueType {
+    private static class IntegerValueType extends CefValueType<Integer,int[]> {
         IntegerValueType( String name ) {
             super( name, Integer.class, int[].class );
         }
-        public Object parseScalarValue( String item ) {
+        public Integer parseScalarValue( String item ) {
             try {
                 return Integer.valueOf( item );
             }
@@ -164,7 +165,7 @@ abstract class CefValueType {
                 return null;
             }
         }
-        public Object parseArrayValues( String[] items, int start, int count ) {
+        public int[] parseArrayValues( String[] items, int start, int count ) {
             int[] results = new int[ count ];
             for ( int i = 0; i < count; i++ ) {
                 String item = items[ start++ ];
@@ -180,14 +181,13 @@ abstract class CefValueType {
             }
             return results;
         }
-        public void substituteBlanks( Object array, Object magic1 ) {
+        public void substituteBlanks( int[] array, int[] magic1 ) {
             if ( logger_.isLoggable( substLevel_ ) ) {
-                int magic = ((int[]) magic1)[ 0 ];
-                int[] iarray = (int[]) array;
-                int count = iarray.length;
+                int magic = magic1[ 0 ];
+                int count = array.length;
                 int nsub = 0;
                 for ( int i = 0; i < count; i++ ) {
-                    if ( iarray[ i ] == magic ) {
+                    if ( array[ i ] == magic ) {
                         nsub++;
                     }
                 }
@@ -201,11 +201,11 @@ abstract class CefValueType {
     }
 
     // CEF specification does not say whether byte is signed.  Assume so.
-    private static class ByteValueType extends CefValueType {
+    private static class ByteValueType extends CefValueType<Byte,byte[]> {
         ByteValueType( String name ) {
             super( name, Byte.class, byte[].class );
         }
-        public Object parseScalarValue( String item ) {
+        public Byte parseScalarValue( String item ) {
             try {
                 return Byte.valueOf( item );
             }
@@ -214,7 +214,7 @@ abstract class CefValueType {
                 return null;
             }
         }
-        public Object parseArrayValues( String[] items, int start, int count ) {
+        public byte[] parseArrayValues( String[] items, int start, int count ) {
             byte[] results = new byte[ count ];
             int ntrunc = 0;
             for ( int i = 0; i < count; i++ ) {
@@ -241,14 +241,13 @@ abstract class CefValueType {
             }
             return results;
         }
-        public void substituteBlanks( Object array, Object magic1 ) {
+        public void substituteBlanks( byte[] array, byte[] magic1 ) {
             if ( logger_.isLoggable( substLevel_ ) ) {
-                byte magic = ((byte[]) magic1)[ 0 ];
-                byte[] barray = (byte[]) array;
-                int count = barray.length;
+                byte magic = magic1[ 0 ];
+                int count = array.length;
                 int nsub = 0;
                 for ( int i = 0; i < count; i++ ) {
-                    if ( barray[ i ] == magic ) {
+                    if ( array[ i ] == magic ) {
                         nsub++;
                     }
                 }
@@ -261,25 +260,25 @@ abstract class CefValueType {
         }
     }
 
-    private static class StringValueType extends CefValueType {
+    private static class StringValueType extends CefValueType<String,String[]> {
         StringValueType( String name ) {
             super( name, String.class, String[].class );
         }
-        public Object parseScalarValue( String item ) {
+        public String parseScalarValue( String item ) {
             return item;
         }
-        public Object parseArrayValues( String[] items, int start, int count ) {
+        public String[] parseArrayValues( String[] items, int start,
+                                          int count ) {
             String[] results = new String[ count ];
             System.arraycopy( items, start, results, 0, count );
             return results;
         }
-        public void substituteBlanks( Object array, Object magic1 ) {
-            String magic = ((String[]) magic1)[ 0 ];
-            String[] sarray = (String[]) array;
-            int count = sarray.length;
+        public void substituteBlanks( String[] array, String[] magic1 ) {
+            String magic = magic1[ 0 ];
+            int count = array.length;
             for ( int i = 0; i < count; i++ ) {
-                if ( sarray[ i ].equals( magic ) ) {
-                    sarray[ i ] = null;
+                if ( array[ i ].equals( magic ) ) {
+                    array[ i ] = null;
                 }
             }
         }
