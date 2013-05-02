@@ -347,7 +347,7 @@ class CefReader implements RowSequence {
         }
         final String fillval;
         if ( meta.containsKey( "FILLVAL" ) ) {
-            fillval = getText( meta.remove( "FILLVAL" ) );
+            fillval = getText( meta.get( "FILLVAL" ) );
         }
         else {
             fillval = null;
@@ -403,16 +403,14 @@ class CefReader implements RowSequence {
                 };
             }
             else {
-                final Object fv1 = valueType.createBlankUnitArray( fillval );
+                final Object fv1 =
+                    valueType.parseArrayValues( new String[] { fillval },
+                                                0, 1 );
                 return new Variable( info, nel ) {
                     public Object readValue( String[] fields, int start ) {
                         Object result =
                             valueType.parseArrayValues( fields, start, nel );
-                        for ( int i = 0; i < nel; i++ ) {
-                            if ( fillval.equals( fields[ start++ ] ) ) {
-                                System.arraycopy( result, i, fv1, 0, 1 );
-                            }
-                        }
+                        valueType.substituteBlanks( result, fv1 );
                         return result;
                     }
                 };
@@ -427,12 +425,14 @@ class CefReader implements RowSequence {
                 };
             }
             else {
+                final Object fillObj = valueType.parseScalarValue( fillval );
                 return new Variable( info, 1 ) {
                     public Object readValue( String[] fields, int start ) {
-                        String field = fields[ start ];
-                        return fillval.equals( field )
+                        Object result =
+                            valueType.parseScalarValue( fields[ start ] );
+                        return result.equals( fillObj )
                              ? null
-                             : valueType.parseScalarValue( field );
+                             : result;
                     }
                 };
             }

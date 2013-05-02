@@ -2,6 +2,7 @@ package cef;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 abstract class CefValueType {
@@ -10,6 +11,7 @@ abstract class CefValueType {
     private static final CefValueType STRING = new StringValueType( "string" );
     private static final Logger logger_ =
         Logger.getLogger( CefValueType.class.getName() );
+    private static final Level substLevel_ = Level.WARNING;
 
     private final String name_;
     private final Class scalarClazz_;
@@ -19,6 +21,10 @@ abstract class CefValueType {
         name_ = name;
         scalarClazz_ = scalarClazz;
         arrayClazz_ = arrayClazz;
+    }
+
+    public String getName() {
+        return name_;
     }
 
     public Class getScalarClass() {
@@ -34,13 +40,13 @@ abstract class CefValueType {
                                              int start, int count );
 
     /**
-     * Returns a 1-element array containing an array value suitable for
-     * use as a blank value.  The <code>blankEntry</code> value supplied
-     * is the string representation of this blank value.  It should be
-     * ignored if possible, but it may be used as a hint for the 
-     * blank value if required.
+     * Substitute a blank value for every occurrence of a given magic
+     * value in an array, if possible.
+     *
+     * @param  array   array whose elements are to be blanked
+     * @param  magic1  1-element array containing the magic value
      */
-    public abstract Object createBlankUnitArray( String blankEntry );
+    public abstract void substituteBlanks( Object array, Object magic1 );
 
     void warnFail( String txt ) {
         logger_.warning( "Failed to parse " + name_ + " value "
@@ -92,8 +98,15 @@ abstract class CefValueType {
             }
             return results;
         }
-        public Object createBlankUnitArray( String blankEntry ) {
-            return new float[] { Float.NaN };
+        public void substituteBlanks( Object array, Object magic1 ) {
+            float magic = ((float[]) magic1)[ 0 ];
+            float[] farray = (float[]) array;
+            int count = farray.length;
+            for ( int i = 0; i < count; i++ ) {
+                if ( farray[ i ] == magic ) {
+                    farray[ i ] = Float.NaN;
+                }
+            }
         }
     }
 
@@ -126,8 +139,15 @@ abstract class CefValueType {
             }
             return results;
         }
-        public Object createBlankUnitArray( String blankEntry ) {
-            return new double[] { Double.NaN };
+        public void substituteBlanks( Object array, Object magic1 ) {
+            double magic = ((double[]) magic1)[ 0 ];
+            double[] darray = (double[]) array;
+            int count = darray.length;
+            for ( int i = 0; i < count; i++ ) {
+                if ( darray[ i ] == magic ) {
+                    darray[ i ] = Double.NaN;
+                }
+            }
         }
     }
 
@@ -160,16 +180,23 @@ abstract class CefValueType {
             }
             return results;
         }
-        public Object createBlankUnitArray( String blankEntry ) {
-            int blankVal = 0;
-            try {
-                blankVal = Integer.parseInt( blankEntry );
+        public void substituteBlanks( Object array, Object magic1 ) {
+            if ( logger_.isLoggable( substLevel_ ) ) {
+                int magic = ((int[]) magic1)[ 0 ];
+                int[] iarray = (int[]) array;
+                int count = iarray.length;
+                int nsub = 0;
+                for ( int i = 0; i < count; i++ ) {
+                    if ( iarray[ i ] == magic ) {
+                        nsub++;
+                    }
+                }
+                if ( nsub > 0 ) {
+                    logger_.log( substLevel_,
+                                 nsub + " fill values not substitued in "
+                               + getName() + " column" );
+                }
             }
-            catch ( NumberFormatException e ) {
-                // too bad
-                blankVal = 0;
-            }
-            return new int[] { blankVal };
         }
     }
 
@@ -189,6 +216,7 @@ abstract class CefValueType {
         }
         public Object parseArrayValues( String[] items, int start, int count ) {
             byte[] results = new byte[ count ];
+            int ntrunc = 0;
             for ( int i = 0; i < count; i++ ) {
                 String item = items[ start++ ];
                 int ivalue;
@@ -201,23 +229,35 @@ abstract class CefValueType {
                 }
                 byte bvalue = (byte) ivalue;
                 if ( bvalue != ivalue ) {
-                    logger_.warning( "truncated byte value "
-                                    + ivalue + " -> " + bvalue );
+                    ntrunc++;
+                    logger_.info( "truncated byte value "
+                                 + ivalue + " -> " + bvalue );
                 }
                 results[ i ] = bvalue;
             }
+            if ( ntrunc > 0 ) {
+                logger_.warning( "Truncated " + ntrunc + " values in "
+                               + getName() + " column" );
+            }
             return results;
         }
-        public Object createBlankUnitArray( String blankEntry ) {
-            byte blankVal = 0;
-            try {
-                blankVal = Byte.parseByte( blankEntry );
+        public void substituteBlanks( Object array, Object magic1 ) {
+            if ( logger_.isLoggable( substLevel_ ) ) {
+                byte magic = ((byte[]) magic1)[ 0 ];
+                byte[] barray = (byte[]) array;
+                int count = barray.length;
+                int nsub = 0;
+                for ( int i = 0; i < count; i++ ) {
+                    if ( barray[ i ] == magic ) {
+                        nsub++;
+                    }
+                }
+                if ( nsub > 0 ) {
+                    logger_.log( substLevel_,
+                                 nsub + " fill values not substituted in "
+                               + getName() + " column" );
+                }
             }
-            catch ( NumberFormatException e ) {
-                // too bad
-                blankVal = (byte) 0;
-            }
-            return new byte[] { blankVal };
         }
     }
 
@@ -233,8 +273,15 @@ abstract class CefValueType {
             System.arraycopy( items, start, results, 0, count );
             return results;
         }
-        public Object createBlankUnitArray( String blankEntry ) {
-            return new String[ 1 ];
+        public void substituteBlanks( Object array, Object magic1 ) {
+            String magic = ((String[]) magic1)[ 0 ];
+            String[] sarray = (String[]) array;
+            int count = sarray.length;
+            for ( int i = 0; i < count; i++ ) {
+                if ( sarray[ i ].equals( magic ) ) {
+                    sarray[ i ] = null;
+                }
+            }
         }
     }
 }
