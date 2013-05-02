@@ -49,6 +49,11 @@ JSRC = \
        CdfStarTable.java \
        CdfTableBuilder.java \
        CdfTableProfile.java \
+       \
+       CefFormatException.java \
+       CefReader.java \
+       CefTableBuilder.java \
+       CefValueType.java \
 
 jar: $(JARFILE)
 
