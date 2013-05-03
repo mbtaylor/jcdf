@@ -151,8 +151,23 @@ class RecordMap {
                 list.add( new Entry( first, last, cBuf, 0L ) );
             }
             else if ( rec instanceof VariableIndexRecord ) {
+
+                // Amazingly, it's necessary to walk both the subtree of
+                // VXRs hanging off the entry list *and* the linked list
+                // of VXRs whose head is contained in this record.
+                // This does seem unnecessarily complicated, but I've
+                // seen at least one file where it happens
+                // (STEREO_STA_L1_MAG_20070708_V03.cdf).
                 VariableIndexRecord subVxr = (VariableIndexRecord) rec;
                 readEntries( subVxr, buf, recFact, recSize, compress, list );
+                for ( long nextVxrOff = subVxr.vxrNext_; nextVxrOff != 0; ) {
+                    VariableIndexRecord nextVxr =
+                        recFact.createRecord( buf, nextVxrOff,
+                                              VariableIndexRecord.class );
+                    readEntries( nextVxr, buf, recFact, recSize, compress,
+                                 list );
+                    nextVxrOff = nextVxr.vxrNext_;
+                }
             }
             else {
                 String msg = new StringBuffer()
