@@ -18,7 +18,7 @@ public abstract class Shaper {
      */
     public abstract Object shape( Object rawValue, boolean rowMajor );
 
-    public abstract int getArrayIndex( int[] coords, boolean rowMajor );
+    public abstract int getArrayIndex( int[] coords );
 
     public static Shaper createShaper( DataType dataType,
                                        int[] dimSizes, boolean[] dimVarys,
@@ -70,7 +70,7 @@ public abstract class Shaper {
         public Object shape( Object rawValue, boolean rowMajor ) {
             return dataType_.getScalar( rawValue, 0 );
         }
-        public int getArrayIndex( int[] coords, boolean rowMajor ) {
+        public int getArrayIndex( int[] coords ) {
             for ( int i = 0; i < coords.length; i++ ) {
                 if ( coords[ i ] != 0 ) {
                     throw new IllegalArgumentException( "Out of bounds" );
@@ -106,7 +106,7 @@ public abstract class Shaper {
         public Object shape( Object rawValue, boolean rowMajor ) {
             return rawValue;
         }
-        public int getArrayIndex( int[] coords, boolean rowMajor ) {
+        public int getArrayIndex( int[] coords ) {
             return coords[ 0 ] * step_;
         }
     }
@@ -165,11 +165,10 @@ public abstract class Shaper {
             return dimSizes_;
         }
 
-        public int getArrayIndex( int[] coords, boolean rowMajor ) {
+        public int getArrayIndex( int[] coords ) {
             int index = 0;
             for ( int idim = 0; idim < ndim_; idim++ ) {
-                int jdim = rowMajor ? ndim_ - idim - 1 : idim;
-                index += coords[ idim ] * strides_[ jdim ];
+                index += coords[ idim ] * strides_[ idim ];
             }
             return index * itemSize_;
         }
@@ -191,7 +190,7 @@ public abstract class Shaper {
                         break;
                     }
                 }
-                System.arraycopy( rawValue, getArrayIndex( coords, rowMajor ),
+                System.arraycopy( rawValue, getArrayIndex( coords ),
                                   out, ix * itemSize_, itemSize_ );
             }
             return out;
