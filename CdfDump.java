@@ -34,16 +34,17 @@ public class CdfDump {
         long leng = buf.getLength();
         for ( int ix = 0; offset < leng; ix++ ) {
             Record rec = recFact.createRecord( buf, offset );
-            dumpRecord( ix, rec );
+            dumpRecord( ix, rec, offset );
             offset += rec.getRecordSize();
         }
     }
 
-    private void dumpRecord( int index, Record rec ) {
+    private void dumpRecord( int index, Record rec, long offset ) {
         out_.println( index + ":\t"
                     + rec.getRecordTypeAbbreviation() + "\t"
                     + rec.getRecordType() + "\t"
-                    + rec.getRecordSize() );
+                    + rec.getRecordSize() + "\t"
+                    + "0x" + Long.toHexString( offset ) );
         if ( writeFields_ ) {
             Field[] fields = rec.getClass().getFields();
             for ( int i = 0; i < fields.length; i++ ) {
@@ -76,15 +77,33 @@ public class CdfDump {
         }
         else if ( value.getClass().isArray() ) {
             int len = Array.getLength( value );
-            for ( int i = 0; i < len; i++ ) {
-                if ( i > 0 ) {
-                    sbuf.append( ", " );
+            if ( value instanceof long[] ) {
+                long[] larray = (long[]) value;
+                for ( int i = 0; i < len; i++ ) {
+                    if ( i > 0 ) {
+                        sbuf.append( ", " );
+                    }
+                    sbuf.append( "0x" )
+                        .append( Long.toHexString( larray[ i ] ) );
                 }
-                sbuf.append( Array.get( value, i ) );
+            }
+            else {
+                for ( int i = 0; i < len; i++ ) {
+                    if ( i > 0 ) {
+                        sbuf.append( ", " );
+                    }
+                    sbuf.append( Array.get( value, i ) );
+                }
             }
         }
         else {
-            sbuf.append( value.toString() );
+            if ( value instanceof Long ) {
+                sbuf.append( "0x" )
+                    .append( Long.toHexString( ((Long) value).longValue() ) );
+            }
+            else {
+                sbuf.append( value.toString() );
+            }
         }
         return sbuf.toString();
     }
