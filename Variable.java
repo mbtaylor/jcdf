@@ -4,6 +4,7 @@ public interface Variable {
     String getName();
     int getNum();
     boolean isZVariable();
+    String getSummary();
 
     /**
      * Limit of records that may have values.

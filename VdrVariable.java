@@ -17,6 +17,7 @@ class VdrVariable implements Variable {
     private final Object padRawValueArray_;
     private final Object shapedPadValueRowMajor_;
     private final Object shapedPadValueColumnMajor_;
+    private final String summaryTxt_;
     private RecordReader recordReader_;
 
     public VdrVariable( VariableDescriptorRecord vdr, CdfInfo info,
@@ -35,6 +36,15 @@ class VdrVariable implements Variable {
             new DataReader( dataType, numElems, shaper_.getRawItemCount() );
         rvaleng_ = Array.getLength( dataReader_.createValueArray() );
         long padOffset = vdr.getPadOffset();
+        String shapeTxt = "";
+        String varyTxt = "";
+        for ( int idim = 0; idim < dimSizes.length; idim++ ) {
+            if ( idim > 0 ) {
+                shapeTxt += ',';
+            }
+            shapeTxt += dimSizes[ idim ];
+            varyTxt += dimVarys[ idim ] ? 'T' : 'F';
+        }
         if ( padOffset >= 0 ) {
             Object rva = dataReader_.createValueArray();
             dataReader_.readValue( buf_, padOffset, rva );
@@ -48,6 +58,21 @@ class VdrVariable implements Variable {
             shapedPadValueRowMajor_ = null;
             shapedPadValueColumnMajor_ = null;
         }
+        summaryTxt_ = new StringBuffer()
+            .append( dataType.getName() )
+            .append( ' ' )
+            .append( isZVariable_ ? "(z)" : "(r)" )
+            .append( ' ' )
+            .append( dimSizes.length )
+            .append( ':' )
+            .append( '[' )
+            .append( shapeTxt )
+            .append( ']' )
+            .append( ' ' )
+            .append( Record.hasBit( vdr_.flags_, 0 ) ? 'T' : 'F' )
+            .append( '/' )
+            .append( varyTxt )
+            .toString();
     }
 
     public String getName() {
@@ -72,6 +97,10 @@ class VdrVariable implements Variable {
 
     public Shaper getShaper() {
         return shaper_;
+    }
+
+    public String getSummary() {
+        return summaryTxt_;
     }
 
     public Object createRawValueArray() {
