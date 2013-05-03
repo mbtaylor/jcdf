@@ -279,11 +279,11 @@ public abstract class DataType {
         public void readValues( Buf buf, long offset, int numElems,
                                 Object array, int n ) {
             String[] sarray = (String[]) array;
-            byte[] cbuf = new byte[ numElems ];
+            byte[] cbuf = new byte[ numElems * n ];
+            buf.readDataBytes( offset, numElems * n, cbuf );
             for ( int i = 0; i < n; i++ ) {
-                buf.readDataBytes( offset, numElems, cbuf );
                 @SuppressWarnings("deprecation")
-                String s = new String( cbuf, 0 );
+                String s = new String( cbuf, i * numElems, numElems );
                 sarray[ i ] = s;
             }
         }
