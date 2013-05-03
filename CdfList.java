@@ -44,6 +44,7 @@ public class CdfList {
         }
 
         for ( int iv = 0; iv < vars.length; iv++ ) {
+            out_.println();
             Variable var = vars[ iv ];
             header( "Variable " + var.getNum() + ": " + var.getName()
                   + "  ---  " + var.getSummary() );
