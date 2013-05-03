@@ -293,18 +293,23 @@ class CefReader implements RowSequence {
     private static DescribedValue createAuxDatum( String key, String svalue ) {
         String name = key;
         String[] svalues = splitValues( svalue );
-        Object value;
+        final Object value;
+        final int[] shape;
         if ( svalues.length == 0 ) {
             value = null;
+            shape = null;
         }
         else if ( svalues.length == 1 ) {
             value = svalues[ 0 ];
+            shape = null;
         }
         else {
             value = svalues;
+            shape = new int[] { svalues.length };
         }
         Class clazz = value == null ? String.class : value.getClass();
-        ValueInfo info = new DefaultValueInfo( name, clazz );
+        DefaultValueInfo info = new DefaultValueInfo( name, clazz );
+        info.setShape( shape );
         return new DescribedValue( info, value );
     }
 
@@ -317,16 +322,21 @@ class CefReader implements RowSequence {
         final Class clazz = nent > 1 ? valueType.getArrayClass()
                                      : valueType.getScalarClass();
         final Object value;
+        final int[] shape;
         if ( nent == 0 ) {
             value = null;
+            shape = null;
         }
         else if ( nent == 1 ) {
             value = valueType.parseScalarValue( entries[ 0 ] );
+            shape = null;
         }
         else {
             value = valueType.parseArrayValues( entries, 0, nent );
+            shape = new int[] { nent };
         }
         DefaultValueInfo info = new DefaultValueInfo( name, clazz );
+        info.setShape( shape );
         info.setUCD( valueType.getUcd() );
         return new DescribedValue( info, value );
     }
