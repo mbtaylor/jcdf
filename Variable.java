@@ -11,6 +11,7 @@ public interface Variable {
      * The actual number of records may be lower than this in case of sparsity.
      */
     int getRecordCount();
+    DataType getDataType();
     DataReader getDataReader();
     Shaper getShaper();
 

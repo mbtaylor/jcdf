@@ -2,6 +2,7 @@ package cdf.util;
 
 import cdf.CdfContent;
 import cdf.CdfReader;
+import cdf.DataType;
 import cdf.GlobalAttribute;
 import cdf.Variable;
 import cdf.VariableAttribute;
@@ -54,6 +55,7 @@ public class CdfList {
                 }
             }
             if ( writeData_ ) {
+                DataType dataType = var.getDataType();
                 Object abuf = var.createRawValueArray();
                 int nrec = var.getRecordCount();
                 for ( int ir = 0; ir < nrec; ir++ ) {
@@ -69,14 +71,14 @@ public class CdfList {
                     }
                     sbuf.append( ':' );
                     sbuf.append( '\t' );
-                    sbuf.append( formatValues( abuf ) );
+                    sbuf.append( formatValues( abuf, dataType ) );
                     out_.println( sbuf.toString() );
                 }
             }
         }
     }
 
-    private String formatValues( Object abuf ) {
+    private String formatValues( Object abuf, DataType dataType ) {
         StringBuffer sbuf = new StringBuffer();
         if ( abuf == null ) {
         }
@@ -86,11 +88,11 @@ public class CdfList {
                 if ( i > 0 ) {
                     sbuf.append( ", " );
                 }
-                sbuf.append( Array.get( abuf, i ) );
+                sbuf.append( dataType.formatArrayValue( abuf, i ) );
             }
         }
         else {
-            sbuf.append( abuf.toString() );
+            sbuf.append( dataType.formatScalarValue( abuf ) );
         }
         return sbuf.toString();
     }

@@ -34,6 +34,7 @@ JSRC = \
        Compression.java \
        DataReader.java \
        DataType.java \
+       EpochFormatter.java \
        GlobalAttribute.java \
        NumericEncoding.java \
        RecordMap.java \

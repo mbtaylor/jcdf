@@ -1,5 +1,7 @@
 package cdf;
 
+import java.lang.reflect.Array;
+
 public abstract class DataType {
 
     private final String name_;
@@ -22,8 +24,8 @@ public abstract class DataType {
     public static final DataType BYTE = new Int1DataType( "BYTE" );
     public static final DataType FLOAT = new Real4DataType( "FLOAT" );
     public static final DataType DOUBLE = new Real8DataType( "DOUBLE" );
-    public static final DataType EPOCH = new Real8DataType( "EPOCH" );
-    public static final DataType TIME_TT2000 = new Int8DataType( "TIME_TT2000");
+    public static final DataType EPOCH = new EpochDataType( "EPOCH" );
+    public static final DataType TIME_TT2000 = new Tt2kDataType( "TIME_TT2000");
     public static final DataType UCHAR = new CharDataType( "UCHAR" );
     
     private static final DataType[] TYPE_TABLE = createTypeTable();
@@ -51,6 +53,14 @@ public abstract class DataType {
 
     public Class<?> getScalarClass() {
         return scalarClass_;
+    }
+
+    public String formatScalarValue( Object value ) {
+        return value.toString();
+    }
+
+    public String formatArrayValue( Object array, int index ) {
+        return Array.get( array, index ).toString();
     }
 
     /**
@@ -241,6 +251,27 @@ public abstract class DataType {
         }
     }
 
+    private static class Tt2kDataType extends Int8DataType {
+        final EpochFormatter formatter_ = new EpochFormatter();
+        Tt2kDataType( String name ) {
+            super( name );
+        }
+        @Override
+        public String formatScalarValue( Object value ) {
+            synchronized ( formatter_ ) {
+                return formatter_
+                      .formatTimeTt2000( ((Long) value).longValue() );
+            }
+        }
+        @Override
+        public String formatArrayValue( Object array, int index ) {
+            synchronized ( formatter_ ) {
+                return formatter_
+                      .formatTimeTt2000( ((long[]) array)[ index ] );
+            }
+        }
+    }
+
     private static class CharDataType extends DataType {
         CharDataType( String name ) {
             super( name, 1, 1, String.class, String.class );
@@ -261,7 +292,27 @@ public abstract class DataType {
         }
     }
 
+    private static class EpochDataType extends Real8DataType {
+        private final EpochFormatter formatter_ = new EpochFormatter();
+        EpochDataType( String name ) {
+            super( name );
+        }
+        @Override
+        public String formatScalarValue( Object value ) {
+            synchronized ( formatter_ ) {
+                return formatter_.formatEpoch( ((Double) value).doubleValue() );
+            }
+        }
+        @Override
+        public String formatArrayValue( Object array, int index ) {
+            synchronized ( formatter_ ) {
+                return formatter_.formatEpoch( ((double[]) array)[ index ] );
+            }
+        }
+    }
+
     private static class Epoch16DataType extends DataType {
+        private final EpochFormatter formatter_ = new EpochFormatter();
         Epoch16DataType( String name ) {
             super( name, 8, 2, double.class, double[].class );
         }
@@ -272,6 +323,21 @@ public abstract class DataType {
         public Object getScalar( Object array, int index ) {
             double[] darray = (double[]) array;
             return new double[] { darray[ index ], darray[ index + 1 ] };
+        }
+        @Override
+        public String formatScalarValue( Object value ) {
+            double[] v2 = (double[]) value;
+            synchronized ( formatter_ ) {
+                return formatter_.formatEpoch16( v2[ 0 ], v2[ 1 ] );
+            }
+        }
+        @Override
+        public String formatArrayValue( Object array, int index ) {
+            double[] darray = (double[]) array;
+            synchronized ( formatter_ ) {
+                return formatter_.formatEpoch16( darray[ index ],
+                                                 darray[ index + 1 ] );
+            }
         }
     }
 }

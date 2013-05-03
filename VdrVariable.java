@@ -13,6 +13,7 @@ class VdrVariable implements Variable {
     private final boolean isZVariable_;
     private final Shaper shaper_;
     private final int rvaleng_;
+    private final DataType dataType_;
     private final DataReader dataReader_;
     private final Object padRawValueArray_;
     private final Object shapedPadValueRowMajor_;
@@ -26,14 +27,15 @@ class VdrVariable implements Variable {
         buf_ = vdr.getBuf();
         recFact_ = recFact;
         isZVariable_ = vdr.getRecordType() == 8;
-        DataType dataType = DataType.getDataType( vdr.dataType_ );
+        dataType_ = DataType.getDataType( vdr.dataType_ );
         int[] dimSizes = isZVariable_ ? vdr.zDimSizes_ : info.getRDimSizes();
         boolean[] dimVarys = vdr.dimVarys_;
         boolean rowMajor = info.getRowMajor();
         int numElems = vdr.numElems_;
-        shaper_ = Shaper.createShaper( dataType, dimSizes, dimVarys, rowMajor );
+        shaper_ =
+            Shaper.createShaper( dataType_, dimSizes, dimVarys, rowMajor );
         dataReader_ =
-            new DataReader( dataType, numElems, shaper_.getRawItemCount() );
+            new DataReader( dataType_, numElems, shaper_.getRawItemCount() );
         rvaleng_ = Array.getLength( dataReader_.createValueArray() );
         long padOffset = vdr.getPadOffset();
         String shapeTxt = "";
@@ -59,7 +61,7 @@ class VdrVariable implements Variable {
             shapedPadValueColumnMajor_ = null;
         }
         summaryTxt_ = new StringBuffer()
-            .append( dataType.getName() )
+            .append( dataType_.getName() )
             .append( ' ' )
             .append( isZVariable_ ? "(z)" : "(r)" )
             .append( ' ' )
@@ -89,6 +91,10 @@ class VdrVariable implements Variable {
 
     public int getRecordCount() {
         return vdr_.maxRec_ + 1;
+    }
+
+    public DataType getDataType() {
+        return dataType_;
     }
 
     public DataReader getDataReader() {
