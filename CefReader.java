@@ -326,7 +326,9 @@ class CefReader implements RowSequence {
         else {
             value = valueType.parseArrayValues( entries, 0, nent );
         }
-        return new DescribedValue( new DefaultValueInfo( name, clazz ), value );
+        DefaultValueInfo info = new DefaultValueInfo( name, clazz );
+        info.setUCD( valueType.getUcd() );
+        return new DescribedValue( info, value );
     }
 
     private static Variable createVariable( String vname,
@@ -376,12 +378,16 @@ class CefReader implements RowSequence {
             shape = null;
             nel = 1;
         }
+        String ucd = valueType.getUcd();
         boolean isArray = nel > 1; 
         final ColumnInfo info =
             new ColumnInfo( name,
                             isArray ? valueType.getArrayClass()
                                     : valueType.getScalarClass(),
                             descrip );
+        if ( ucd != null ) {
+            info.setUCD( ucd );
+        }
         if ( shape != null ) {
             info.setShape( shape );
         }

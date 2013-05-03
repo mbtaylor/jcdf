@@ -8,7 +8,8 @@ import java.util.logging.Logger;
 abstract class CefValueType<S,A> {
 
     private static final Map<String,CefValueType> vtMap = createValueTypeMap();
-    private static final CefValueType STRING = new StringValueType( "string" );
+    private static final CefValueType STRING =
+        new StringValueType( "string", null );
     private static final Logger logger_ =
         Logger.getLogger( CefValueType.class.getName() );
     private static final Level substLevel_ = Level.WARNING;
@@ -16,12 +17,19 @@ abstract class CefValueType<S,A> {
     private final String name_;
     private final Class<S> scalarClazz_;
     private final Class<A> arrayClazz_;
+    private final String ucd_;
 
     private CefValueType( String name, Class<S> scalarClazz,
-                          Class<A> arrayClazz ) {
+                          Class<A> arrayClazz, String ucd ) {
         name_ = name;
         scalarClazz_ = scalarClazz;
         arrayClazz_ = arrayClazz;
+        ucd_ = ucd;
+    }
+
+    private CefValueType( String name, Class<S> scalarClazz,
+                          Class<A> arrayClazz ) {
+        this( name, scalarClazz, arrayClazz, null );
     }
 
     public String getName() {
@@ -34,6 +42,10 @@ abstract class CefValueType<S,A> {
 
     public Class<A> getArrayClass() {
         return arrayClazz_;
+    }
+
+    public String getUcd() {
+        return ucd_;
     }
 
     public abstract S parseScalarValue( String entry );
@@ -66,7 +78,7 @@ abstract class CefValueType<S,A> {
         map.put( "DOUBLE", new DoubleValueType( "DOUBLE" ) );
         map.put( "INT", new IntegerValueType( "INT" ) );
         map.put( "BYTE", new ByteValueType( "BYTE" ) );
-        map.put( "ISO_TIME", new StringValueType( "ISO_TIME" ) );
+        map.put( "ISO_TIME", new StringValueType( "ISO_TIME", "time.epoch" ) );
         return map;
     }
 
@@ -261,8 +273,8 @@ abstract class CefValueType<S,A> {
     }
 
     private static class StringValueType extends CefValueType<String,String[]> {
-        StringValueType( String name ) {
-            super( name, String.class, String[].class );
+        StringValueType( String name, String ucd ) {
+            super( name, String.class, String[].class, ucd );
         }
         public String parseScalarValue( String item ) {
             return item;
