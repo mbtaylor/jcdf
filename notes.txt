@@ -1,0 +1,101 @@
+Implementation notes for CDF
+----------------------------
+
+File formats:
+   Single file only supported (not multiple file)
+
+Numeric encodings:
+   Unsupported: VMS D_FLOAT, G_FLOAT
+
+Compression formats:
+   Only GZIP supported; RLE, HUFF, AHUFF not supported
+
+Data types:
+   Unsigned integer types supported, but transformed to larger signed types
+   (CDF_UINT1 -> short, CDF_UINT2 -> int, CDF_UINT4 -> long).
+   CDF_UCHAR treated like CDF_CHAR (-> char, which is 16 bit anyway).
+
+   CDF_EPOCH, CDF_EPOCH16, CDF_TT2000 treated as double, double[2], long
+   respectively, not obviously times.
+   Options: transform them to ISO8601 strings on input, or make sure
+   TOPCAT can transform them to epochs (in that case you could plot them,
+   but they wouldn't look OK in the table view, stats window etc).
+
+CDF Data Format version:
+   Version 3.2 supported (coded from this document)
+   Following notes in that document, probably 2.6, 2.7, 3.* are also 
+   supported, maybe others, but I haven't checked them all.
+
+Large files:
+   Only files up to 2Gb supported.
+
+Fill values:
+   FILLVAL not supported - it's not mentioned in the Internal Format
+   Description document, though it looks like a convention in the
+   CDF User Guide; probably I should implement FILLVALs to look null.
+
+I/O:
+   Writing not supported at all, only read access.
+
+Array access:
+   Read raw array or shaped array - less flexibility than HyperRead.
+
+
+Implementation notes for CEF
+----------------------------
+
+Version:
+   Working from CEF version 2.0.  Document suggests that 1.0 is
+   not likely to work, though I haven't seen 1.0 specification.
+
+Data types:
+   There are places where the CEF standard is not very explicit.
+   For instance it doesn't say how many bits INTs (or FLOATs or DOUBLEs)
+   are, whether a BYTE is signed, or whether the fill value is to be
+   matched as a string or as a typed value.
+   I've looked at some examples and made my best guess.
+
+Syntax:
+   INCLUDE = "filename" not supported.
+
+Array data:
+   CEF specifies C-type array ordering, and STIL uses FORTRAN/FITS-type
+   array ordering.  Not quite sure what to do about this.  Could transform
+   on read, but it would be inefficient, and if the data is addressed
+   as a vector (which is natural) anyone expecting CEF-ordered arrays
+   would get it wrong.
+
+
+CEF/CDF release:
+----------------
+
+Public on github (https://github.com/mbtaylor/cdf) but not formally
+released, no user documentation etc.
+No unit tests.
+Any opinions on how release should be done?
+What priority is (quality of) independent CDF/CEF release?
+Java namespace (int.esa.cdf, uk.ac.starlink.cdf, uk.ac.bristol.star.cdf)?
+
+
+Starjava integration:
+---------------------
+
+Auto format detection:
+   CDF yes, CEF no.  CEF could do, but the FILE_FORMAT_VERSION
+   is more than 512 bytes into the file it could cause trouble.
+
+Treeview:
+   Not implemented.  Could do.
+
+SAMP:
+   You can send a CDF or CEF to TOPCAT using SAMP with the non-standard
+   MType table.load.stil:
+
+      { "samp.mtype": "table.load.stil",
+        "samp.params": {
+           "url": "file://localhost/mbt/data/cdf/C4_V120822.cdf",
+           "format": "cdf" } }
+
+   As well as being non-standard, this MType is not currently documented
+   in the TOPCAT user documentation, it should be.
+
