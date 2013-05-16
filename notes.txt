@@ -20,9 +20,12 @@ Data types:
    Options: transform them to ISO8601 strings on input, or make sure
    TOPCAT can transform them to epochs (in that case you could plot them,
    but they wouldn't look OK in the table view, stats window etc).
+   Probably best to transform these to iso8601 strings in the STIL layer.
+   Think about how that affects precision for CDF_EPOCH16 and leap seconds.
+   Is precision at that level important?
 
 CDF Data Format version:
-   Version 3.2 supported (coded from this document)
+   Version 3.2 supported (v3.2 document used for implementation).
    Following notes in that document, probably 2.6, 2.7, 3.* are also 
    supported, maybe others, but I haven't checked them all.
 
@@ -32,10 +35,11 @@ Large files:
 Fill values:
    FILLVAL not supported - it's not mentioned in the Internal Format
    Description document, though it looks like a convention in the
-   CDF User Guide; probably I should implement FILLVALs to look null.
+   CDF User Guide; probably I should implement FILLVALs to behave
+   as nulls.
 
 I/O:
-   Writing not supported at all, only read access.
+   Read access only, output not supported at all.
 
 Array access:
    Read raw array or shaped array - less flexibility than HyperRead.
@@ -47,11 +51,12 @@ Implementation notes for CEF
 Version:
    Working from CEF version 2.0.  Document suggests that 1.0 is
    not likely to work, though I haven't seen 1.0 specification.
+   I don't know if any other versions exist.
 
 Data types:
    There are places where the CEF standard is not very explicit.
-   For instance it doesn't say how many bits INTs (or FLOATs or DOUBLEs)
-   are, whether a BYTE is signed, or whether the fill value is to be
+   For instance it doesn't say how many bits INTs/FLOAT/DOUBLEs have,
+   whether a BYTE is signed, or whether the fill value is to be
    matched as a string or as a typed value.
    I've looked at some examples and made my best guess.
 
@@ -65,23 +70,37 @@ Array data:
    as a vector (which is natural) anyone expecting CEF-ordered arrays
    would get it wrong.
 
+Metadata:
+   Lots of per-column metadata (TENSOR_FRAME, DEPEND_i, etc etc) read
+   in and available in GUI but otherwise ignored.
+
 
 CEF/CDF release:
 ----------------
 
-Public on github (https://github.com/mbtaylor/cdf) but not formally
-released, no user documentation etc.
-No unit tests.
-Any opinions on how release should be done?
-What priority is (quality of) independent CDF/CEF release?
-Java namespace (int.esa.cdf, uk.ac.starlink.cdf, uk.ac.bristol.star.cdf)?
+Code structure:
+   Libraries for basic CDF and CEF access, with optional STIL layers
+   on top to provide the TOPCAT/STILTS integration.
+
+Code status:
+   Code is public on github (https://github.com/mbtaylor/cdf)
+   but not formally released.
+
+   No user documentation etc.
+
+   No unit tests.
+
+Release questions:
+   Any opinions on how release should be done?
+   What priority is (quality of) independent CDF/CEF release?
+   Java namespace (int.esa.cdf, uk.ac.starlink.cdf, uk.ac.bristol.star.cdf)?
 
 
 Starjava integration:
 ---------------------
 
 Auto format detection:
-   CDF yes, CEF no.  CEF could do, but the FILE_FORMAT_VERSION
+   CDF yes, CEF no.  CEF could do, but if the FILE_FORMAT_VERSION
    is more than 512 bytes into the file it could cause trouble.
 
 Treeview:
@@ -98,4 +117,24 @@ SAMP:
 
    As well as being non-standard, this MType is not currently documented
    in the TOPCAT user documentation, it should be.
+
+
+Plans:
+------
+
+CDF/CEF I/O:
+   Some more work to do, though how much depends on how complete
+   compatibility is required.
+   Public independent CDF/CEF library release (when?)
+   Improvements in CDF compatibility (how much effort?)
+
+TOPCAT visualisation:
+   Implement time series layer plot (like stacked line plot?)
+   Implement better time axis labelling
+   Implement time series/array plots (what are these called?)
+   Implement external plot control
+
+Requirements:
+   Talk to Chris Perry at RAL when I have reasonably working line and
+   vector plots to get feedback about functionality etc.
 
