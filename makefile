@@ -38,6 +38,7 @@ JSRC = \
        GlobalAttribute.java \
        NumericEncoding.java \
        RecordMap.java \
+       RunLengthInputStream.java \
        Shaper.java \
        Variable.java \
        VariableAttribute.java \
