@@ -58,7 +58,7 @@ public class CdfTableBuilder implements TableBuilder {
         if ( datsrc instanceof FileDataSource &&
              datsrc.getCompression() == Compression.NONE ) {
             File file = ((FileDataSource) datsrc).getFile();
-            nbuf = NioBuf.createBuf( file, true );
+            nbuf = NioBuf.createBuf( file, true, true );
         }
         else {
             ByteStore byteStore = storagePolicy.makeByteStore();
@@ -75,7 +75,7 @@ public class CdfTableBuilder implements TableBuilder {
                 throw new IOException( "Large CDF file - "
                                      + "not currently supported" );
             }
-            nbuf = new NioBuf( bbufs[ 0 ], true );
+            nbuf = new NioBuf( bbufs[ 0 ], true, true );
         }
 
         // Fix the Buf implementation so that it uses the supplied
@@ -141,7 +141,8 @@ public class CdfTableBuilder implements TableBuilder {
             if ( bbufs.length > 1 ) {
                 throw new IOException( "Too many buffers returned??" );
             }
-            return new NioBuf( bbufs[ 0 ], super.isBigendian() );
+            return new NioBuf( bbufs[ 0 ], super.isBit64(),
+                               super.isBigendian() );
         }
     }
 

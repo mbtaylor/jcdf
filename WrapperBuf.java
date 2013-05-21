@@ -27,6 +27,14 @@ public class WrapperBuf implements Buf {
         return base_.readAsciiString( ptr, nbyte );
     }
 
+    public void setBit64( boolean bit64 ) {
+        base_.setBit64( bit64 );
+    }
+
+    public boolean isBit64() {
+        return base_.isBit64();
+    }
+
     public void setEncoding( boolean isBigendian ) {
         base_.setEncoding( isBigendian );
     }

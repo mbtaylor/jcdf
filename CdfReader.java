@@ -45,14 +45,7 @@ public class CdfReader {
         // use 4-byte file offsets instead of 8-byte ones.
         // We can easily accommodate this by using a buffer reader that
         // reads 4 bytes for offsets instead of 8.
-        if ( ! variant.longOffsets_ ) {
-            final Buf buf0 = buf;
-            buf = new WrapperBuf( buf ) {
-                public long readOffset( Pointer ptr ) {
-                    return buf0.readInt( ptr );
-                }
-            };
-        }
+        buf.setBit64( variant.bit64_ );
 
         // The lengths of some fields differ according to CDF version.
         // Get a record factory that does it right.
@@ -96,7 +89,7 @@ public class CdfReader {
     }
 
     public CdfReader( File file ) throws IOException {
-        this( NioBuf.createBuf( file, true ) );
+        this( NioBuf.createBuf( file, true, true ) );
     }
 
     public Buf getBuf() {
@@ -289,12 +282,12 @@ public class CdfReader {
 
     private static CdfVariant decodeMagic( int magic1, int magic2 ) {
         final String label;
-        final boolean longOffsets;
+        final boolean bit64;
         final int nameLeng;
         final boolean compressed;
         if ( magic1 == 0xcdf30001 ) {
             label = "V3";
-            longOffsets = true;
+            bit64 = true;
             nameLeng = 256;
             if ( magic2 == 0x0000ffff ) {
                 compressed = false;
@@ -308,7 +301,7 @@ public class CdfReader {
         }
         else if ( magic1 == 0xcdf26002 ) {  // version 2.6/2.7
             label = "V2.6/2.7";
-            longOffsets = false;
+            bit64 = false;
             nameLeng = 64;
             if ( magic2 == 0x0000ffff ) {
                 compressed = false;
@@ -322,7 +315,7 @@ public class CdfReader {
         }
         else if ( magic1 == 0x0000ffff ) { // pre-version 2.6
             label = "pre-V2.6";
-            longOffsets = false;
+            bit64 = false;
             nameLeng = 64; // ??
             if ( magic2 == 0x0000ffff ) {
                 compressed = false;
@@ -334,7 +327,7 @@ public class CdfReader {
         else {
             return null;
         }
-        return new CdfVariant( label, longOffsets, nameLeng, compressed );
+        return new CdfVariant( label, bit64, nameLeng, compressed );
     }
 
     /**
@@ -358,13 +351,13 @@ public class CdfReader {
 
     private static class CdfVariant {
         final String label_;
-        final boolean longOffsets_;
+        final boolean bit64_;
         final int nameLeng_;
         final boolean compressed_;
-        CdfVariant( String label, boolean longOffsets, int nameLeng,
+        CdfVariant( String label, boolean bit64, int nameLeng,
                     boolean compressed ) {
             label_ = label;
-            longOffsets_ = longOffsets;
+            bit64_ = bit64;
             nameLeng_ = nameLeng;
             compressed_ = compressed;
         }

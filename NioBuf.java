@@ -16,11 +16,13 @@ public class NioBuf implements Buf {
 
     private final ByteBuffer byteBuf_;
     private final ByteBuffer dataBuf_;
+    private boolean isBit64_;
     private boolean isBigendian_;
 
-    public NioBuf( ByteBuffer byteBuf, boolean isBigendian ) {
+    public NioBuf( ByteBuffer byteBuf, boolean isBit64, boolean isBigendian ) {
         byteBuf_ = byteBuf;
         dataBuf_ = byteBuf.duplicate();
+        setBit64( isBit64 );
         setEncoding( isBigendian );
     }
 
@@ -37,7 +39,9 @@ public class NioBuf implements Buf {
     }
 
     public long readOffset( Pointer ptr ) {
-        return byteBuf_.getLong( toInt( ptr.getAndIncrement( 8 ) ) );
+        return isBit64_
+             ? byteBuf_.getLong( toInt( ptr.getAndIncrement( 8 ) ) )
+             : (long) byteBuf_.getInt( toInt( ptr.getAndIncrement( 4 ) ) );
     }
 
     public String readAsciiString( Pointer ptr, int nbyte ) {
@@ -59,6 +63,10 @@ public class NioBuf implements Buf {
         return sbuf.toString();
     }
 
+    public synchronized void setBit64( boolean isBit64 ) {
+        isBit64_ = isBit64;
+    }
+
     public synchronized void setEncoding( boolean bigend ) {
         dataBuf_.order( bigend ? ByteOrder.BIG_ENDIAN
                                : ByteOrder.LITTLE_ENDIAN );
@@ -67,6 +75,10 @@ public class NioBuf implements Buf {
 
     public boolean isBigendian() {
         return isBigendian_;
+    }
+
+    public boolean isBit64() {
+        return isBit64_;
     }
 
     public void readDataBytes( long offset, int count, byte[] array ) {
@@ -160,16 +172,17 @@ public class NioBuf implements Buf {
                 icount -= nr;
             }
         }
-        return new NioBuf( bbuf, isBigendian_ );
+        return new NioBuf( bbuf, isBit64_, isBigendian_ );
     }
 
-    public static NioBuf createBuf( File file, boolean isBigendian )
+    public static NioBuf createBuf( File file, boolean isBit64,
+                                    boolean isBigendian )
             throws IOException {
         int fleng = toInt( file.length() );
         ByteBuffer bbuf = new FileInputStream( file )
                          .getChannel()
                          .map( FileChannel.MapMode.READ_ONLY, 0, fleng );
-        return new NioBuf( bbuf, isBigendian );
+        return new NioBuf( bbuf, isBit64, isBigendian );
     }
 
     private static int toInt( long lvalue ) {

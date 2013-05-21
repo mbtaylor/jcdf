@@ -17,7 +17,8 @@ public interface Buf {
 
     /**
      * Reads a file offset or size.
-     * For CDF V3 this is a signed 8-byte integer, big-endian byte ordering.
+     * This is a signed integer with big-endian byte ordering.
+     * For CDF V3 it is 8 bytes, and for earlier versions it is 4 bytes.
      */
     long readOffset( Pointer ptr );
 
@@ -30,6 +31,8 @@ public interface Buf {
      */
     String readAsciiString( Pointer ptr, int nbyte );
 
+    void setBit64( boolean isBit64 );
+    boolean isBit64();
     void setEncoding( boolean isBigendian );
     boolean isBigendian();
 
