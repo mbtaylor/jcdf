@@ -12,7 +12,7 @@ public abstract class Compression {
     public static final Compression RLE =
         new RunLengthEncodingCompression( "RLE", (byte) 0 );
     public static final Compression HUFF =
-        createUnsupportedCompression( "HUFF" );
+        new HuffmanCompression( "HUFF" );
     public static final Compression AHUFF =
         createUnsupportedCompression( "AHUFF" );
     public static final Compression GZIP = new GzipCompression( "GZIP" );
@@ -119,6 +119,16 @@ public abstract class Compression {
         }
         public InputStream uncompressStream( InputStream in ) {
             return new RunLengthInputStream( in, rleVal_ );
+        }
+    }
+
+    private static class HuffmanCompression extends Compression {
+        HuffmanCompression( String name ) {
+            super( name );
+        }
+        public InputStream uncompressStream( InputStream in )
+                throws IOException {
+            return new BitExpandInputStream.HuffmanInputStream( in );
         }
     }
 }

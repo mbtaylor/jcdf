@@ -28,6 +28,7 @@ JSRC = \
        VariableIndexRecord.java \
        VariableValuesRecord.java \
        \
+       BitExpandInputStream.java \
        CdfContent.java \
        CdfInfo.java \
        CdfReader.java \
