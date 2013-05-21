@@ -1,5 +1,6 @@
 package cdf;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -150,7 +151,15 @@ public class NioBuf implements Buf {
         int icount = toInt( count );
         ByteBuffer bbuf = ByteBuffer.allocateDirect( icount );
         ReadableByteChannel chan = Channels.newChannel( in );
-        chan.read( bbuf );
+        while ( icount > 0 ) {
+            int nr = chan.read( bbuf );
+            if ( nr < 0 ) {
+                throw new EOFException();
+            }
+            else { 
+                icount -= nr;
+            }
+        }
         return new NioBuf( bbuf, isBigendian_ );
     }
 
