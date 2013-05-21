@@ -36,17 +36,43 @@ public abstract class Compression {
 
     private final String name_;
 
-    private Compression( String name ) {
+    protected Compression( String name ) {
         name_ = name;
     }
 
-    /**
-     * @param   outSize  the size of the uncompressed data
-     */
-    public abstract Buf uncompress( Buf inBuf, long inOffset, long outSize );
+    public abstract InputStream uncompressStream( InputStream in )
+            throws IOException;
 
     public String getName() {
         return name_;
+    }
+
+    /**
+     * Utility method.
+     * @param   outSize  the size of the uncompressed data
+     */
+    public static Buf uncompress( Compression compression, Buf inBuf,
+                                  long inOffset, long outSize ) {
+        try {
+            return attemptUncompress( compression, inBuf, inOffset, outSize );
+        }
+        catch ( IOException e ) {
+            throw new CdfFormatException( "Error decoding "
+                                        + compression.getName()
+                                        + "-compressed data", e );
+        }
+    }
+
+    private static Buf attemptUncompress( Compression compression, Buf inBuf,
+                                          long inOffset, long outSize )
+            throws IOException {
+        InputStream uin =
+             compression
+            .uncompressStream( new BufferedInputStream(
+                                   inBuf.createInputStream( inOffset ) ) );
+        Buf ubuf = inBuf.fillNewBuf( outSize, uin );
+        uin.close();
+        return ubuf;
     }
 
     public static Compression getCompression( int cType ) {
@@ -64,7 +90,7 @@ public abstract class Compression {
     private static Compression createFailCompression( String name,
                                                       final String failMsg ) {
         return new Compression( name ) {
-            public Buf uncompress( Buf inBuf, long inOffset, long outSize ) {
+            public InputStream uncompressStream( InputStream cin ) {
                 throw new CdfFormatException( failMsg );
             }
         };
@@ -75,52 +101,24 @@ public abstract class Compression {
                                     + name );
     }
 
-    private static abstract class FilterCompression extends Compression {
-        FilterCompression( String name ) {
+    private static class GzipCompression extends Compression {
+        GzipCompression( String name ) {
             super( name );
         }
-        public Buf uncompress( Buf inBuf, long inOffset, long outSize ) {
-            try {
-                return attemptUncompress( inBuf, inOffset, outSize );
-            }
-            catch ( IOException e ) {
-                throw new CdfFormatException( "Error decoding " + getName()
-                                            + "-compressed data", e );
-            }
-        }
-        private Buf attemptUncompress( Buf inBuf, long inOffset, long outSize )
+        public InputStream uncompressStream( InputStream cin )
                 throws IOException {
-            InputStream uin =
-                uncompressStream(
-                    new BufferedInputStream(
-                        inBuf.createInputStream( inOffset ) ) );
-            Buf ubuf = inBuf.fillNewBuf( outSize, uin );
-            uin.close();
-            return ubuf;
+            return new GZIPInputStream( cin );
         }
-        protected abstract InputStream uncompressStream( InputStream cin )
-                throws IOException;
     }
 
-    private static class RunLengthEncodingCompression
-            extends FilterCompression {
+    private static class RunLengthEncodingCompression extends Compression {
         private final byte rleVal_;
         RunLengthEncodingCompression( String name, byte rleVal ) {
             super( name );
             rleVal_ = rleVal;
         }
-        protected InputStream uncompressStream( InputStream in ) {
+        public InputStream uncompressStream( InputStream in ) {
             return new RunLengthInputStream( in, rleVal_ );
-        }
-    }
-
-    private static class GzipCompression extends FilterCompression {
-        GzipCompression( String name ) {
-            super( name );
-        }
-        protected InputStream uncompressStream( InputStream cin )
-                throws IOException {
-            return new GZIPInputStream( cin );
         }
     }
 }

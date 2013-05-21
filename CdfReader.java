@@ -1,8 +1,11 @@
 package cdf;
 
 import java.lang.reflect.Array;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +26,7 @@ public class CdfReader {
         // Read the CDF magic number bytes.
         int magic1 = buf.readInt( ptr );
         int magic2 = buf.readInt( ptr );
+        int offsetRec0 = (int) ptr.get();
 
         // Work out from that what variant (if any) of the CDF format
         // this file implements.
@@ -54,37 +58,60 @@ public class CdfReader {
         // Get the CDF Descriptor Record.  This may be the first record,
         // or it may be in a compressed form along with the rest of
         // the internal records.
-        long offsetRec0 = ptr.get();
-        final CdfDescriptorRecord cdr;
         if ( variant.compressed_ ) {
+
+            // Work out compression type and location of compressed data.
             CompressedCdfRecord ccr =
                 recordFactory_.createRecord( buf, offsetRec0,
                                              CompressedCdfRecord.class );
             CompressedParametersRecord cpr =
                 recordFactory_.createRecord( buf, ccr.cprOffset_,
                                              CompressedParametersRecord.class );
-            Compression compress = Compression.getCompression( cpr.cType_ );
-            buf = compress.uncompress( buf, ccr.getDataOffset(), ccr.uSize_ );
-            cdr = recordFactory_
-                 .createRecord( buf, 0, CdfDescriptorRecord.class );
+            final Compression compress =
+                Compression.getCompression( cpr.cType_ );
+
+            // Uncompress the compressed data into a new buffer.
+            // The compressed data is the data record of the CCR.
+            // When uncompressed it can be treated just like the whole of
+            // an uncompressed CDF file, except that it doesn't have the
+            // magic numbers (8 bytes) prepended to it.
+            // Note however that any file offsets recorded within the file
+            // are given as if the magic numbers are present - this is not
+            // very clear from the Internal Format Description document,
+            // but it appears to be the case from reverse engineering
+            // whole-file compressed files.  To work round this, we hack
+            // the compression to prepend a dummy 8-byte block to the
+            // uncompressed stream it provides.
+            final int prepad = offsetRec0;
+            assert prepad == 8;
+            Compression padCompress =
+                    new Compression( "Padded " + compress.getName() ) {
+                public InputStream uncompressStream( InputStream in )
+                        throws IOException {
+                    InputStream in1 =
+                        new ByteArrayInputStream( new byte[ prepad ] );
+                    InputStream in2 = compress.uncompressStream( in );
+                    return new SequenceInputStream( in1, in2 );
+                }
+            };
+            buf = Compression.uncompress( padCompress, buf, ccr.getDataOffset(),
+                                          ccr.uSize_ + prepad );
         }
-        else {
-            cdr = recordFactory_.createRecord( buf, offsetRec0,
-                                               CdfDescriptorRecord.class );
-        }
+        cdr_ = recordFactory_.createRecord( buf, offsetRec0,
+                                            CdfDescriptorRecord.class );
 
         // Interrogate CDR for required information.
-        boolean isSingleFile = Record.hasBit( cdr.flags_, 1 );
+        boolean isSingleFile = Record.hasBit( cdr_.flags_, 1 );
         if ( ! isSingleFile ) {
             throw new CdfFormatException( "Multi-file CDFs not supported" );
         }
-        NumericEncoding encoding = NumericEncoding.getEncoding( cdr.encoding_ );
+        NumericEncoding encoding =
+            NumericEncoding.getEncoding( cdr_.encoding_ );
         Boolean bigEndian = encoding.isBigendian();
         if ( bigEndian == null ) {
             throw new CdfFormatException( "Unsupported encoding " + encoding );
         }
         buf.setEncoding( bigEndian.booleanValue() );
-        cdr_ = cdr;
         buf_ = buf;
     }
 

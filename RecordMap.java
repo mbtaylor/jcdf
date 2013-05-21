@@ -146,8 +146,9 @@ class RecordMap {
                 CompressedVariableValuesRecord cvvr =
                     (CompressedVariableValuesRecord) rec;
                 int uncompressedSize = ( last - first + 1 ) * recSize;
-                Buf cBuf = compress.uncompress( buf, cvvr.getDataOffset(),
-                                                uncompressedSize );
+                Buf cBuf =
+                    Compression.uncompress( compress, buf, cvvr.getDataOffset(),
+                                            uncompressedSize );
                 list.add( new Entry( first, last, cBuf, 0L ) );
             }
             else if ( rec instanceof VariableIndexRecord ) {
