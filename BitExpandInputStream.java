@@ -14,6 +14,9 @@ abstract class BitExpandInputStream extends InputStream {
     private final InputStream base_;
     private int rack_;
     private int mask_;
+    private boolean ended_;
+
+    private static final int END_OF_STREAM = 256;
 
     public BitExpandInputStream( InputStream base ) {
         base_ = base;
@@ -27,6 +30,29 @@ abstract class BitExpandInputStream extends InputStream {
     public boolean markSupported() {
         return false;
     }
+
+    public int read() throws IOException {
+        if ( ended_ ) {
+            return -1;
+        }
+        int token = readToken();
+        if ( token == END_OF_STREAM ) {
+            ended_ = true;
+            return -1;
+        }
+        else {
+            return token;
+        }
+    }
+
+    /**
+     * Reads a single character.  The result may be either a byte value
+     * in the range 0--255, or the terminator value END_OF_STREAM.
+     * The actual end of the input stream should not be encountered
+     * (it should be flagged by an END_OF_STREAM indicator token);
+     * if it is, an EOFException is thrown.
+     */
+    protected abstract int readToken() throws IOException;
 
     public boolean readBit() throws IOException {
         if ( mask_ == 0x80 ) {
@@ -50,7 +76,6 @@ abstract class BitExpandInputStream extends InputStream {
 
     public static class HuffmanInputStream extends BitExpandInputStream {
 
-        private static final int END_OF_STREAM = 256;
         private final Node[] nodes_;
         private final int iRoot_;
         private boolean ended_;
@@ -61,24 +86,14 @@ abstract class BitExpandInputStream extends InputStream {
             iRoot_ = buildTree( nodes_ );
         }
 
-        public int read() throws IOException {
-            if ( ended_ ) {
-                return -1;
-            }
+        protected int readToken() throws IOException {
             int inode = iRoot_;
             do {
                 Node node = nodes_[ inode ];
                 boolean bit = readBit();
                 inode = bit ? node.child1_ : node.child0_;
             } while ( inode > END_OF_STREAM );
-          
-            if ( inode == END_OF_STREAM ) {
-                ended_ = true;
-                return -1;
-            }
-            else {
-                return inode;
-            }
+            return inode;
         }
 
         private static Node[] inputCounts( InputStream in ) throws IOException {
@@ -138,12 +153,13 @@ abstract class BitExpandInputStream extends InputStream {
             nodes[ nextFree ].savedCount_ = nodes[ nextFree ].count_;
             return nextFree;
         }
+
+        private static class Node {
+            int count_;
+            int savedCount_;
+            int child0_;
+            int child1_;
+        }
     }
 
-    private static class Node {
-        int count_;
-        int savedCount_;
-        int child0_;
-        int child1_;
-    }
 }
