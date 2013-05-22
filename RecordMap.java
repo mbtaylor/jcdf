@@ -32,6 +32,10 @@ class RecordMap {
         lastBlock_ = calculateBlock( 0 );
     }
 
+    public int getEntryCount() {
+        return nent_;
+    }
+
     /**
      * If one of the entries contains the given record, return its index.
      * If no entry contains it (the record is in a sparse region),
@@ -43,6 +47,7 @@ class RecordMap {
         if ( ! lastBlock_.contains( irec ) ) {
             lastBlock_ = calculateBlock( irec );
         }
+        assert lastBlock_.contains( irec );
         return lastBlock_.ient_;
     }
 
@@ -65,7 +70,7 @@ class RecordMap {
     }
 
     private Block calculateBlock( int irec ) {
-        int firstIndex = Arrays.binarySearch( firsts_, irec );
+        int firstIndex = binarySearch( firsts_, irec );
         if ( firstIndex >= 0 ) {
             return new Block( firstIndex,
                               firsts_[ firstIndex ], lasts_[ firstIndex ] );
@@ -76,13 +81,13 @@ class RecordMap {
         else {
             firstIndex = -2 - firstIndex;
         }
-        int lastIndex = Arrays.binarySearch( lasts_, irec );
+        int lastIndex = binarySearch( lasts_, irec );
         if ( lastIndex >= 0 ) {
             return new Block( lastIndex,
                               firsts_[ lastIndex ], lasts_[ lastIndex ] );
         }
         else if ( lastIndex == - nent_ - 1 ) {
-            return new Block( -lastIndex,
+            return new Block( lastIndex,
                               lasts_[ nent_ - 1 ], Integer.MAX_VALUE );
         }
         else {
@@ -209,5 +214,16 @@ class RecordMap {
         boolean contains( int irec ) {
             return irec >= low_ && irec <= high_;
         }
+    }
+
+    private static int binarySearch( int[] array, int key ) {
+        assert isSorted( array );
+        return Arrays.binarySearch( array, key );
+    }
+
+    private static boolean isSorted( int[] values ) {
+        int hash = Arrays.hashCode( values );
+        Arrays.sort( values );
+        return Arrays.hashCode( values ) == hash;
     }
 }

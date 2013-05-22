@@ -149,7 +149,7 @@ class VdrVariable implements Variable {
             //    #define PAD_SPARSERECORDS               1L
             //    #define PREV_SPARSERECORDS              2L
             int sRecords = vdr_.sRecords_;
-            return sRecords == 1 ? new PreviousRecordReader( recMap )
+            return sRecords == 2 ? new PreviousRecordReader( recMap )
                                  : new PadRecordReader( recMap );
         }
     }
@@ -190,11 +190,11 @@ class VdrVariable implements Variable {
             recMap_ = recMap;
         }
         public boolean hasRecord( int irec ) {
-            return recMap_.getEntryIndex( irec ) >= 0;
+            return hasRecord( irec, recMap_.getEntryIndex( irec ) );
         }
         public void readRawRecord( int irec, Object rawValueArray ) {
             int ient = recMap_.getEntryIndex( irec );
-            if ( ient >= 0 ) {
+            if ( hasRecord( irec, ient ) ) {
                 dataReader_.readValue( recMap_.getBuf( ient ),
                                        recMap_.getOffset( ient, irec ),
                                        rawValueArray );
@@ -207,7 +207,7 @@ class VdrVariable implements Variable {
         public Object readShapedRecord( int irec, boolean rowMajor,
                                         Object work ) {
             int ient = recMap_.getEntryIndex( irec );
-            if ( ient >= 0 ) {
+            if ( hasRecord( irec, ient ) ) {
                 dataReader_.readValue( recMap_.getBuf( ient ),
                                        recMap_.getOffset( ient, irec ),
                                        work );
@@ -218,6 +218,10 @@ class VdrVariable implements Variable {
                                 : shapedPadValueColumnMajor_;
             }
         }
+        private boolean hasRecord( int irec, int ient ) {
+            return ient >= 0 && ient < recMap_.getEntryCount()
+                && irec < getRecordCount();
+        }
     }
 
     private class PreviousRecordReader implements RecordReader {
@@ -226,7 +230,11 @@ class VdrVariable implements Variable {
             recMap_ = recMap;
         }
         public boolean hasRecord( int irec ) {
-            return recMap_.getEntryIndex( irec ) >= 0;
+            // I'm not sure whether the constraint on getRecordCount ought
+            // to be applied here - maybe for previous padding, non-existent
+            // records are OK??
+            return recMap_.getEntryIndex( irec ) >= 0
+                && irec < getRecordCount();
         }
         public void readRawRecord( int irec, Object rawValueArray ) {
             int ient = recMap_.getEntryIndex( irec );
