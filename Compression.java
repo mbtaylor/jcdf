@@ -9,13 +9,30 @@ public abstract class Compression {
 
     public static final Compression NONE =
         createFailCompression( "NONE", "Can't uncompress uncompressed data" );
-    public static final Compression RLE =
-        new RunLengthEncodingCompression( "RLE", (byte) 0 );
-    public static final Compression HUFF =
-        new HuffmanCompression( "HUFF" );
-    public static final Compression AHUFF =
-        new AdaptiveHuffmanCompression( "AHUFF" );
-    public static final Compression GZIP = new GzipCompression( "GZIP" );
+    public static final Compression RLE = new Compression( "RLE" ) {
+        public InputStream uncompressStream( InputStream in )
+                throws IOException {
+            return new RunLengthInputStream( in, (byte) 0 );
+        }
+    };
+    public static final Compression HUFF = new Compression( "HUFF" ) {
+        public InputStream uncompressStream( InputStream in )
+                throws IOException {
+            return new BitExpandInputStream.HuffmanInputStream( in );
+        }
+    };
+    public static final Compression AHUFF = new Compression( "AHUFF" ) {
+        public InputStream uncompressStream( InputStream in )
+                throws IOException {
+            return new BitExpandInputStream.AdaptiveHuffmanInputStream( in );
+        }
+    };
+    public static final Compression GZIP = new Compression( "GZIP" ) {
+        public InputStream uncompressStream( InputStream in )
+                throws IOException {
+            return new GZIPInputStream( in );
+        }
+    };
 
     // Get compression type code.  The mapping is missing from the
     // CDF Internal Format Description document, but cdf.h says:
@@ -99,45 +116,5 @@ public abstract class Compression {
     private static Compression createUnsupportedCompression( String name ) {
         return createFailCompression( name, "Unsupported compression format "
                                     + name );
-    }
-
-    private static class GzipCompression extends Compression {
-        GzipCompression( String name ) {
-            super( name );
-        }
-        public InputStream uncompressStream( InputStream cin )
-                throws IOException {
-            return new GZIPInputStream( cin );
-        }
-    }
-
-    private static class RunLengthEncodingCompression extends Compression {
-        private final byte rleVal_;
-        RunLengthEncodingCompression( String name, byte rleVal ) {
-            super( name );
-            rleVal_ = rleVal;
-        }
-        public InputStream uncompressStream( InputStream in ) {
-            return new RunLengthInputStream( in, rleVal_ );
-        }
-    }
-
-    private static class HuffmanCompression extends Compression {
-        HuffmanCompression( String name ) {
-            super( name );
-        }
-        public InputStream uncompressStream( InputStream in )
-                throws IOException {
-            return new BitExpandInputStream.HuffmanInputStream( in );
-        }
-    }
-
-    private static class AdaptiveHuffmanCompression extends Compression {
-        AdaptiveHuffmanCompression( String name ) {
-            super( name );
-        }
-        public InputStream uncompressStream( InputStream in ) {
-            return new BitExpandInputStream.AdaptiveHuffmanInputStream( in );
-        }
     }
 }
