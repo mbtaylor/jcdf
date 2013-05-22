@@ -14,7 +14,7 @@ public abstract class Compression {
     public static final Compression HUFF =
         new HuffmanCompression( "HUFF" );
     public static final Compression AHUFF =
-        createUnsupportedCompression( "AHUFF" );
+        new AdaptiveHuffmanCompression( "AHUFF" );
     public static final Compression GZIP = new GzipCompression( "GZIP" );
 
     // Get compression type code.  The mapping is missing from the
@@ -129,6 +129,15 @@ public abstract class Compression {
         public InputStream uncompressStream( InputStream in )
                 throws IOException {
             return new BitExpandInputStream.HuffmanInputStream( in );
+        }
+    }
+
+    private static class AdaptiveHuffmanCompression extends Compression {
+        AdaptiveHuffmanCompression( String name ) {
+            super( name );
+        }
+        public InputStream uncompressStream( InputStream in ) {
+            return new BitExpandInputStream.AdaptiveHuffmanInputStream( in );
         }
     }
 }

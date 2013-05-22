@@ -66,6 +66,18 @@ abstract class BitExpandInputStream extends InputStream {
         return value != 0;
     }
 
+    public int readBits( int bitCount ) throws IOException {
+        int mask = 1 << ( bitCount - 1 );
+        int value = 0;
+        while ( mask != 0 ) {
+            if ( readBit() ) {
+                value |= mask;
+            }
+            mask >>= 1;
+        }
+        return value;
+    }
+
     private static int read1( InputStream in ) throws IOException {
         int b = in.read();
         if ( b < 0 ) {
@@ -162,4 +174,163 @@ abstract class BitExpandInputStream extends InputStream {
         }
     }
 
+    public static class AdaptiveHuffmanInputStream
+            extends BitExpandInputStream {
+
+        /* Tree members.  This class acts as its own tree. */
+        private final int[] leafs_;
+        private final Node[] nodes_;
+        private int nextFreeNode_;
+
+        private static final int ESCAPE = 257;
+        private static final int SYMBOL_COUNT = 258;
+        private static final int NODE_TABLE_COUNT = ( SYMBOL_COUNT * 2 ) - 1;
+        private static final int ROOT_NODE = 0;
+        private static final int MAX_WEIGHT = 0x8000;
+
+        public AdaptiveHuffmanInputStream( InputStream base ) {
+            super( base );
+
+            // Initialise the tree.
+            leafs_ = new int[ SYMBOL_COUNT ];
+            nodes_ = new Node[ NODE_TABLE_COUNT ];
+            nodes_[ ROOT_NODE ] = new Node( ROOT_NODE + 1, false, 2, -1 );
+            nodes_[ ROOT_NODE + 1 ] = new Node( END_OF_STREAM, true, 1,
+                                                ROOT_NODE );
+            leafs_[ END_OF_STREAM ] = ROOT_NODE + 1;
+            nodes_[ ROOT_NODE + 2 ] = new Node( ESCAPE, true, 1, ROOT_NODE );
+            leafs_[ ESCAPE ] = ROOT_NODE + 2;
+            nextFreeNode_ = ROOT_NODE + 3;
+            for ( int i = 0; i < END_OF_STREAM; i++ ) {
+                leafs_[ i ] = -1;
+            }
+        }
+
+        protected int readToken() throws IOException {
+            int iCurrentNode = ROOT_NODE;
+            while ( ! nodes_[ iCurrentNode ].childIsLeaf_ ) {
+                iCurrentNode = nodes_[ iCurrentNode ].child_;
+                boolean bit = readBit();
+                iCurrentNode += bit ? 1 : 0;
+            }
+            int c = nodes_[ iCurrentNode ].child_;
+            if ( c == ESCAPE ) {
+                c = readBits( 8 );
+                addNewNode( c );
+            }
+            updateModel( c );
+            return c;
+        }
+
+        private void addNewNode( int c ) {
+            int iLightestNode = nextFreeNode_ - 1;
+            int iNewNode = nextFreeNode_;
+            int iZeroWeightNode = nextFreeNode_ + 1;
+            nextFreeNode_ += 2;
+            nodes_[ iNewNode ] = new Node( nodes_[ iLightestNode ] );
+            nodes_[ iNewNode ].parent_ = iLightestNode;
+            leafs_[ nodes_[ iNewNode ].child_ ] = iNewNode;
+            nodes_[ iLightestNode ] =
+                new Node( iNewNode, false, nodes_[ iLightestNode ].weight_,
+                                           nodes_[ iLightestNode ].parent_ );
+            nodes_[ iZeroWeightNode ] = new Node( c, true, 0, iLightestNode );
+            leafs_[ c ] = iZeroWeightNode;
+        }
+
+        private void updateModel( int c ) {
+            if ( nodes_[ ROOT_NODE ].weight_ == MAX_WEIGHT ) {
+                rebuildTree();
+            }
+            int iCurrentNode = leafs_[ c ];
+            while ( iCurrentNode != -1 ) {
+                nodes_[ iCurrentNode ].weight_++;
+                int iNewNode;
+                for ( iNewNode = iCurrentNode; iNewNode > ROOT_NODE;
+                      iNewNode-- ) {
+                    if ( nodes_[ iNewNode - 1 ].weight_ >=
+                         nodes_[ iCurrentNode ].weight_ ) {
+                        break;
+                    }
+                }
+                if ( iCurrentNode != iNewNode ) {
+                    swapNodes( iCurrentNode, iNewNode );
+                    iCurrentNode = iNewNode;
+                }
+                iCurrentNode = nodes_[ iCurrentNode ].parent_;
+            }
+        }
+
+        private void swapNodes( int i, int j ) {
+            if ( nodes_[ i ].childIsLeaf_ ) {
+                leafs_[ nodes_[ i ].child_ ] = j;
+            }
+            else {
+                nodes_[ nodes_[ i ].child_ ].parent_ = j;
+                nodes_[ nodes_[ i ].child_ + 1 ].parent_ = j;
+            }
+            if ( nodes_[ j ].childIsLeaf_ ) {
+                leafs_[ nodes_[ j ].child_ ] = i;
+            }
+            else {
+                nodes_[ nodes_[ j ].child_ ].parent_ = i;
+                nodes_[ nodes_[ j ].child_ + 1 ].parent_ = i;
+            }
+            Node temp = new Node( nodes_[ i ] );
+            nodes_[ i ] = new Node( nodes_[ j ] );
+            nodes_[ i ].parent_ = temp.parent_;
+            temp.parent_ = nodes_[ j ].parent_;
+            nodes_[ j ] = temp;
+        }
+
+        private void rebuildTree() {
+            int j = nextFreeNode_ - 1;
+            for ( int i = j; i >= ROOT_NODE; i-- ) {
+                if ( nodes_[ i ].childIsLeaf_ ) {
+                    nodes_[ j ] = new Node( nodes_[ i ] );
+                    nodes_[ j ].weight_ = ( nodes_[ j ].weight_ + 1 ) / 2;
+                    j--;
+                }
+            }
+
+            for ( int i = nextFreeNode_ - 2; j >= ROOT_NODE; i -= 2, j-- ) {
+                int k = i + 1;
+                nodes_[ j ].weight_ = nodes_[ i ].weight_ + nodes_[ k ].weight_;
+                int weight = nodes_[ j ].weight_;
+                nodes_[ j ].childIsLeaf_ = false;
+                for ( k = j + 1; weight < nodes_[ k ].weight_; k++ ) {
+                }
+                k--;
+                System.arraycopy( nodes_, j + 1, nodes_, j, k - j );
+                nodes_[ k ] = new Node( i, false, weight, nodes_[ k ].parent_ );
+            }
+
+            for ( int i = nextFreeNode_ - 1; i >= ROOT_NODE; i-- ) {
+                if ( nodes_[ i ].childIsLeaf_ ) {
+                    int k = nodes_[ i ].child_;
+                    leafs_[ k ] = i;
+                }
+                else {
+                    int k = nodes_[ i ].child_;
+                    nodes_[ k ].parent_ = nodes_[ k + 1 ].parent_ = i;
+                }
+            }
+        }
+
+        private static class Node {
+            int child_;
+            boolean childIsLeaf_;
+            int weight_;
+            int parent_;
+            Node( int child, boolean childIsLeaf, int weight, int parent ) {
+                child_ = child;
+                childIsLeaf_ = childIsLeaf;
+                weight_ = weight;
+                parent_ = parent;
+            }
+            Node( Node node ) {
+                this( node.child_, node.childIsLeaf_, node.weight_,
+                      node.parent_ );
+            }
+        }
+    }
 }
