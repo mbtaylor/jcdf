@@ -8,7 +8,7 @@ Numeric encodings:
    Unsupported: VMS D_FLOAT, G_FLOAT
 
 Compression formats:
-   Only GZIP supported; RLE, HUFF, AHUFF not supported
+   All supported.
 
 Data types:
    Unsigned integer types supported, but transformed to larger signed types
@@ -124,8 +124,9 @@ SAMP:
            "url": "file://localhost/mbt/data/cdf/C4_V120822.cdf",
            "format": "cdf" } }
 
-   As well as being non-standard, this MType is not currently documented
-   in the TOPCAT user documentation, it should be.
+   As well as being non-standard, this MType was not documented in the
+   TOPCAT user documentation at v4.0-b, though it will be in later
+   releases.
 
 
 Plans:
