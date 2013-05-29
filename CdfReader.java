@@ -116,7 +116,7 @@ public class CdfReader {
     }
 
     public CdfReader( File file ) throws IOException {
-        this( NioBuf.createBuf( file, true, true ) );
+        this( Bufs.createBuf( file, true, true ) );
     }
 
     public Buf getBuf() {

@@ -10,18 +10,20 @@ STILJAR = stil.jar
 JSRC = \
        AttributeDescriptorRecord.java \
        AttributeEntryDescriptorRecord.java \
+       BankBuf.java \
        Buf.java \
+       Bufs.java \
        CdfDescriptorRecord.java \
        CdfFormatException.java \
        CompressedCdfRecord.java \
        CompressedParametersRecord.java \
        CompressedVariableValuesRecord.java \
        GlobalDescriptorRecord.java \
-       NioBuf.java \
        Pointer.java \
        Record.java \
        RecordFactory.java \
        RecordPlan.java \
+       SimpleNioBuf.java \
        SparsenessParametersRecord.java \
        UnusedInternalRecord.java \
        VariableDescriptorRecord.java \

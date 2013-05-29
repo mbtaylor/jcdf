@@ -30,7 +30,7 @@ CDF Data Format version:
    supported, maybe others, but I haven't checked them all.
 
 Large files:
-   Only files up to 2Gb supported.
+   No file size restriction (>2Gb is allowed).
 
 Fill values:
    FILLVAL not supported - it's not mentioned in the Internal Format

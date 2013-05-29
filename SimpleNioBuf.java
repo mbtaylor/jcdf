@@ -1,25 +1,22 @@
 package cdf;
 
 import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.util.ArrayList;
 
-public class NioBuf implements Buf {
+public class SimpleNioBuf implements Buf {
 
     private final ByteBuffer byteBuf_;
     private final ByteBuffer dataBuf_;
     private boolean isBit64_;
     private boolean isBigendian_;
 
-    public NioBuf( ByteBuffer byteBuf, boolean isBit64, boolean isBigendian ) {
+    public SimpleNioBuf( ByteBuffer byteBuf, boolean isBit64,
+                         boolean isBigendian ) {
         byteBuf_ = byteBuf;
         dataBuf_ = byteBuf.duplicate();
         setBit64( isBit64 );
@@ -156,7 +153,7 @@ public class NioBuf implements Buf {
     public InputStream createInputStream( long offset ) {
         ByteBuffer strmBuf = byteBuf_.duplicate();
         strmBuf.position( (int) offset );
-        return new ByteBufferInputStream( strmBuf );
+        return Bufs.createByteBufferInputStream( strmBuf );
     }
 
     public Buf fillNewBuf( long count, InputStream in ) throws IOException {
@@ -172,17 +169,7 @@ public class NioBuf implements Buf {
                 icount -= nr;
             }
         }
-        return new NioBuf( bbuf, isBit64_, isBigendian_ );
-    }
-
-    public static NioBuf createBuf( File file, boolean isBit64,
-                                    boolean isBigendian )
-            throws IOException {
-        int fleng = toInt( file.length() );
-        ByteBuffer bbuf = new FileInputStream( file )
-                         .getChannel()
-                         .map( FileChannel.MapMode.READ_ONLY, 0, fleng );
-        return new NioBuf( bbuf, isBit64, isBigendian );
+        return new SimpleNioBuf( bbuf, isBit64_, isBigendian_ );
     }
 
     private static int toInt( long lvalue ) {
@@ -192,70 +179,5 @@ public class NioBuf implements Buf {
                                               + lvalue + " >32 bits" );
         }
         return ivalue;
-    }
-
-    /**
-     * Tedious.  You'd think there was an implementation of this in the
-     * J2SE somewhere, but I can't see one.
-     */
-    private static class ByteBufferInputStream extends InputStream {
-        private final ByteBuffer bbuf_;
-
-        ByteBufferInputStream( ByteBuffer bbuf ) {
-            bbuf_ = bbuf;
-        }
-
-        @Override
-        public int read() {
-            return bbuf_.remaining() > 0 ? bbuf_.get() : -1;
-        }
-
-        @Override
-        public int read( byte[] b ) {
-            return read( b, 0, b.length );
-        }
-
-        @Override
-        public int read( byte[] b, int off, int len ) {
-            if ( len == 0 ) {
-                return 0;
-            }
-            int remain = bbuf_.remaining();
-            if ( remain == 0 ) {
-                return -1;
-            }
-            else {
-                int nr = Math.min( remain, len );
-                bbuf_.get( b, off, nr );
-                return nr;
-            }
-        }
-
-        @Override
-        public boolean markSupported() {
-            return true;
-        }
-
-        @Override
-        public void mark( int readLimit ) {
-            bbuf_.mark();
-        }
-
-        @Override
-        public void reset() {
-            bbuf_.reset();
-        }
-
-        @Override
-        public long skip( long n ) {
-            int nsk = (int) Math.min( n, bbuf_.remaining() );
-            bbuf_.position( bbuf_.position() + nsk );
-            return nsk;
-        }
-
-        @Override
-        public int available() {
-            return bbuf_.remaining();
-        }
     }
 }

@@ -1,10 +1,9 @@
 package cdf.util;
 
 import cdf.Buf;
+import cdf.Bufs;
 import cdf.CdfContent;
-import cdf.CdfFormatException;
 import cdf.CdfReader;
-import cdf.NioBuf;
 import cdf.WrapperBuf;
 import java.awt.datatransfer.DataFlavor;
 import java.io.BufferedOutputStream;
@@ -54,11 +53,11 @@ public class CdfTableBuilder implements TableBuilder {
         if ( ! CdfReader.isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( "Not a CDF file" );
         }
-        final NioBuf nbuf;
+        final Buf nbuf;
         if ( datsrc instanceof FileDataSource &&
              datsrc.getCompression() == Compression.NONE ) {
             File file = ((FileDataSource) datsrc).getFile();
-            nbuf = NioBuf.createBuf( file, true, true );
+            nbuf = Bufs.createBuf( file, true, true );
         }
         else {
             ByteStore byteStore = storagePolicy.makeByteStore();
@@ -71,11 +70,7 @@ public class CdfTableBuilder implements TableBuilder {
             ByteBuffer[] bbufs = byteStore.toByteBuffers();
             storeOut.close();
             byteStore.close();
-            if ( bbufs.length > 1 ) {
-                throw new IOException( "Large CDF file - "
-                                     + "not currently supported" );
-            }
-            nbuf = new NioBuf( bbufs[ 0 ], true, true );
+            nbuf = Bufs.createBuf( bbufs, true, true );
         }
 
         // Fix the Buf implementation so that it uses the supplied
@@ -115,17 +110,13 @@ public class CdfTableBuilder implements TableBuilder {
         }
 
         public Buf fillNewBuf( long count, InputStream in ) throws IOException {
-            int icount = (int) count;
-            if ( icount != count ) {
-                throw new CdfFormatException( "Can't cope with long (>2Gb) "
-                                            + "sub-buffers" );
-            }
             ByteStore byteStore = storagePolicy_.makeByteStore();
             OutputStream out = byteStore.getOutputStream();
             int bufsiz = 16384;
             byte[] a = new byte[ bufsiz ];
-            for ( int ntot = 0; ntot < icount; ) {
-                int n = in.read( a, 0, Math.min( bufsiz, icount - ntot ) );
+            for ( int ntot = 0; ntot < count; ) {
+                int n = in.read( a, 0,
+                                 Math.min( bufsiz, (int) ( count - ntot ) ) );
                 if ( n < 0 ) {
                     throw new IOException( "Stream ended after " + ntot + "/"
                                          + count + " bytes" );
@@ -138,11 +129,8 @@ public class CdfTableBuilder implements TableBuilder {
             out.flush();
             ByteBuffer[] bbufs = byteStore.toByteBuffers();
             byteStore.close();
-            if ( bbufs.length > 1 ) {
-                throw new IOException( "Too many buffers returned??" );
-            }
-            return new NioBuf( bbufs[ 0 ], super.isBit64(),
-                               super.isBigendian() );
+            return Bufs.createBuf( bbufs,
+                                   super.isBit64(), super.isBigendian() );
         }
     }
 
