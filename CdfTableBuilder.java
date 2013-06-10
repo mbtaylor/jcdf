@@ -29,6 +29,7 @@ import uk.ac.starlink.util.IOUtils;
 public class CdfTableBuilder implements TableBuilder {
 
     public static final CdfTableProfile DEFAULT_PROFILE = createProfile(
+        true,
         new String[] { "FIELDNAM", "DESCRIP", "DESCRIPTION", },
         new String[] { "UNITS", "UNIT", "UNITSTRING", }
     );
@@ -134,18 +135,27 @@ public class CdfTableBuilder implements TableBuilder {
         }
     }
 
-    public static CdfTableProfile createProfile( String[] descripAttNames,
+    public static CdfTableProfile createProfile( boolean invarParams,
+                                                 String[] descripAttNames,
                                                  String[] unitAttNames ) {
-        return new ListCdfTableProfile( descripAttNames, unitAttNames );
+        return new ListCdfTableProfile( invarParams, descripAttNames,
+                                        unitAttNames );
     }
 
     private static class ListCdfTableProfile implements CdfTableProfile {
+        private final boolean invarParams_;
         private final Collection<String> descAttNames_;
         private final Collection<String> unitAttNames_;
 
-        ListCdfTableProfile( String[] descripAttNames, String[] unitAttNames ) {
+        ListCdfTableProfile( boolean invarParams, String[] descripAttNames,
+                             String[] unitAttNames ) {
+            invarParams_ = invarParams;
             descAttNames_ = toNormalisedList( descripAttNames );
             unitAttNames_ = toNormalisedList( unitAttNames );
+        }
+
+        public boolean invariantVariablesToParameters() {
+            return invarParams_;
         }
 
         public String getDescriptionAttribute( String[] attNames ) {

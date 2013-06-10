@@ -6,6 +6,7 @@ import cdf.Variable;
 import cdf.VariableAttribute;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,26 @@ public class CdfStarTable extends AbstractStarTable {
     private final ColumnInfo[] colInfos_;
 
     public CdfStarTable( CdfContent content, CdfTableProfile profile ) {
-        vars_ = content.getVariables();
+
+        // Separate variable list into two parts: one to turn into columns,
+        // and one to turn into parameters.  The parameters one will only
+        // have entries if there are non-varying variables
+        // (recordVariance = false) and the profile says these are to be
+        // treated as paramters.
+        List<Variable> varList =
+            new ArrayList<Variable>( Arrays.asList( content.getVariables() ) );
+        List<Variable> paramVarList = new ArrayList<Variable>();
+        if ( profile.invariantVariablesToParameters() ) {
+            for ( Iterator<Variable> it = varList.iterator(); it.hasNext(); ) {
+                Variable var = it.next();
+                if ( ! var.getRecordVariance() ) {
+                    it.remove();
+                    paramVarList.add( var );
+                }
+            }
+        }
+        Variable[] paramVars = paramVarList.toArray( new Variable[ 0 ] );
+        vars_ = varList.toArray( new Variable[ 0 ] );
         ncol_ = vars_.length;
 
         // Calculate row count, as the longest record count of any of
@@ -40,15 +60,6 @@ public class CdfStarTable extends AbstractStarTable {
         randomVarReaders_ = new VariableReader[ ncol_ ];
         for ( int iv = 0; iv < ncol_; iv++ ) {
             randomVarReaders_[ iv ] = new VariableReader( vars_[ iv ] );
-        }
-
-        // Generate table parameters from global attributes.
-        GlobalAttribute[] gatts = content.getGlobalAttributes();
-        for ( int iga = 0; iga < gatts.length; iga++ ) {
-            DescribedValue dval = createParameter( gatts[ iga ] );
-            if ( dval != null ) {
-                setParameter( dval );
-            }
         }
 
         // Try to work out which attributes represent units and description.
@@ -80,6 +91,8 @@ public class CdfStarTable extends AbstractStarTable {
             new ArrayList<VariableAttribute>( Arrays.asList( vatts ) );
         miscAttList.remove( descAtt );
         miscAttList.remove( unitAtt );
+
+        // Get column metadata for each variable column.
         colInfos_ = new ColumnInfo[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
             Variable var = vars_[ icol ];
@@ -93,6 +106,25 @@ public class CdfStarTable extends AbstractStarTable {
             colInfos_[ icol ] =
                 createColumnInfo( var, getStringEntry( descAtt, var ),
                                   getStringEntry( unitAtt, var ), miscAttMap );
+        }
+
+        // Generate table parameters from non-variant variables (if applicable).
+        for ( int ipv = 0; ipv < paramVars.length; ipv++ ) {
+            Variable pvar = paramVars[ ipv ];
+            ValueInfo info =
+                createValueInfo( pvar, getStringEntry( descAtt, pvar ),
+                                 getStringEntry( unitAtt, pvar ) );
+            Object value = new VariableReader( pvar ).readShapedRecord( 0 );
+            setParameter( new DescribedValue( info, value ) );
+        }
+
+        // Generate table parameters from global attributes.
+        GlobalAttribute[] gatts = content.getGlobalAttributes();
+        for ( int iga = 0; iga < gatts.length; iga++ ) {
+            DescribedValue dval = createParameter( gatts[ iga ] );
+            if ( dval != null ) {
+                setParameter( dval );
+            }
         }
     }
 
@@ -169,17 +201,22 @@ public class CdfStarTable extends AbstractStarTable {
         }
     }
 
-    private static ColumnInfo createColumnInfo( Variable var, String descrip,
-                                                String units,
-                                                Map<String,Object> attMap ) {
+    private static ValueInfo createValueInfo( Variable var, String descrip,
+                                              String units ) {
         String name = var.getName();
         Class clazz = var.getShaper().getShapeClass();
         int[] shape = clazz.getComponentType() == null
                     ? null
                     : var.getShaper().getDimSizes();
-        ColumnInfo info = new ColumnInfo( name, clazz, descrip );
+        DefaultValueInfo info = new DefaultValueInfo( name, clazz, descrip );
         info.setUnitString( units );
-        info.setShape( shape  );
+        info.setShape( shape );
+        return info;
+    }
+
+    private static ColumnInfo createColumnInfo( Variable var, String descrip,
+                                                String units,
+                                                Map<String,Object> attMap ) {
         List<DescribedValue> auxData = new ArrayList<DescribedValue>();
         for ( Map.Entry<String,Object> attEntry : attMap.entrySet() ) {
             String auxName = attEntry.getKey();
@@ -190,6 +227,8 @@ public class CdfStarTable extends AbstractStarTable {
                 auxData.add( new DescribedValue( auxInfo, auxValue ) );
             }
         }
+        ColumnInfo info =
+            new ColumnInfo( createValueInfo( var, descrip, units ) );
         info.setAuxData( auxData );
         return info;
     }

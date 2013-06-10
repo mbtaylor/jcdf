@@ -14,6 +14,7 @@ public interface Variable {
     DataType getDataType();
     DataReader getDataReader();
     Shaper getShaper();
+    boolean getRecordVariance();
 
     /**
      * Whether a real distinct file-based record exists for the given index.

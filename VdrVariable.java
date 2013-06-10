@@ -11,6 +11,7 @@ class VdrVariable implements Variable {
     private final Buf buf_;
     private final RecordFactory recFact_;
     private final boolean isZVariable_;
+    private final boolean recordVariance_;
     private final Shaper shaper_;
     private final int rvaleng_;
     private final DataType dataType_;
@@ -28,6 +29,7 @@ class VdrVariable implements Variable {
         recFact_ = recFact;
         isZVariable_ = vdr.getRecordType() == 8;
         dataType_ = DataType.getDataType( vdr.dataType_ );
+        recordVariance_ = Record.hasBit( vdr_.flags_, 0 );
         int[] dimSizes = isZVariable_ ? vdr.zDimSizes_ : info.getRDimSizes();
         boolean[] dimVarys = vdr.dimVarys_;
         boolean rowMajor = info.getRowMajor();
@@ -71,7 +73,7 @@ class VdrVariable implements Variable {
             .append( shapeTxt )
             .append( ']' )
             .append( ' ' )
-            .append( Record.hasBit( vdr_.flags_, 0 ) ? 'T' : 'F' )
+            .append( recordVariance_ ? 'T' : 'F' )
             .append( '/' )
             .append( varyTxt )
             .toString();
@@ -103,6 +105,10 @@ class VdrVariable implements Variable {
 
     public Shaper getShaper() {
         return shaper_;
+    }
+
+    public boolean getRecordVariance() {
+        return recordVariance_;
     }
 
     public String getSummary() {
@@ -138,8 +144,7 @@ class VdrVariable implements Variable {
         RecordMap recMap =
             RecordMap.createRecordMap( vdr_, recFact_,
                                        dataReader_.getRecordSize() );
-        boolean recVary = Record.hasBit( vdr_.flags_, 0 );
-        if ( ! recVary ) {
+        if ( ! recordVariance_ ) {
             return new NoVaryRecordReader( recMap );
         }
         else {
