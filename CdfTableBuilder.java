@@ -31,7 +31,8 @@ public class CdfTableBuilder implements TableBuilder {
     public static final CdfTableProfile DEFAULT_PROFILE = createProfile(
         true,
         new String[] { "FIELDNAM", "DESCRIP", "DESCRIPTION", },
-        new String[] { "UNITS", "UNIT", "UNITSTRING", }
+        new String[] { "UNITS", "UNIT", "UNITSTRING", },
+        new String[] { "FILLVAL", }
     );
 
     private final CdfTableProfile profile_;
@@ -137,21 +138,25 @@ public class CdfTableBuilder implements TableBuilder {
 
     public static CdfTableProfile createProfile( boolean invarParams,
                                                  String[] descripAttNames,
-                                                 String[] unitAttNames ) {
+                                                 String[] unitAttNames,
+                                                 String[] blankvalAttNames ) {
         return new ListCdfTableProfile( invarParams, descripAttNames,
-                                        unitAttNames );
+                                        unitAttNames, blankvalAttNames );
     }
 
     private static class ListCdfTableProfile implements CdfTableProfile {
         private final boolean invarParams_;
         private final Collection<String> descAttNames_;
         private final Collection<String> unitAttNames_;
+        private final Collection<String> blankvalAttNames_;
 
         ListCdfTableProfile( boolean invarParams, String[] descripAttNames,
-                             String[] unitAttNames ) {
+                             String[] unitAttNames,
+                             String[] blankvalAttNames ) {
             invarParams_ = invarParams;
             descAttNames_ = toNormalisedList( descripAttNames );
             unitAttNames_ = toNormalisedList( unitAttNames );
+            blankvalAttNames_ = toNormalisedList( blankvalAttNames );
         }
 
         public boolean invariantVariablesToParameters() {
@@ -164,6 +169,10 @@ public class CdfTableBuilder implements TableBuilder {
 
         public String getUnitAttribute( String[] attNames ) {
             return match( attNames, unitAttNames_ );
+        }
+
+        public String getBlankValueAttribute( String[] attNames ) {
+            return match( attNames, blankvalAttNames_ );
         }
 
         private static Collection<String> toNormalisedList( String[] names ) {

@@ -33,10 +33,7 @@ Large files:
    No file size restriction (>2Gb is allowed).
 
 Fill values:
-   FILLVAL not supported - it's not mentioned in the Internal Format
-   Description document, though it looks like a convention in the
-   CDF User Guide; probably I should implement FILLVALs to behave
-   as nulls.
+   Implemented for CDF and CEF for scalars and floating point arrays.
    However, I can't make integer array elements behave like nulls
    without significant changes to the framework.  Most of these CDFs
    seem to have a lot of array-valued columns.  Are fill values in

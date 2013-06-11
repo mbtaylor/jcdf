@@ -2,6 +2,7 @@ package cdf.util;
 
 import cdf.CdfContent;
 import cdf.GlobalAttribute;
+import cdf.Shaper;
 import cdf.Variable;
 import cdf.VariableAttribute;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class CdfStarTable extends AbstractStarTable {
     private final int ncol_;
     private final long nrow_;
     private final ColumnInfo[] colInfos_;
+    private final VariableAttribute blankvalAtt_;
 
     public CdfStarTable( CdfContent content, CdfTableProfile profile ) {
 
@@ -56,12 +58,6 @@ public class CdfStarTable extends AbstractStarTable {
         }
         nrow_ = nrow;
 
-        // Set up random data access.
-        randomVarReaders_ = new VariableReader[ ncol_ ];
-        for ( int iv = 0; iv < ncol_; iv++ ) {
-            randomVarReaders_[ iv ] = new VariableReader( vars_[ iv ] );
-        }
-
         // Try to work out which attributes represent units and description.
         VariableAttribute[] vatts = content.getVariableAttributes();
         String[] attNames = new String[ vatts.length ];
@@ -70,8 +66,10 @@ public class CdfStarTable extends AbstractStarTable {
         }
         String descAttName = profile.getDescriptionAttribute( attNames );
         String unitAttName = profile.getUnitAttribute( attNames );
+        String blankvalAttName = profile.getBlankValueAttribute( attNames );
         VariableAttribute descAtt = null;
         VariableAttribute unitAtt = null;
+        VariableAttribute blankvalAtt = null;
         for ( int iva = 0; iva < vatts.length; iva++ ) {
             VariableAttribute vatt = vatts[ iva ];
             String vattName = vatt.getName();
@@ -82,8 +80,12 @@ public class CdfStarTable extends AbstractStarTable {
                 else if ( vattName.equals( unitAttName ) ) {
                     unitAtt = vatt;
                 }
+                else if ( vattName.equals( blankvalAttName ) ) {
+                    blankvalAtt = vatt;
+                }
             }
         }
+        blankvalAtt_ = blankvalAtt;
 
         // Remove those from the variable attributes to give a miscellaneous
         // attribute list.
@@ -92,15 +94,25 @@ public class CdfStarTable extends AbstractStarTable {
         miscAttList.remove( descAtt );
         miscAttList.remove( unitAtt );
 
+        // Set up random data access.
+        randomVarReaders_ = new VariableReader[ ncol_ ];
+        for ( int iv = 0; iv < ncol_; iv++ ) {
+            randomVarReaders_[ iv ] = createVariableReader( vars_[ iv ],
+                                                            blankvalAtt_ );
+        }
+
         // Get column metadata for each variable column.
         colInfos_ = new ColumnInfo[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
             Variable var = vars_[ icol ];
             Map<String,Object> miscAttMap = new LinkedHashMap<String,Object>();
             for ( VariableAttribute vatt : miscAttList ) {
-                Object entry = vatt.getEntry( var );
-                if ( entry != null ) {
-                    miscAttMap.put( vatt.getName(), entry );
+                if ( ! ( vatt == blankvalAtt_ &&
+                         randomVarReaders_[ icol ].usesBlankValue() ) ) {
+                    Object entry = vatt.getEntry( var );
+                    if ( entry != null ) {
+                        miscAttMap.put( vatt.getName(), entry );
+                    }
                 }
             }
             colInfos_[ icol ] =
@@ -114,7 +126,8 @@ public class CdfStarTable extends AbstractStarTable {
             ValueInfo info =
                 createValueInfo( pvar, getStringEntry( descAtt, pvar ),
                                  getStringEntry( unitAtt, pvar ) );
-            Object value = new VariableReader( pvar ).readShapedRecord( 0 );
+            Object value = createVariableReader( pvar, blankvalAtt_ )
+                          .readShapedRecord( 0 );
             setParameter( new DescribedValue( info, value ) );
         }
 
@@ -152,7 +165,7 @@ public class CdfStarTable extends AbstractStarTable {
     public RowSequence getRowSequence() {
         final VariableReader[] vrdrs = new VariableReader[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
-            vrdrs[ icol ] = new VariableReader( vars_[ icol ] );
+            vrdrs[ icol ] = createVariableReader( vars_[ icol ], blankvalAtt_ );
         }
         return new RowSequence() {
             private long irow = -1;
@@ -239,20 +252,6 @@ public class CdfStarTable extends AbstractStarTable {
         return entry instanceof String ? (String) entry : null;
     }
 
-    private static class VariableReader {
-        private final Variable var_;
-        private final Object work_;
-
-        VariableReader( Variable var ) {
-            var_ = var;
-            work_ = var_.createRawValueArray();
-        }
-
-        synchronized Object readShapedRecord( int irec ) {
-            return var_.readShapedRecord( irec, false, work_ );
-        }
-    }
-
     private static int toRecordIndex( long irow ) {
         int irec = (int) irow;
         if ( irec != irow ) {
@@ -260,5 +259,113 @@ public class CdfStarTable extends AbstractStarTable {
             throw new IllegalArgumentException( "Out of range: " + irow );
         }
         return irec;
+    }
+
+    private static VariableReader
+            createVariableReader( Variable var,
+                                  VariableAttribute blankvalAtt ) {
+        final Object blankval = blankvalAtt == null
+                              ? null
+                              : blankvalAtt.getEntry( var );
+        Shaper shaper = var.getShaper();
+
+        // No declared blank value, no matching.
+        if ( blankval == null ) {
+            return new VariableReader( var, false );
+        }
+
+        // If the variable is a scalar, just match java objects for equality
+        // and return null if matched.
+        else if ( shaper.getRawItemCount() == 1 ) {
+            return new VariableReader( var, true ) {
+                public synchronized Object readShapedRecord( int irec ) {
+                    Object obj = super.readShapedRecord( irec );
+                    return blankval.equals( obj ) ? null : obj;
+                }
+            };
+        }
+
+        // If the value is an array of floating point values, and the 
+        // blank value is a scalar number, match each element with the
+        // blank value, and set it to NaN in case of match.
+        else if ( double[].class.equals( shaper.getShapeClass() ) &&
+                  blankval instanceof Number && 
+                  ! Double.isNaN( ((Number) blankval).doubleValue() ) ) {
+            final double dBlank = ((Number) blankval).doubleValue();
+            return new VariableReader( var, true ) {
+                public synchronized Object readShapedRecord( int irec ) {
+                    Object obj = super.readShapedRecord( irec );
+                    if ( obj instanceof double[] ) {
+                        double[] darr = (double[]) obj;
+                        for ( int i = 0; i < darr.length; i++ ) {
+                            if ( darr[ i ] == dBlank ) {
+                                darr[ i ] = Double.NaN;
+                            }
+                        }
+                    }
+                    else {
+                        assert false;
+                    }
+                    return obj;
+                }
+            };
+        }
+        else if ( float[].class.equals( shaper.getShapeClass() ) &&
+                  blankval instanceof Number &&
+                  ! Float.isNaN( ((Number) blankval).floatValue() ) ) {
+            final float fBlank = ((Number) blankval).floatValue();
+            return new VariableReader( var, true ) {
+                public synchronized Object readShapedRecord( int irec ) {
+                    Object obj = super.readShapedRecord( irec );
+                    if ( obj instanceof float[] ) {
+                        float[] farr = (float[]) obj;
+                        for ( int i = 0; i < farr.length; i++ ) {
+                            if ( farr[ i ] == fBlank ) {
+                                farr[ i ] = Float.NaN;
+                            }
+                        }
+                    }
+                    else {
+                        assert false;
+                    }
+                    return obj;
+                }
+            };
+        }
+
+        // Otherwise (non-floating point array) we have no mechanism to
+        // make use of the blank value (can't set integer array elements to
+        // null/NaN), so ignore the blank value.
+        else {
+            return new VariableReader( var, false );
+        }
+    }
+
+    /**
+     * Reads the values for a variable.
+     * This class does two things beyond making the basic call to the
+     * variable to read the shaped data.
+     * First, it provides a workspace array required for the read.
+     * Second, it manages matching values against the declared blank value
+     * (probably FILLVAL).
+     */
+    private static class VariableReader {
+        private final Variable var_;
+        private final boolean usesBlankValue_;
+        private final Object work_;
+        VariableReader( Variable var, boolean usesBlankValue ) {
+            var_ = var;
+            usesBlankValue_ = usesBlankValue;
+            work_ = var.createRawValueArray();
+        }
+        // synchronize so the work array doesn't get trampled on.
+        // Subclasses should synchronize too (synchronization is not
+        // inherited).
+        synchronized Object readShapedRecord( int irec ) {
+            return var_.readShapedRecord( irec, false, work_ );
+        }
+        boolean usesBlankValue() {
+            return usesBlankValue_;
+        }
     }
 }
