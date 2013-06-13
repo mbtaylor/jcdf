@@ -30,7 +30,7 @@ public class CdfTableBuilder implements TableBuilder {
 
     public static final CdfTableProfile DEFAULT_PROFILE = createProfile(
         true,
-        new String[] { "FIELDNAM", "DESCRIP", "DESCRIPTION", },
+        new String[] { "CATDESC", "FIELDNAM", "DESCRIP", "DESCRIPTION", },
         new String[] { "UNITS", "UNIT", "UNITSTRING", },
         new String[] { "FILLVAL", }
     );
