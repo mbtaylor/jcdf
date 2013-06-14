@@ -18,12 +18,17 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class BankBuf implements Buf {
 
     private final long size_;
     private boolean isBit64_;
     private boolean isBigendian_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( BankBuf.class.getName() );
 
     protected BankBuf( long size, boolean isBit64, boolean isBigendian ) {
         size_ = size;
@@ -35,7 +40,8 @@ public abstract class BankBuf implements Buf {
      * Returns the bank which can read a given number of bytes starting
      * at the given offset.
      */
-    protected abstract Bank getBank( long offset, int count );
+    protected abstract Bank getBank( long offset, int count )
+            throws IOException;
 
     /**
      * Returns a list of active banks.  Banks which have not been
@@ -53,19 +59,19 @@ public abstract class BankBuf implements Buf {
         return size_;
     }
 
-    public int readUnsignedByte( Pointer ptr ) {
+    public int readUnsignedByte( Pointer ptr ) throws IOException {
         long pos = ptr.getAndIncrement( 1 );
         Bank bank = getBank( pos, 1 );
         return bank.byteBuffer_.get( bank.adjust( pos ) );
     }
 
-    public int readInt( Pointer ptr ) {
+    public int readInt( Pointer ptr ) throws IOException {
         long pos = ptr.getAndIncrement( 4 );
         Bank bank = getBank( pos, 4 );
         return bank.byteBuffer_.getInt( bank.adjust( pos ) );
     }
 
-    public long readOffset( Pointer ptr ) {
+    public long readOffset( Pointer ptr ) throws IOException {
         int nbyte = isBit64_ ? 8 : 4;
         long pos = ptr.getAndIncrement( nbyte );
         Bank bank = getBank( pos, nbyte );
@@ -74,7 +80,7 @@ public abstract class BankBuf implements Buf {
                         : (long) bank.byteBuffer_.getInt( apos );
     }
 
-    public String readAsciiString( Pointer ptr, int nbyte ) {
+    public String readAsciiString( Pointer ptr, int nbyte ) throws IOException {
         long pos = ptr.getAndIncrement( nbyte );
         Bank bank = getBank( pos, nbyte );
         byte[] abuf = new byte[ nbyte ];
@@ -115,7 +121,8 @@ public abstract class BankBuf implements Buf {
         return isBigendian_;
     }
 
-    public void readDataBytes( long offset, int count, byte[] array ) {
+    public void readDataBytes( long offset, int count, byte[] array )
+            throws IOException {
         Bank bank = getBank( offset, count );
         ByteBuffer dbuf = bank.dataBuffer_;
         int apos = bank.adjust( offset );
@@ -130,7 +137,8 @@ public abstract class BankBuf implements Buf {
         }
     }
 
-    public void readDataShorts( long offset, int count, short[] array ) {
+    public void readDataShorts( long offset, int count, short[] array )
+            throws IOException {
         Bank bank = getBank( offset, count * 2 );
         ByteBuffer dbuf = bank.dataBuffer_;
         int apos = bank.adjust( offset );
@@ -145,7 +153,8 @@ public abstract class BankBuf implements Buf {
         }
     }
 
-    public void readDataInts( long offset, int count, int[] array ) {
+    public void readDataInts( long offset, int count, int[] array )
+            throws IOException {
         Bank bank = getBank( offset, count * 4 );
         ByteBuffer dbuf = bank.dataBuffer_;
         int apos = bank.adjust( offset );
@@ -160,7 +169,8 @@ public abstract class BankBuf implements Buf {
         }
     }
 
-    public void readDataLongs( long offset, int count, long[] array ) {
+    public void readDataLongs( long offset, int count, long[] array )
+            throws IOException {
         Bank bank = getBank( offset, count * 8 );
         ByteBuffer dbuf = bank.dataBuffer_;
         int apos = bank.adjust( offset );
@@ -175,7 +185,8 @@ public abstract class BankBuf implements Buf {
         }
     }
 
-    public void readDataFloats( long offset, int count, float[] array ) {
+    public void readDataFloats( long offset, int count, float[] array )
+            throws IOException {
         Bank bank = getBank( offset, count * 4 );
         ByteBuffer dbuf = bank.dataBuffer_;
         int apos = bank.adjust( offset );
@@ -190,7 +201,8 @@ public abstract class BankBuf implements Buf {
         }
     }
 
-    public void readDataDoubles( long offset, int count, double[] array ) {
+    public void readDataDoubles( long offset, int count, double[] array )
+            throws IOException {
         Bank bank = getBank( offset, count * 8 );
         ByteBuffer dbuf = bank.dataBuffer_;
         int apos = bank.adjust( offset );
@@ -424,7 +436,7 @@ public abstract class BankBuf implements Buf {
             banks_ = new Bank[ nbank ];
         }
 
-        public Bank getBank( long offset, int count ) {
+        public Bank getBank( long offset, int count ) throws IOException {
 
             // Find out the index of the bank containing the starting offset.
             int ibank = (int) ( offset / bankSize_ );
@@ -478,7 +490,13 @@ public abstract class BankBuf implements Buf {
                     return ibank < banks_.length;
                 }
                 public Bank next() {
-                    return getBankByIndex( ibank++ );
+                    try {
+                        return getBankByIndex( ibank++ );
+                    }
+                    catch ( IOException e ) {
+                        logger_.log( Level.WARNING, "Error acquiring bank", e );
+                        return null;
+                    }
                 }
                 public void remove() {
                     throw new UnsupportedOperationException();
@@ -489,20 +507,14 @@ public abstract class BankBuf implements Buf {
         /**
          * Lazily obtains and returns a numbered bank.  Will not return null.
          */
-        private Bank getBankByIndex( int ibank ) {
+        private Bank getBankByIndex( int ibank ) throws IOException {
             if ( banks_[ ibank ] == null ) {
                 long start = ibank * bankSize_;
                 long end = Math.min( ( ( ibank + 1 ) * bankSize_ ), size_ );
                 int leng = (int) ( end - start );
-                try {
-                    ByteBuffer bbuf =
-                        channel_.map( FileChannel.MapMode.READ_ONLY,
-                                      start, leng );
-                    banks_[ ibank ] = new Bank( bbuf, start );
-                }
-                catch ( IOException e ) {
-                    throw new CdfFormatException( "File map error", e );
-                }
+                ByteBuffer bbuf =
+                    channel_.map( FileChannel.MapMode.READ_ONLY, start, leng );
+                banks_[ ibank ] = new Bank( bbuf, start );
             }
             return banks_[ ibank ];
         }

@@ -1,11 +1,11 @@
 package cdf;
 
-import java.lang.reflect.Array;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,7 +20,7 @@ public class CdfReader {
     private static final Logger logger_ =
         Logger.getLogger( CdfReader.class.getName() );
 
-    public CdfReader( Buf buf ) {
+    public CdfReader( Buf buf ) throws IOException {
         Pointer ptr = new Pointer( 0 );
 
         // Read the CDF magic number bytes.
@@ -131,7 +131,7 @@ public class CdfReader {
         return cdr_;
     }
 
-    public CdfContent readCdf() {
+    public CdfContent readCdf() throws IOException {
         CdfDescriptorRecord cdr = cdr_;
         Buf buf = buf_;
 
@@ -201,7 +201,8 @@ public class CdfReader {
     }
 
     private VariableDescriptorRecord[] walkVariableList( Buf buf, int nvar,
-                                                         long head ) {
+                                                         long head )
+            throws IOException {
         VariableDescriptorRecord[] vdrs = new VariableDescriptorRecord[ nvar ];
         long off = head;
         for ( int iv = 0; iv < nvar; iv++ ) {
@@ -215,7 +216,8 @@ public class CdfReader {
     }
 
     private AttributeDescriptorRecord[] walkAttributeList( Buf buf, int natt,
-                                                           long head ) {
+                                                           long head )
+            throws IOException {
         AttributeDescriptorRecord[] adrs =
             new AttributeDescriptorRecord[ natt ];
         long off = head;
@@ -230,7 +232,8 @@ public class CdfReader {
     }
 
     private Object[] walkEntryList( Buf buf, int nent, long head, int maxent,
-                                    CdfInfo info ) {
+                                    CdfInfo info )
+            throws IOException {
         Object[] entries = new Object[ maxent ];
         long off = head;
         for ( int ie = 0; ie < nent; ie++ ) {
@@ -244,7 +247,7 @@ public class CdfReader {
     }
 
     private Object getEntryValue( AttributeEntryDescriptorRecord aedr,
-                                  CdfInfo info ) {
+                                  CdfInfo info ) throws IOException {
         DataType dataType = DataType.getDataType( aedr.dataType_ );
         int numElems = aedr.numElems_;
         final DataReader dataReader = new DataReader( dataType, numElems, 1 );
@@ -256,7 +259,7 @@ public class CdfReader {
     }
 
     private Variable createVariable( VariableDescriptorRecord vdr,
-                                     CdfInfo info ) {
+                                     CdfInfo info ) throws IOException {
         return new VdrVariable( vdr, info, recordFactory_ );
     }
 

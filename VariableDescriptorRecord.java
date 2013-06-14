@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.IOException;
+
 public abstract class VariableDescriptorRecord extends Record {
 
     public final long vdrNext_;
@@ -24,7 +26,8 @@ public abstract class VariableDescriptorRecord extends Record {
 
     private VariableDescriptorRecord( RecordPlan plan, String abbrev,
                                       int recordType, boolean hasDims,
-                                      int nameLeng ) {
+                                      int nameLeng )
+            throws IOException {
         super( plan, abbrev, recordType );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
@@ -91,13 +94,13 @@ public abstract class VariableDescriptorRecord extends Record {
     }
 
     public static class RVariant extends VariableDescriptorRecord {
-        public RVariant( RecordPlan plan, int nameLeng ) {
+        public RVariant( RecordPlan plan, int nameLeng ) throws IOException {
             super( plan, "rVDR", 3, false, nameLeng );
         }
     }
 
     public static class ZVariant extends VariableDescriptorRecord {
-        public ZVariant( RecordPlan plan, int nameLeng ) {
+        public ZVariant( RecordPlan plan, int nameLeng ) throws IOException {
             super( plan, "zVDR", 8, true, nameLeng );
         }
     }

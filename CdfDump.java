@@ -27,7 +27,7 @@ public class CdfDump {
         writeFields_ = writeFields;
     }
 
-    public void run() {
+    public void run() throws IOException {
         Buf buf = crdr_.getBuf();
         RecordFactory recFact = crdr_.getRecordFactory();
         long offset = 8;

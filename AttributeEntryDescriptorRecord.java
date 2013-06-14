@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.IOException;
+
 public abstract class AttributeEntryDescriptorRecord extends Record {
 
     public final long aedrNext_;
@@ -15,7 +17,8 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
     private final long valueOffset_;
 
     private AttributeEntryDescriptorRecord( RecordPlan plan, String abbrev,
-                                            int recordType ) {
+                                            int recordType )
+            throws IOException {
         super( plan, abbrev, recordType );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
@@ -38,14 +41,14 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
 
     public static class GrVariant extends AttributeEntryDescriptorRecord {
         public static final int RECORD_TYPE = 5;
-        public GrVariant( RecordPlan plan ) {
+        public GrVariant( RecordPlan plan ) throws IOException {
             super( plan, "AgrEDR", 5 );
         }
     }
 
     public static class ZVariant extends AttributeEntryDescriptorRecord {
         public static final int RECORD_TYPE = 9;
-        public ZVariant( RecordPlan plan ) {
+        public ZVariant( RecordPlan plan ) throws IOException {
             super( plan, "AzEDR", 9 );
         }
     }

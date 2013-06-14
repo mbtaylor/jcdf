@@ -31,7 +31,8 @@ public enum NumericEncoding {
         return isBigendian_;
     }
 
-    public static NumericEncoding getEncoding( int code ) {
+    public static NumericEncoding getEncoding( int code )
+            throws CdfFormatException {
         NumericEncoding encoding = code >= 0 && code < encodings_.length
                                  ? encodings_[ code ]
                                  : null;

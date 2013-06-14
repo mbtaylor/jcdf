@@ -11,19 +11,19 @@ public class WrapperBuf implements Buf {
         base_ = base;
     }
 
-    public int readUnsignedByte( Pointer ptr ) {
+    public int readUnsignedByte( Pointer ptr ) throws IOException {
         return base_.readUnsignedByte( ptr );
     }
 
-    public int readInt( Pointer ptr ) {
+    public int readInt( Pointer ptr ) throws IOException {
         return base_.readInt( ptr );
     }
 
-    public long readOffset( Pointer ptr ) {
+    public long readOffset( Pointer ptr ) throws IOException {
         return base_.readOffset( ptr );
     }
 
-    public String readAsciiString( Pointer ptr, int nbyte ) {
+    public String readAsciiString( Pointer ptr, int nbyte ) throws IOException {
         return base_.readAsciiString( ptr, nbyte );
     }
 
@@ -43,27 +43,33 @@ public class WrapperBuf implements Buf {
         return base_.isBigendian();
     }
 
-    public void readDataBytes( long offset, int count, byte[] array ) {
+    public void readDataBytes( long offset, int count, byte[] array )
+            throws IOException {
         base_.readDataBytes( offset, count, array );
     }
 
-    public void readDataShorts( long offset, int count, short[] array ) {
+    public void readDataShorts( long offset, int count, short[] array )
+            throws IOException {
         base_.readDataShorts( offset, count, array );
     }
 
-    public void readDataInts( long offset, int count, int[] array ) {
+    public void readDataInts( long offset, int count, int[] array )
+            throws IOException {
         base_.readDataInts( offset, count, array );
     }
 
-    public void readDataLongs( long offset, int count, long[] array ) {
+    public void readDataLongs( long offset, int count, long[] array )
+            throws IOException {
         base_.readDataLongs( offset, count, array );
     }
 
-    public void readDataFloats( long offset, int count, float[] array ) {
+    public void readDataFloats( long offset, int count, float[] array )
+            throws IOException {
         base_.readDataFloats( offset, count, array );
     }
 
-    public void readDataDoubles( long offset, int count, double[] array ) {
+    public void readDataDoubles( long offset, int count, double[] array )
+            throws IOException {
         base_.readDataDoubles( offset, count, array );
     }
 

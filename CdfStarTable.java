@@ -5,6 +5,7 @@ import cdf.GlobalAttribute;
 import cdf.Shaper;
 import cdf.Variable;
 import cdf.VariableAttribute;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -27,7 +28,8 @@ public class CdfStarTable extends AbstractStarTable {
     private final ColumnInfo[] colInfos_;
     private final VariableAttribute blankvalAtt_;
 
-    public CdfStarTable( CdfContent content, CdfTableProfile profile ) {
+    public CdfStarTable( CdfContent content, CdfTableProfile profile )
+            throws IOException {
 
         // Separate variable list into two parts: one to turn into columns,
         // and one to turn into parameters.  The parameters one will only
@@ -157,12 +159,12 @@ public class CdfStarTable extends AbstractStarTable {
         return true;
     }
 
-    public Object getCell( long irow, int icol ) {
+    public Object getCell( long irow, int icol ) throws IOException {
         return randomVarReaders_[ icol ]
               .readShapedRecord( toRecordIndex( irow ) );
     }
 
-    public RowSequence getRowSequence() {
+    public RowSequence getRowSequence() throws IOException {
         final VariableReader[] vrdrs = new VariableReader[ ncol_ ];
         for ( int icol = 0; icol < ncol_; icol++ ) {
             vrdrs[ icol ] = createVariableReader( vars_[ icol ], blankvalAtt_ );
@@ -172,10 +174,10 @@ public class CdfStarTable extends AbstractStarTable {
             public boolean next() {
                 return ++irow < nrow_;
             }
-            public Object getCell( int icol ) {
+            public Object getCell( int icol ) throws IOException {
                 return vrdrs[ icol ].readShapedRecord( toRecordIndex( irow ) );
             }
-            public Object[] getRow() {
+            public Object[] getRow() throws IOException {
                 Object[] row = new Object[ ncol_ ];
                 for ( int icol = 0; icol < ncol_; icol++ ) {
                     row[ icol ] = getCell( icol );
@@ -278,7 +280,8 @@ public class CdfStarTable extends AbstractStarTable {
         // and return null if matched.
         else if ( shaper.getRawItemCount() == 1 ) {
             return new VariableReader( var, true ) {
-                public synchronized Object readShapedRecord( int irec ) {
+                public synchronized Object readShapedRecord( int irec )
+                        throws IOException {
                     Object obj = super.readShapedRecord( irec );
                     return blankval.equals( obj ) ? null : obj;
                 }
@@ -293,7 +296,8 @@ public class CdfStarTable extends AbstractStarTable {
                   ! Double.isNaN( ((Number) blankval).doubleValue() ) ) {
             final double dBlank = ((Number) blankval).doubleValue();
             return new VariableReader( var, true ) {
-                public synchronized Object readShapedRecord( int irec ) {
+                public synchronized Object readShapedRecord( int irec )
+                        throws IOException {
                     Object obj = super.readShapedRecord( irec );
                     if ( obj instanceof double[] ) {
                         double[] darr = (double[]) obj;
@@ -315,7 +319,8 @@ public class CdfStarTable extends AbstractStarTable {
                   ! Float.isNaN( ((Number) blankval).floatValue() ) ) {
             final float fBlank = ((Number) blankval).floatValue();
             return new VariableReader( var, true ) {
-                public synchronized Object readShapedRecord( int irec ) {
+                public synchronized Object readShapedRecord( int irec )
+                        throws IOException {
                     Object obj = super.readShapedRecord( irec );
                     if ( obj instanceof float[] ) {
                         float[] farr = (float[]) obj;
@@ -361,7 +366,7 @@ public class CdfStarTable extends AbstractStarTable {
         // synchronize so the work array doesn't get trampled on.
         // Subclasses should synchronize too (synchronization is not
         // inherited).
-        synchronized Object readShapedRecord( int irec ) {
+        synchronized Object readShapedRecord( int irec ) throws IOException {
             return var_.readShapedRecord( irec, false, work_ );
         }
         boolean usesBlankValue() {

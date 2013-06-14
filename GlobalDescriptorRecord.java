@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.IOException;
+
 public class GlobalDescriptorRecord extends Record {
 
     public final long rVdrHead_;
@@ -17,7 +19,7 @@ public class GlobalDescriptorRecord extends Record {
     public final int rfuE_;
     public final int[] rDimSizes_;
 
-    public GlobalDescriptorRecord( RecordPlan plan ) {
+    public GlobalDescriptorRecord( RecordPlan plan ) throws IOException {
         super( plan, "GDR", 2 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();

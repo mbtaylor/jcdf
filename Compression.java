@@ -69,19 +69,7 @@ public abstract class Compression {
      * @param   outSize  the size of the uncompressed data
      */
     public static Buf uncompress( Compression compression, Buf inBuf,
-                                  long inOffset, long outSize ) {
-        try {
-            return attemptUncompress( compression, inBuf, inOffset, outSize );
-        }
-        catch ( IOException e ) {
-            throw new CdfFormatException( "Error decoding "
-                                        + compression.getName()
-                                        + "-compressed data", e );
-        }
-    }
-
-    private static Buf attemptUncompress( Compression compression, Buf inBuf,
-                                          long inOffset, long outSize )
+                                  long inOffset, long outSize )
             throws IOException {
         InputStream uin =
              compression
@@ -107,7 +95,8 @@ public abstract class Compression {
     private static Compression createFailCompression( String name,
                                                       final String failMsg ) {
         return new Compression( name ) {
-            public InputStream uncompressStream( InputStream cin ) {
+            public InputStream uncompressStream( InputStream cin )
+                    throws CdfFormatException {
                 throw new CdfFormatException( failMsg );
             }
         };

@@ -1,12 +1,15 @@
 package cdf;
 
-public class CdfFormatException extends RuntimeException {
+import java.io.IOException;
+
+public class CdfFormatException extends IOException {
 
     public CdfFormatException( String msg ) {
         super( msg );
     }
 
     public CdfFormatException( String msg, Throwable e ) {
-        super( msg, e );
+        super( msg );
+        initCause( e );
     }
 }

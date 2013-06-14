@@ -1,11 +1,13 @@
 package cdf;
 
+import java.io.IOException;
+
 public class UnusedInternalRecord extends Record {
 
     public final long nextUirOffset_;
     public final long prevUirOffset_;
 
-    public UnusedInternalRecord( RecordPlan plan ) {
+    public UnusedInternalRecord( RecordPlan plan ) throws IOException {
         super( plan, "UIR", -1 );
 
         // In case this is an Unsociable UIR, don't actually read the

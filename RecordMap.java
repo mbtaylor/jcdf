@@ -1,5 +1,6 @@
 package cdf;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -106,7 +107,8 @@ class RecordMap {
 
     public static RecordMap createRecordMap( VariableDescriptorRecord vdr,
                                              RecordFactory recFact,
-                                             int recSize ) {
+                                             int recSize )
+            throws IOException {
         Compression compress = getCompression( vdr, recFact );
         Buf buf = vdr.getBuf();
         List<Entry> entryList = new ArrayList<Entry>();
@@ -122,7 +124,8 @@ class RecordMap {
     }
 
     private static Compression getCompression( VariableDescriptorRecord vdr,
-                                               RecordFactory recFact ) {
+                                               RecordFactory recFact )
+            throws IOException {
         boolean hasCompress = Record.hasBit( vdr.flags_, 2 );
         if ( hasCompress && vdr.cprOrSprOffset_ != -1 ) {
             CompressedParametersRecord cpr =
@@ -137,7 +140,8 @@ class RecordMap {
 
     private static void readEntries( VariableIndexRecord vxr, Buf buf,
                                      RecordFactory recFact, int recSize,
-                                     Compression compress, List<Entry> list ) {
+                                     Compression compress, List<Entry> list )
+            throws IOException {
         int nent = vxr.nUsedEntries_;
         for ( int ie = 0; ie < nent; ie++ ) {
             int first = vxr.first_[ ie ];

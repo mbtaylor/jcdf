@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.IOException;
+
 public class CompressedParametersRecord extends Record {
 
     public final int cType_;
@@ -7,7 +9,7 @@ public class CompressedParametersRecord extends Record {
     public final int pCount_;
     public final int[] cParms_;
 
-    public CompressedParametersRecord( RecordPlan plan ) {
+    public CompressedParametersRecord( RecordPlan plan ) throws IOException {
         super( plan, "CPR", 11 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();

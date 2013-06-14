@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.IOException;
+
 public class RecordPlan {
 
     private final long start_;
@@ -26,7 +28,7 @@ public class RecordPlan {
         return buf_;
     }
 
-    public Pointer createContentPointer() {
+    public Pointer createContentPointer() throws IOException {
         Pointer ptr = new Pointer( start_ );
 
         // This is slightly wasteful (reading rather than just calculating

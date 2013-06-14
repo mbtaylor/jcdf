@@ -1,5 +1,6 @@
 package cdf;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
 
 public class DataReader {
@@ -21,7 +22,8 @@ public class DataReader {
         return Array.newInstance( dataType_.getArrayElementClass(), nItem_ );
     }
 
-    public void readValue( Buf buf, long offset, Object valueArray ) {
+    public void readValue( Buf buf, long offset, Object valueArray )
+            throws IOException {
         dataType_.readValues( buf, offset, numElems_, valueArray, nItem_ );
     }
 

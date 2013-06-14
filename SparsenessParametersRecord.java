@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.IOException;
+
 public class SparsenessParametersRecord extends Record {
 
     public final int sArraysType_;
@@ -7,7 +9,7 @@ public class SparsenessParametersRecord extends Record {
     public final int pCount_;
     public final int[] sArraysParms_;
 
-    public SparsenessParametersRecord( RecordPlan plan ) {
+    public SparsenessParametersRecord( RecordPlan plan ) throws IOException {
         super( plan, "SPR", 12 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();

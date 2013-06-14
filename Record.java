@@ -1,5 +1,6 @@
 package cdf;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -40,7 +41,7 @@ public abstract class Record {
         return abbrev_;
     }
 
-    public long getContentOffset() {
+    public long getContentOffset() throws IOException {
         return plan_.createContentPointer().get();
     }
 
@@ -70,7 +71,8 @@ public abstract class Record {
      * Reads a moderately-sized integer array.
      * If it's bulk data, we should use a different method.
      */
-    public static int[] readIntArray( Buf buf, Pointer ptr, int count ) {
+    public static int[] readIntArray( Buf buf, Pointer ptr, int count )
+            throws IOException {
         int[] array = new int[ count ];
         for ( int i = 0; i < count; i++ ) {
             array[ i ] = buf.readInt( ptr );
@@ -82,7 +84,8 @@ public abstract class Record {
      * Reads a moderately-sized offset array.
      * If it's bulk data, we should use a different method.
      */
-    public static long[] readOffsetArray( Buf buf, Pointer ptr, int count ) {
+    public static long[] readOffsetArray( Buf buf, Pointer ptr, int count )
+            throws IOException {
         long[] array = new long[ count ];
         for ( int i = 0; i < count; i++ ) {
             array[ i ] = buf.readOffset( ptr );

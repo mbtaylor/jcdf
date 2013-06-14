@@ -1,5 +1,6 @@
 package cdf;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +24,7 @@ class VdrVariable implements Variable {
     private RecordReader recordReader_;
 
     public VdrVariable( VariableDescriptorRecord vdr, CdfInfo info,
-                        RecordFactory recFact ) {
+                        RecordFactory recFact ) throws IOException {
         vdr_ = vdr;
         buf_ = vdr.getBuf();
         recFact_ = recFact;
@@ -119,28 +120,30 @@ class VdrVariable implements Variable {
         return dataReader_.createValueArray();
     }
 
-    public boolean hasRecord( int irec ) {
+    public boolean hasRecord( int irec ) throws IOException {
         return getRecordReader().hasRecord( irec );
     }
 
-    public void readRawRecord( int irec, Object rawValueArray ) {
+    public void readRawRecord( int irec, Object rawValueArray )
+             throws IOException {
          getRecordReader().readRawRecord( irec, rawValueArray );
     }
 
     public Object readShapedRecord( int irec, boolean rowMajor,
-                                    Object rawValueArrayWorkspace ) {
+                                    Object rawValueArrayWorkspace )
+             throws IOException {
          return getRecordReader()
                .readShapedRecord( irec, rowMajor, rawValueArrayWorkspace );
     }
 
-    private RecordReader getRecordReader() {
+    private RecordReader getRecordReader() throws IOException {
         if ( recordReader_ == null ) {
             recordReader_ = createRecordReader();
         }
         return recordReader_;
     }
 
-    private RecordReader createRecordReader() {
+    private RecordReader createRecordReader() throws IOException {
         RecordMap recMap =
             RecordMap.createRecordMap( vdr_, recFact_,
                                        dataReader_.getRecordSize() );
@@ -161,16 +164,18 @@ class VdrVariable implements Variable {
 
     private interface RecordReader {
         boolean hasRecord( int irec );
-        void readRawRecord( int irec, Object rawValueArray );
+        void readRawRecord( int irec, Object rawValueArray )
+            throws IOException;
         Object readShapedRecord( int irec, boolean rowMajor,
-                                 Object rawValueArrayWorkspace );
+                                 Object rawValueArrayWorkspace )
+            throws IOException;
     }
 
     private class NoVaryRecordReader implements RecordReader {
         private final Object rawValue_;
         private final Object rowMajorValue_;
         private final Object colMajorValue_;
-        NoVaryRecordReader( RecordMap recMap ) {
+        NoVaryRecordReader( RecordMap recMap ) throws IOException {
             RecordReader rt = new PadRecordReader( recMap );
             rawValue_ = createRawValueArray();
             rt.readRawRecord( 0, rawValue_ );
@@ -197,7 +202,8 @@ class VdrVariable implements Variable {
         public boolean hasRecord( int irec ) {
             return hasRecord( irec, recMap_.getEntryIndex( irec ) );
         }
-        public void readRawRecord( int irec, Object rawValueArray ) {
+        public void readRawRecord( int irec, Object rawValueArray )
+                throws IOException {
             int ient = recMap_.getEntryIndex( irec );
             if ( hasRecord( irec, ient ) ) {
                 dataReader_.readValue( recMap_.getBuf( ient ),
@@ -210,7 +216,8 @@ class VdrVariable implements Variable {
             }
         }
         public Object readShapedRecord( int irec, boolean rowMajor,
-                                        Object work ) {
+                                        Object work )
+                throws IOException {
             int ient = recMap_.getEntryIndex( irec );
             if ( hasRecord( irec, ient ) ) {
                 dataReader_.readValue( recMap_.getBuf( ient ),
@@ -241,7 +248,8 @@ class VdrVariable implements Variable {
             return recMap_.getEntryIndex( irec ) >= 0
                 && irec < getRecordCount();
         }
-        public void readRawRecord( int irec, Object rawValueArray ) {
+        public void readRawRecord( int irec, Object rawValueArray )
+                throws IOException {
             int ient = recMap_.getEntryIndex( irec );
             if ( ient >= 0 ) {
                 dataReader_.readValue( recMap_.getBuf( ient ),
@@ -260,7 +268,8 @@ class VdrVariable implements Variable {
             }
         }
         public Object readShapedRecord( int irec, boolean rowMajor,
-                                        Object work ) {
+                                        Object work )
+                throws IOException {
             int ient = recMap_.getEntryIndex( irec );
             if ( ient >= 0 ) {
                 dataReader_.readValue( recMap_.getBuf( ient ),

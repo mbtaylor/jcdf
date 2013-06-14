@@ -1,12 +1,15 @@
 package cdf;
 
+import java.io.IOException;
+
 public class CompressedVariableValuesRecord extends Record {
 
     public final int rfuA_;
     public final long cSize_;
     private final long dataOffset_;
 
-    public CompressedVariableValuesRecord( RecordPlan plan ) {
+    public CompressedVariableValuesRecord( RecordPlan plan )
+            throws IOException {
         super( plan, "CVVR", 13 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();

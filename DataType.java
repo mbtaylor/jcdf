@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.IOException;
+
 import java.lang.reflect.Array;
 
 public abstract class DataType {
@@ -72,12 +74,13 @@ public abstract class DataType {
     }
 
     public abstract void readValues( Buf buf, long offset, int numElems,
-                                     Object valueArray, int count );
+                                     Object valueArray, int count )
+            throws IOException;
 
     /** Index is the index into the array. */
     public abstract Object getScalar( Object valueArray, int index );
 
-    public static DataType getDataType( int dtype ) {
+    public static DataType getDataType( int dtype ) throws CdfFormatException {
         DataType dataType = dtype >= 0 && dtype < TYPE_TABLE.length
                           ? TYPE_TABLE[ dtype ]
                           : null;
@@ -116,7 +119,7 @@ public abstract class DataType {
             super( name, 1, 1, byte.class, Byte.class );
         }
         public void readValues( Buf buf, long offset, int numElems,
-                                Object array, int n ) {
+                                Object array, int n ) throws IOException {
             buf.readDataBytes( offset, n, (byte[]) array );
         }
         public Object getScalar( Object array, int index ) {
@@ -129,7 +132,7 @@ public abstract class DataType {
             super( name, 2, 1, short.class, Short.class );
         }
         public void readValues( Buf buf, long offset, int numElems,
-                                Object array, int n ) {
+                                Object array, int n ) throws IOException {
             buf.readDataShorts( offset, n, (short[]) array );
         }
         public Object getScalar( Object array, int index ) {
@@ -142,7 +145,7 @@ public abstract class DataType {
             super( name, 4, 1, int.class, Integer.class );
         }
         public void readValues( Buf buf, long offset, int numElems,
-                                Object array, int n ) {
+                                Object array, int n ) throws IOException {
             buf.readDataInts( offset, n, (int[]) array );
         }
         public Object getScalar( Object array, int index ) {
@@ -155,7 +158,7 @@ public abstract class DataType {
             super( name, 8, 1, long.class, Long.class );
         }
         public void readValues( Buf buf, long offset, int numElems,
-                                Object array, int n ) {
+                                Object array, int n ) throws IOException {
             buf.readDataLongs( offset, n, (long[]) array );
         }
         public Object getScalar( Object array, int index ) {
@@ -168,7 +171,7 @@ public abstract class DataType {
             super( name, 1, 1, short.class, Short.class );
         }
         public void readValues( Buf buf, long offset, int numElems,
-                                Object array, int n ) {
+                                Object array, int n ) throws IOException {
             Pointer ptr = new Pointer( offset );
             short[] sarray = (short[]) array;
             for ( int i = 0; i < n; i++ ) {
@@ -185,7 +188,7 @@ public abstract class DataType {
             super( name, 2, 1, int.class, Integer.class );
         }
         public void readValues( Buf buf, long offset, int numElems,
-                                Object array, int n ) {
+                                Object array, int n ) throws IOException {
             Pointer ptr = new Pointer( offset );
             int[] iarray = (int[]) array;
             boolean bigend = buf.isBigendian();
@@ -206,7 +209,7 @@ public abstract class DataType {
             super( name, 4, 1, long.class, Long.class );
         }
         public void readValues( Buf buf, long offset, int numElems,
-                                Object array, int n ) {
+                                Object array, int n ) throws IOException {
             Pointer ptr = new Pointer( offset );
             long[] larray = (long[]) array;
             boolean bigend = buf.isBigendian();
@@ -230,7 +233,7 @@ public abstract class DataType {
             super( name, 4, 1, float.class, Float.class );
         }
         public void readValues( Buf buf, long offset, int numElems,
-                                Object array, int n ) {
+                                Object array, int n ) throws IOException {
             buf.readDataFloats( offset, n, (float[]) array );
         }
         public Object getScalar( Object array, int index ) {
@@ -243,7 +246,7 @@ public abstract class DataType {
             super( name, 8, 1, double.class, Double.class );
         }
         public void readValues( Buf buf, long offset, int numElems,
-                                Object array, int n ) {
+                                Object array, int n ) throws IOException {
             buf.readDataDoubles( offset, n, (double[]) array );
         }
         public Object getScalar( Object array, int index ) {
@@ -277,7 +280,7 @@ public abstract class DataType {
             super( name, 1, 1, String.class, String.class );
         }
         public void readValues( Buf buf, long offset, int numElems,
-                                Object array, int n ) {
+                                Object array, int n ) throws IOException {
             String[] sarray = (String[]) array;
             byte[] cbuf = new byte[ numElems * n ];
             buf.readDataBytes( offset, numElems * n, cbuf );
@@ -317,7 +320,7 @@ public abstract class DataType {
             super( name, 8, 2, double.class, double[].class );
         }
         public void readValues( Buf buf, long offset, int numElems,
-                                Object array, int n ) {
+                                Object array, int n ) throws IOException {
             buf.readDataDoubles( offset, n * 2, (double[]) array );
         }
         public Object getScalar( Object array, int index ) {

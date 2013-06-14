@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.IOException;
+
 public class AttributeDescriptorRecord extends Record {
 
     public final long adrNext_;
@@ -15,7 +17,8 @@ public class AttributeDescriptorRecord extends Record {
     public final int rfuE_;
     public final String name_;
 
-    public AttributeDescriptorRecord( RecordPlan plan, int nameLeng ) {
+    public AttributeDescriptorRecord( RecordPlan plan, int nameLeng )
+            throws IOException {
         super( plan, "ADR", 4 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();

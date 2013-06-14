@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.IOException;
+
 public class VariableIndexRecord extends Record {
 
     public final long vxrNext_;
@@ -9,7 +11,7 @@ public class VariableIndexRecord extends Record {
     public final int[] last_;
     public final long[] offset_;
 
-    public VariableIndexRecord( RecordPlan plan ) {
+    public VariableIndexRecord( RecordPlan plan ) throws IOException {
         super( plan, "VXR", 6 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();

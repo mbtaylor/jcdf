@@ -1,5 +1,6 @@
 package cdf;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,7 +14,7 @@ public class RecordFactory {
         factoryMap_ = createFactoryMap( nameLeng );
     }
 
-    public Record createRecord( Buf buf, long offset ) {
+    public Record createRecord( Buf buf, long offset ) throws IOException {
         Pointer ptr = new Pointer( offset );
         long recSize = buf.readOffset( ptr );
         int recType = buf.readInt( ptr );
@@ -28,7 +29,8 @@ public class RecordFactory {
     }
 
     public <R extends Record> R createRecord( Buf buf, long offset,
-                                              Class<R> clazz ) {
+                                              Class<R> clazz )
+            throws IOException {
         Record rec = createRecord( buf, offset );
         if ( clazz.isInstance( rec ) ) {
             return clazz.cast( rec );
@@ -52,72 +54,72 @@ public class RecordFactory {
         Map<Integer,TypedRecordFactory> map =
             new HashMap<Integer,TypedRecordFactory>();
         map.put( 1, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new CdfDescriptorRecord( plan );
             }
         } );
         map.put( 2, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new GlobalDescriptorRecord( plan );
             }
         } );
         map.put( 4, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new AttributeDescriptorRecord( plan, nameLeng );
             }
         } );
         map.put( 5, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new AttributeEntryDescriptorRecord.GrVariant( plan );
             }
         } );
         map.put( 9, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new AttributeEntryDescriptorRecord.ZVariant( plan );
             }
         } );
         map.put( 3, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new VariableDescriptorRecord.RVariant( plan, nameLeng );
             }
         } );
         map.put( 8, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new VariableDescriptorRecord.ZVariant( plan, nameLeng );
             }
         } );
         map.put( 6, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new VariableIndexRecord( plan );
             }
         } );
         map.put( 7, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new VariableValuesRecord( plan );
             }
         } );
         map.put( 10, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new CompressedCdfRecord( plan );
             }
         } );
         map.put( 11, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new CompressedParametersRecord( plan );
             }
         } );
         map.put( 12, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new SparsenessParametersRecord( plan );
             }
         } );
         map.put( 13, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new CompressedVariableValuesRecord( plan );
             }
         } );
         map.put( -1, new TypedRecordFactory() {
-            public Record createRecord( RecordPlan plan ) {
+            public Record createRecord( RecordPlan plan ) throws IOException {
                 return new UnusedInternalRecord( plan );
             }
         } );
@@ -133,6 +135,6 @@ public class RecordFactory {
     }
 
     private static interface TypedRecordFactory<R extends Record> {
-        Record createRecord( RecordPlan plan );
+        Record createRecord( RecordPlan plan ) throws IOException;
     }
 }

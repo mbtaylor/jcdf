@@ -1,5 +1,7 @@
 package cdf;
 
+import java.io.IOException;
+
 public class CdfDescriptorRecord extends Record {
 
     public final long gdrOffset_;
@@ -14,7 +16,7 @@ public class CdfDescriptorRecord extends Record {
     public final int rfuE_;
     public final String[] copyright_;
 
-    public CdfDescriptorRecord( RecordPlan plan ) {
+    public CdfDescriptorRecord( RecordPlan plan ) throws IOException {
         super( plan, "CDR", 1 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
