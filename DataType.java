@@ -80,6 +80,11 @@ public abstract class DataType {
     /** Index is the index into the array. */
     public abstract Object getScalar( Object valueArray, int index );
 
+    @Override
+    public String toString() {
+        return name_;
+    }
+
     public static DataType getDataType( int dtype ) throws CdfFormatException {
         DataType dataType = dtype >= 0 && dtype < TYPE_TABLE.length
                           ? TYPE_TABLE[ dtype ]
