@@ -20,11 +20,14 @@ public class CdfDump {
     private final CdfReader crdr_;
     private final PrintStream out_;
     private final boolean writeFields_;
+    private final boolean html_;
 
-    public CdfDump( CdfReader crdr, PrintStream out, boolean writeFields ) {
+    public CdfDump( CdfReader crdr, PrintStream out, boolean writeFields,
+                    boolean html ) {
         crdr_ = crdr;
         out_ = out;
         writeFields_ = writeFields;
+        html_ = html;
     }
 
     public void run() throws IOException {
@@ -32,19 +35,37 @@ public class CdfDump {
         RecordFactory recFact = crdr_.getRecordFactory();
         long offset = 8;
         long leng = buf.getLength();
+        if ( html_ ) {
+            out_.println( "<html><body><pre>" );
+        }
         for ( int ix = 0; offset < leng; ix++ ) {
             Record rec = recFact.createRecord( buf, offset );
             dumpRecord( ix, rec, offset );
             offset += rec.getRecordSize();
         }
+        if ( html_ ) {
+            out_.println( "</pre></body></html>" );
+        }
     }
 
     private void dumpRecord( int index, Record rec, long offset ) {
-        out_.println( index + ":\t"
-                    + rec.getRecordTypeAbbreviation() + "\t"
-                    + rec.getRecordType() + "\t"
-                    + rec.getRecordSize() + "\t"
-                    + "0x" + Long.toHexString( offset ) );
+        StringBuffer sbuf = new StringBuffer();
+        if ( html_ ) {
+            sbuf.append( "<hr /><strong>" );
+        }
+        sbuf.append( index )
+            .append( ":\t" )
+            .append( rec.getRecordTypeAbbreviation() )
+            .append( "\t" )
+            .append( rec.getRecordType() )
+            .append( "\t" )
+            .append( rec.getRecordSize() )
+            .append( "\t" )
+            .append( formatOffsetId( offset ) );
+        if ( html_ ) {
+            sbuf.append( "</strong>" );
+        }
+        out_.println( sbuf.toString() );
         if ( writeFields_ ) {
             Field[] fields = rec.getClass().getFields();
             for ( int i = 0; i < fields.length; i++ ) {
@@ -61,7 +82,8 @@ public class CdfDump {
                     catch ( IllegalAccessException e ) {
                         throw new RuntimeException( "Reflection error", e );
                     }
-                    out_.println( formatFieldValue( name, value ) );
+                    out_.println( formatFieldValue( adjustFieldName( name ),
+                                                    value ) );
                 }
             }
         }
@@ -83,8 +105,7 @@ public class CdfDump {
                     if ( i > 0 ) {
                         sbuf.append( ", " );
                     }
-                    sbuf.append( "0x" )
-                        .append( Long.toHexString( larray[ i ] ) );
+                    sbuf.append( formatOffsetRef( larray[ i ] ) );
                 }
             }
             else {
@@ -97,15 +118,30 @@ public class CdfDump {
             }
         }
         else {
-            if ( value instanceof Long ) {
-                sbuf.append( "0x" )
-                    .append( Long.toHexString( ((Long) value).longValue() ) );
-            }
-            else {
-                sbuf.append( value.toString() );
-            }
+            sbuf.append( value instanceof Long && ! name.endsWith( "Size" )
+                             ? formatOffsetRef( ((Long) value).longValue() )
+                             : value.toString() );
         }
         return sbuf.toString();
+    }
+
+    private String formatOffsetId( long offset ) {
+        String txt = "0x" + Long.toHexString( offset );
+        return html_ ? "<a name='" + txt + "'>" + txt + "</a>"
+                     : txt;
+    }
+
+    private String formatOffsetRef( long offset ) {
+        String txt = "0x" + Long.toHexString( offset );
+        return ( html_ && offset != -1L )
+             ? "<a href='#" + txt + "'>" + txt + "</a>"
+             : txt;
+    }
+
+    private String adjustFieldName( String name ) {
+        return name.endsWith( "_" )
+             ? name.substring( 0, name.length() - 1 )
+             : name;
     }
 
     private static String spaces( int count ) {
@@ -122,6 +158,7 @@ public class CdfDump {
            .append( CdfDump.class.getName() )
            .append( " [-help]" )
            .append( " [-fields]" )
+           .append( " [-html]" )
            .append( " <cdf-file>" )
            .append( "\n" )
            .toString();
@@ -129,9 +166,14 @@ public class CdfDump {
         List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         File file = null;
         boolean writeFields = false;
+        boolean html = false;
         for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
             String arg = it.next();
-            if ( arg.startsWith( "-h" ) ) {
+            if ( arg.equals( "-html" ) ) {
+                it.remove();
+                html = true;
+            }
+            else if ( arg.startsWith( "-h" ) ) {
                 it.remove();
                 System.out.println( usage );
                 return 0;
@@ -155,7 +197,8 @@ public class CdfDump {
             return 1;
         }
 
-        new CdfDump( new CdfReader( file ), System.out, writeFields ).run();
+        new CdfDump( new CdfReader( file ), System.out, writeFields, html )
+           .run();
         return 0;
     }
 
