@@ -57,6 +57,7 @@ JSRC = \
        CdfTableBuilder.java \
        CdfTableProfile.java \
        \
+       ExampleTest.java \
        SameTest.java \
        \
        CefFormatException.java \
@@ -73,7 +74,9 @@ docs: $(JSRC)
 
 build: jar docs
 
-test: $(JARFILE) $(TEST_CDFS)
+test: extest convtest
+
+convtest: $(JARFILE) $(TEST_CDFS)
 	rm -rf tmp; \
 	mkdir tmp; \
 	for f in $(TEST_CDFS); \
@@ -86,6 +89,10 @@ test: $(JARFILE) $(TEST_CDFS)
            break; \
         done && \
         rm -rf tmp
+
+extest: $(JARFILE)
+	java -ea -classpath $(JARFILE) cdf.test.ExampleTest \
+             data/example1.cdf data/example2.cdf
 
 clean:
 	rm -rf $(JARFILE) tmp docs

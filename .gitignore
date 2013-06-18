@@ -3,3 +3,4 @@ tmp/
 docs/
 .*.swp
 stil.jar
+data/*.cdf
