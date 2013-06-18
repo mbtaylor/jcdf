@@ -54,14 +54,17 @@ then
 fi
 baseout=${outdir}`basename $basein`
 
+
 count=0
-for convargs in "-row -encoding network -compression cdf:gzip.5" \
-                "-column -encoding ibmpc -compression vars:huff.0" \
-                "-backward -compression vars:rle.0"
+for cflags in \
+  "-row -encoding network -compression cdf:gzip.5" \
+  "-column -encoding ibmpc -compression vars:huff.0" \
+  "-backward -compression vars:rle.0" \
+  "-sparseness vars:srecords.no -compression cdf:ahuff.0 -checksum md5"
 do
    count=`echo $count+1 | bc`
    outname="${baseout}_c${count}"
-   cmd="cdfconvert -delete $convargs $basein $outname"
+   cmd="cdfconvert -delete $cflags $basein $outname"
    test $report -gt 0 && echo ${outname}.cdf
    if [ $create -gt 0 ]
    then
