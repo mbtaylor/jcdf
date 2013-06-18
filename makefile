@@ -7,6 +7,8 @@ JAVADOC = javadoc
 JARFILE = cdf.jar
 STILJAR = stil.jar
 
+TEST_CDFS = data/*.cdf
+
 JSRC = \
        AttributeDescriptorRecord.java \
        AttributeEntryDescriptorRecord.java \
@@ -55,6 +57,8 @@ JSRC = \
        CdfTableBuilder.java \
        CdfTableProfile.java \
        \
+       SameTest.java \
+       \
        CefFormatException.java \
        CefReader.java \
        CefTableBuilder.java \
@@ -68,6 +72,20 @@ docs: $(JSRC)
 	$(JAVADOC) -classpath $(STILJAR) -quiet -d docs $(JSRC)
 
 build: jar docs
+
+test: $(JARFILE) $(TEST_CDFS)
+	rm -rf tmp; \
+	mkdir tmp; \
+	for f in $(TEST_CDFS); \
+        do \
+           files=`./cdfvar.sh -outdir tmp -report $$f`; \
+           cmd="java -ea -classpath $(JARFILE) cdf.test.SameTest $$files"; \
+           ./cdfvar.sh -outdir tmp -create $$f && \
+           echo $$cmd && \
+           $$cmd || \
+           break; \
+        done && \
+        rm -rf tmp
 
 clean:
 	rm -rf $(JARFILE) tmp docs
