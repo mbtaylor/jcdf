@@ -23,6 +23,7 @@ public abstract class VariableDescriptorRecord extends Record {
     public final int[] zDimSizes_;
     public final boolean[] dimVarys_;
     private final long padOffset_;
+    private final int padBytes_;
 
     private VariableDescriptorRecord( RecordPlan plan, String abbrev,
                                       int recordType, boolean hasDims,
@@ -55,9 +56,9 @@ public abstract class VariableDescriptorRecord extends Record {
             zDimSizes_ = null;
         }
         boolean hasPad = hasBit( flags_, 1 );
-        int padBytes = hasPad ? DataType.getDataType( dataType_ ).getByteCount()
-                              * numElems_
-                              : 0;
+        padBytes_ = hasPad ? DataType.getDataType( dataType_ ).getByteCount()
+                           * numElems_
+                           : 0;
         final int ndim;
         if ( hasDims ) {
             ndim = zNumDims_;
@@ -69,7 +70,7 @@ public abstract class VariableDescriptorRecord extends Record {
             // The more direct way would be by using the rNumDims field of
             // the GDR, but we don't have access to that here.
             long runningCount = plan.getReadCount( ptr );
-            long spareBytes = getRecordSize() - runningCount - padBytes;
+            long spareBytes = getRecordSize() - runningCount - padBytes_;
             assert spareBytes == (int) spareBytes;
             if ( spareBytes % 4 != 0 ) {
                 warnFormat( "rVDR DimVarys field non-integer size??" );
@@ -82,7 +83,7 @@ public abstract class VariableDescriptorRecord extends Record {
             dimVarys_[ i ] = iDimVarys[ i ] != 0;
         }
         padOffset_ = hasPad ? ptr.get() : -1L;
-        ptr.increment( padBytes );
+        ptr.increment( padBytes_ );
         checkEndRecord( ptr );
     }
 
@@ -91,6 +92,10 @@ public abstract class VariableDescriptorRecord extends Record {
      */
     public long getPadOffset() {
         return padOffset_;
+    }
+
+    public int getPadSize() {
+        return padBytes_;
     }
 
     public static class RVariant extends VariableDescriptorRecord {

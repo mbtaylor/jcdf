@@ -37,8 +37,8 @@ class VdrVariable implements Variable {
         int numElems = vdr.numElems_;
         shaper_ =
             Shaper.createShaper( dataType_, dimSizes, dimVarys, rowMajor );
-        dataReader_ =
-            new DataReader( dataType_, numElems, shaper_.getRawItemCount() );
+        int nraw = shaper_.getRawItemCount();
+        dataReader_ = new DataReader( dataType_, numElems, nraw );
         rvaleng_ = Array.getLength( dataReader_.createValueArray() );
         long padOffset = vdr.getPadOffset();
         String shapeTxt = "";
@@ -51,8 +51,14 @@ class VdrVariable implements Variable {
             varyTxt += dimVarys[ idim ] ? 'T' : 'F';
         }
         if ( padOffset >= 0 ) {
+            DataReader padReader = new DataReader( dataType_, numElems, 1 );
+            assert vdr.getPadSize() == padReader.getRecordSize();
+            Object padValueArray = padReader.createValueArray();
+            padReader.readValue( buf_, padOffset, padValueArray );
             Object rva = dataReader_.createValueArray();
-            dataReader_.readValue( buf_, padOffset, rva );
+            for ( int i = 0; i < nraw; i++ ) {
+                System.arraycopy( padValueArray, 0, rva, i, 1 );
+            }
             padRawValueArray_ = rva;
             shapedPadValueRowMajor_ = shaper_.shape( padRawValueArray_, true );
             shapedPadValueColumnMajor_ =
