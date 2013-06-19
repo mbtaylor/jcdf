@@ -148,8 +148,9 @@ class RecordMap {
             int last = vxr.last_[ ie ];
             Record rec = recFact.createRecord( buf, vxr.offset_[ ie ] );
             if ( rec instanceof VariableValuesRecord ) {
+                VariableValuesRecord vvr = (VariableValuesRecord) rec;
                 list.add( new Entry( first, last, buf,
-                                     rec.getContentOffset() ) );
+                                     vvr.getRecordsOffset() ) );
             }
             else if ( rec instanceof CompressedVariableValuesRecord ) {
                 CompressedVariableValuesRecord cvvr =
