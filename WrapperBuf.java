@@ -3,12 +3,28 @@ package cdf;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Buf implementation based on an existing Buf instance.
+ * All methods are delegated to the base buf.
+ *
+ * @author   Mark Taylor
+ * @since    18 Jun 2013
+ */
 public class WrapperBuf implements Buf {
 
     private final Buf base_;
 
+    /**
+     * Constructor.
+     *
+     * @param  base  base buf
+     */
     public WrapperBuf( Buf base ) {
         base_ = base;
+    }
+
+    public long getLength() {
+        return base_.getLength();
     }
 
     public int readUnsignedByte( Pointer ptr ) throws IOException {
@@ -79,9 +95,5 @@ public class WrapperBuf implements Buf {
 
     public Buf fillNewBuf( long count, InputStream in ) throws IOException {
         return base_.fillNewBuf( count, in );
-    }
-
-    public long getLength() {
-        return base_.getLength();
     }
 }

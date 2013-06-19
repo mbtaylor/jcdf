@@ -8,6 +8,15 @@ import java.nio.ByteOrder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
+/**
+ * Buf implementation based on a single NIO ByteBuffer.
+ * This works fine as long as it doesn't need to be more than 2^31 bytes (2Gb),
+ * which is the maximum length of a ByteBuffer.
+ *
+ * @author   Mark Taylor
+ * @since    18 Jun 2013
+ * @see      java.nio.ByteBuffer
+ */
 public class SimpleNioBuf implements Buf {
 
     private final ByteBuffer byteBuf_;
@@ -15,6 +24,13 @@ public class SimpleNioBuf implements Buf {
     private boolean isBit64_;
     private boolean isBigendian_;
 
+    /**
+     * Constructor.
+     *
+     * @param  byteBuf  NIO byte buffer containing the byte data
+     * @param  isBit64  64bit-ness of this buf
+     * @param  isBigendian  true for big-endian, false for little-endian
+     */
     public SimpleNioBuf( ByteBuffer byteBuf, boolean isBit64,
                          boolean isBigendian ) {
         byteBuf_ = byteBuf;
@@ -52,6 +68,11 @@ public class SimpleNioBuf implements Buf {
     }
 
     public synchronized void setEncoding( boolean bigend ) {
+
+        // NIO buffers can do all the hard work - just tell them the
+        // endianness of the data buffer.  Note however that the
+        // endianness of control data is not up for grabs, so maintain
+        // separate buffers for control data and application data.
         dataBuf_.order( bigend ? ByteOrder.BIG_ENDIAN
                                : ByteOrder.LITTLE_ENDIAN );
         isBigendian_ = bigend;
@@ -111,6 +132,15 @@ public class SimpleNioBuf implements Buf {
         return new SimpleNioBuf( bbuf, isBit64_, isBigendian_ );
     }
 
+    /**
+     * Downcasts a long to an int.
+     * If the value is too large, an unchecked exception is thrown.
+     * That shouldn't happen because the only values this is invoked on
+     * are offsets into a ByteBuffer.
+     *
+     * @param  lvalue  long value
+     * @return   integer with the same value as <code>lvalue</code>
+     */
     private static int toInt( long lvalue ) {
         int ivalue = (int) lvalue;
         if ( ivalue != lvalue ) {

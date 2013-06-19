@@ -6,14 +6,33 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Turns bytes in a buffer into typed and populated CDF records.
+ *
+ * @author   Mark Taylor
+ * @since    18 Jun 2013
+ */
 public class RecordFactory {
 
     private final Map<Integer,TypedRecordFactory> factoryMap_;
 
+    /**
+     * Constructor.
+     *
+     * @param  nameLeng   number of bytes in variable and attribute names;
+     *                    appears to be 64 for pre-v3 and 256 for v3
+     */
     public RecordFactory( int nameLeng ) {
         factoryMap_ = createFactoryMap( nameLeng );
     }
 
+    /**
+     * Creates a Record object from a given position in a buffer.
+     *
+     * @param  buf  byte buffer
+     * @param  offset  start of record in buf
+     * @return  record
+     */
     public Record createRecord( Buf buf, long offset ) throws IOException {
         Pointer ptr = new Pointer( offset );
         long recSize = buf.readOffset( ptr );
@@ -28,6 +47,17 @@ public class RecordFactory {
         }
     }
 
+    /** 
+     * Creates a Record object with a known type from a given position in
+     * a buffer.
+     *
+     * @param  buf  byte buffer
+     * @param  offset  start of record in buf
+     * @param  clazz   record class required
+     * @return  record
+     * @throws  CdfFormatException  if the record found there turns out
+     *          not to be of type <code>clazz</code>
+     */
     public <R extends Record> R createRecord( Buf buf, long offset,
                                               Class<R> clazz )
             throws IOException {
@@ -49,6 +79,12 @@ public class RecordFactory {
         }
     }
 
+    /**
+     * Sets up a mapping from CDF RecordType codes to factories for the
+     * record types in question.
+     *
+     * @return   map of record type to record factory
+     */
     private static Map<Integer,TypedRecordFactory>
             createFactoryMap( final int nameLeng ) {
         Map<Integer,TypedRecordFactory> map =
@@ -134,7 +170,17 @@ public class RecordFactory {
         return Collections.unmodifiableMap( map );
     }
 
+    /**
+     * Object which can generate a particular record type from a plan.
+     */
     private static interface TypedRecordFactory<R extends Record> {
-        Record createRecord( RecordPlan plan ) throws IOException;
+
+        /**
+         * Creates a record from bytes.
+         *
+         * @param   plan  basic record information
+         * @return   record
+         */
+        R createRecord( RecordPlan plan ) throws IOException;
     }
 }

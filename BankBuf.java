@@ -21,6 +21,15 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Abstract Buf implementation that divides the byte sequence into one
+ * or more contiguous data banks.
+ * Each bank contains a run of bytes short enough to be indexed by
+ * a 4-byte integer.
+ *
+ * @author   Mark Taylor
+ * @since    18 Jun 2013
+ */
 public abstract class BankBuf implements Buf {
 
     private final long size_;
@@ -30,6 +39,13 @@ public abstract class BankBuf implements Buf {
     private static final Logger logger_ =
         Logger.getLogger( BankBuf.class.getName() );
 
+    /**
+     * Constructor.
+     *
+     * @param   size  total size of buffer
+     * @param   isBit64  64bit-ness of buf
+     * @param   isBigendian   true for big-endian data, false for little-endian
+     */
     protected BankBuf( long size, boolean isBit64, boolean isBigendian ) {
         size_ = size;
         isBit64_ = isBit64;
@@ -39,6 +55,16 @@ public abstract class BankBuf implements Buf {
     /**
      * Returns the bank which can read a given number of bytes starting
      * at the given offset.
+     *
+     * <p>Implementation: in most cases this will return one of the
+     * large banks that this object has allocated.
+     * However, in the case that the requested run straddles a bank
+     * boundary it may be necessary to generate a short-lived bank
+     * just to return from this method.
+     *
+     * @param   offset  start of required sequence
+     * @param   count   number of bytes in required sequence
+     * @return  bank
      */
     protected abstract Bank getBank( long offset, int count )
             throws IOException;
@@ -52,6 +78,13 @@ public abstract class BankBuf implements Buf {
     /**
      * Returns an iterator over banks starting with the one containing
      * the given offset.
+     * If followed to the end, the returned sequence
+     * will go all the way to the end of the buf.
+     * The first bank does not need to start at the
+     * given offset, only to contain it.
+     *
+     * @param     offset  starting byte offset into buf
+     * @return   iterator over data banks
      */
     protected abstract Iterator<Bank> getBankIterator( long offset );
 
@@ -169,8 +202,18 @@ public abstract class BankBuf implements Buf {
              : fillNewMultiBuf( count, in );
     }
 
+    /**
+     * Implementation of fillNewBuf that works for small (&lt;2^31-byte)
+     * byte sequences.
+     *
+     * @param  count  size of new buffer in bytes
+     * @param  in   input stream containing byte sequence
+     * @return  buffer containing stream content
+     */
     private Buf fillNewSingleBuf( int count, InputStream in )
             throws IOException {
+
+        // Memory is allocated outside of the JVM heap.
         ByteBuffer bbuf = ByteBuffer.allocateDirect( count );
         ReadableByteChannel chan = Channels.newChannel( in );
         while ( count > 0 ) {
@@ -185,8 +228,18 @@ public abstract class BankBuf implements Buf {
         return Bufs.createBuf( bbuf, isBit64_, isBigendian_ );
     }
 
+    /**
+     * Implementation of fillNewBuf that uses multiple ByteBuffers to
+     * cope with large (&gt;2^31-byte) byte sequences.
+     *
+     * @param  count  size of new buffer in bytes
+     * @param  in   input stream containing byte sequence
+     * @return  buffer containing stream content
+     */
     private Buf fillNewMultiBuf( long count, InputStream in )
             throws IOException {
+
+        // Writes data to a temporary file.
         File file = File.createTempFile( "cdfbuf", ".bin" );
         file.deleteOnExit();
         int bufsiz = 64 * 1024;
@@ -201,12 +254,44 @@ public abstract class BankBuf implements Buf {
         return Bufs.createBuf( file, isBit64_, isBigendian_ );
     }
 
+    /**
+     * Returns a BankBuf based on a single supplied ByteBuffer.
+     *
+     * @param   byteBuffer   NIO buffer containing data
+     * @param   isBit64  64bit-ness of buf
+     * @param   isBigendian   true for big-endian data, false for little-endian
+     * @return  new buf
+     */
     public static BankBuf createSingleBankBuf( ByteBuffer byteBuffer,    
                                                boolean isBit64,
                                                boolean isBigendian ) {
         return new SingleBankBuf( byteBuffer, isBit64, isBigendian );
     }
 
+    /**
+     * Returns a BankBuf based on an array of supplied ByteBuffers.
+     *
+     * @param  byteBuffers  NIO buffers containing data (when concatenated)
+     * @param   isBit64  64bit-ness of buf
+     * @param   isBigendian   true for big-endian data, false for little-endian
+     * @return  new buf
+     */
+    public static BankBuf createMultiBankBuf( ByteBuffer[] byteBuffers,
+                                              boolean isBit64,
+                                              boolean isBigendian ) {
+        return new PreMultiBankBuf( byteBuffers, isBit64, isBigendian );
+    }
+
+    /**
+     * Returns a BankBuf based on supplied file channel.
+     *
+     * @param  channel   readable file containing data
+     * @param  size    number of bytes in channel
+     * @param  bankSize  maximum size for individual data banks
+     * @param   isBit64  64bit-ness of buf
+     * @param   isBigendian   true for big-endian data, false for little-endian
+     * @return  new buf
+     */
     public static BankBuf createMultiBankBuf( FileChannel channel, long size,
                                               int bankSize, boolean isBit64,
                                               boolean isBigendian ) {
@@ -214,14 +299,20 @@ public abstract class BankBuf implements Buf {
                                      isBit64, isBigendian );
     }
 
-    public static BankBuf createMultiBankBuf( ByteBuffer[] byteBuffers,
-                                              boolean isBit64,
-                                              boolean isBigendian ) {
-        return new PreMultiBankBuf( byteBuffers, isBit64, isBigendian );
-    }
-
+    /**
+     * BankBuf implementation based on a single NIO buffer.
+     */
     private static class SingleBankBuf extends BankBuf {
         private final Bank bank_;
+
+        /**
+         * Constructor. 
+         *
+         * @param   byteBuffer   NIO buffer containing data
+         * @param   isBit64  64bit-ness of buf
+         * @param   isBigendian   true for big-endian data,
+         *                        false for little-endian
+         */
         SingleBankBuf( ByteBuffer byteBuffer, boolean isBit64,
                        boolean isBigendian ) {
             super( byteBuffer.capacity(), isBit64, isBigendian );
@@ -238,6 +329,10 @@ public abstract class BankBuf implements Buf {
         }
     }
 
+    /**
+     * BankBuf implementation based on a supplied array of NIO buffers
+     * representing contiguous subsequences of the data.
+     */
     private static class PreMultiBankBuf extends BankBuf {
 
         private final Bank[] banks_;
@@ -245,6 +340,14 @@ public abstract class BankBuf implements Buf {
         private final long[] ends_;
         private int iCurrentBank_;
 
+        /**
+         * Constructor.
+         *
+         * @param  byteBuffers  NIO buffers containing data (when concatenated)
+         * @param   isBit64  64bit-ness of buf
+         * @param   isBigendian   true for big-endian data,
+         *                        false for little-endian
+         */
         PreMultiBankBuf( ByteBuffer[] byteBuffers,
                          boolean isBit64, boolean isBigendian ) {
             super( sumSizes( byteBuffers ), isBit64, isBigendian );
@@ -339,6 +442,13 @@ public abstract class BankBuf implements Buf {
             return it;  // empty
         }
 
+        /**
+         * Returns the sum of the sizes of all the elements of a supplied array
+         * of NIO buffers.
+         *
+         * @param   byteBuffers  buffer array
+         * @return  number of bytes in concatenation of all buffers
+         */
         private static long sumSizes( ByteBuffer[] byteBuffers ) {
             long size = 0;
             for ( int i = 0; i < byteBuffers.length; i++ ) {
@@ -348,6 +458,13 @@ public abstract class BankBuf implements Buf {
         }
     }
 
+    /**
+     * BankBuf implementation that uses multiple data banks,
+     * but constructs (maps) them lazily as required.
+     * The original data is supplied in a FileChannel.
+     * All banks except (probably) the final one are the same size,
+     * supplied at construction time.
+     */
     private static class LazyMultiBankBuf extends BankBuf {
 
         private final FileChannel channel_;
@@ -355,6 +472,16 @@ public abstract class BankBuf implements Buf {
         private final int bankSize_;
         private final Bank[] banks_;
 
+        /**
+         * Constructor.
+         *
+         * @param  channel   readable file containing data
+         * @param  size    number of bytes in channel
+         * @param  bankSize  maximum size for individual data banks
+         * @param   isBit64  64bit-ness of buf
+         * @param   isBigendian   true for big-endian data,
+         *                        false for little-endian
+         */
         LazyMultiBankBuf( FileChannel channel, long size, int bankSize,
                           boolean isBit64, boolean isBigendian ) {
             super( size, isBit64, isBigendian );
@@ -436,6 +563,8 @@ public abstract class BankBuf implements Buf {
 
         /**
          * Lazily obtains and returns a numbered bank.  Will not return null.
+         *
+         * @param  ibank  bank index
          */
         private Bank getBankByIndex( int ibank ) throws IOException {
             if ( banks_[ ibank ] == null ) {
@@ -450,19 +579,50 @@ public abstract class BankBuf implements Buf {
         }
     }
 
+    /**
+     * Data bank for use within BankBuf class and its subclasses.
+     * This stores a subsequence of bytes for the Buf, and records
+     * its position within the whole sequence.
+     */
     protected static class Bank {
+
+        /** Raw buffer. */
         private final ByteBuffer byteBuffer_;
+
+        /** Buffer adjusted for endianness. */
         private final ByteBuffer dataBuffer_;
+
         private final long start_;
+        private final int size_;
+
+        /**
+         * Constructor.
+         *
+         * @param  byteBuffer  NIO buffer containing data
+         * @param  start   offset into the full sequence at which this bank
+         *                 is considered to start
+         * @param  isBigendian  true for big-endian, false for little-endian
+         */
         public Bank( ByteBuffer byteBuffer, long start, boolean isBigendian ) {
             byteBuffer_ = byteBuffer;
             dataBuffer_ = byteBuffer.duplicate();
             start_ = start;
+            size_ = byteBuffer.capacity();
             setEncoding( isBigendian );
         }
+
+        /**
+         * Returns the position within this bank's buffer that corresponds
+         * to an offset into the full byte sequence.
+         *
+         * @param   pos  offset into Buf
+         * @return   pos - start
+         * @throws   IllegalArgumentException  pos is not between start and
+         *           start+size
+         */
         private int adjust( long pos ) {
             long offset = pos - start_;
-            if ( offset >= 0 && offset <= Integer.MAX_VALUE ) {
+            if ( offset >= 0 && offset < size_ ) {
                 return (int) offset;
             }
             else {

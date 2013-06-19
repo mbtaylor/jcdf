@@ -7,18 +7,39 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+/**
+ * Factory and utility methods for use with Bufs.
+ */
 public class Bufs {
 
+    /** Preferred maximum size for a bank buffer.  */
     private static final int BANK_SIZE = 1 << 30;
 
+    /**
+     * Private constructor prevents instantiation.
+     */
     private Bufs() {
     }
 
+    /**
+     * Creates a buf based on a single NIO buffer.
+     *
+     * @param   byteBuffer  NIO buffer containing data
+     * @param   isBit64  64bit-ness of buf
+     * @param   isBigendian   true for big-endian data, false for little-endian
+     */
     public static Buf createBuf( ByteBuffer byteBuffer,
                                  boolean isBit64, boolean isBigendian ) {
         return new SimpleNioBuf( byteBuffer, isBit64, isBigendian );
     }
 
+    /**
+     * Creates a buf based on a sequence of NIO buffers.
+     *
+     * @param   byteBuffers  array of NIO buffers containing data
+     * @param   isBit64  64bit-ness of buf
+     * @param   isBigendian   true for big-endian data, false for little-endian
+     */
     public static Buf createBuf( ByteBuffer[] byteBuffers,
                                  boolean isBit64, boolean isBigendian ) {
         return byteBuffers.length == 1
@@ -26,6 +47,13 @@ public class Bufs {
              : BankBuf.createMultiBankBuf( byteBuffers, isBit64, isBigendian );
     }
 
+    /**
+     * Creates a buf based on a file.
+     *
+     * @param  file  file containing data
+     * @param   isBit64  64bit-ness of buf
+     * @param   isBigendian   true for big-endian data, false for little-endian
+     */
     public static Buf createBuf( File file,
                                  boolean isBit64, boolean isBigendian )
             throws IOException {
@@ -43,11 +71,22 @@ public class Bufs {
         }
     }
 
+    /**
+     * Utility method to acquire the data from an NIO buffer in the form
+     * of an InputStream.
+     *
+     * @param   bbuf  NIO buffer
+     * @return  stream
+     */
     public static InputStream createByteBufferInputStream( ByteBuffer bbuf ) {
         return new ByteBufferInputStream( bbuf );
     }
 
     // Utility methods to read arrays of data from buffers.
+    // These essentially provide bulk absolute NIO buffer read operations;
+    // The NIO Buffer classes themselves only provide relative read operations
+    // for bulk reads.
+    //
     // We work differently according to whether we are in fact reading
     // single value or multiple values.  This is because NIO Buffer
     // classes have absolute read methods for scalar reads, but only
@@ -55,11 +94,25 @@ public class Bufs {
     // a pointer and then do the read).  For thread safety we need to
     // synchronize in that case to make sure somebody else doesn't
     // reposition before the read takes place.
-
+    //
     // For the array reads, we also recast the ByteBuffer to a Buffer of
-    // the appropriate type for the data being read.  This is probably(?)
-    // more efficient than doing multiple scalar reads.
+    // the appropriate type for the data being read.
+    // 
+    // Both these steps are taken on the assumption that the bulk reads
+    // are more efficient than multiple byte reads perhaps followed by
+    // bit manipulation where required.  The NIO javadocs suggest that
+    // assumption is true, but I haven't tested it.  Doing it the other
+    // way would avoid the need for synchronization.
 
+    /**
+     * Utility method to read a fixed length ASCII string from an NIO buffer.
+     * If a character 0x00 is encountered before the end of the byte sequence,
+     * it is considered to terminate the string.
+     *
+     * @param  bbuf  NIO buffer
+     * @param  ioff  offset into buffer of start of string
+     * @param  nbyte  number of bytes in string
+     */
     static String readAsciiString( ByteBuffer bbuf, int ioff, int nbyte ) {
         byte[] abuf = new byte[ nbyte ];
         synchronized ( bbuf ) {
@@ -79,6 +132,15 @@ public class Bufs {
         return sbuf.toString();
     }
 
+    /**
+     * Utility method to read an array of byte values from an NIO buffer
+     * into an array.
+     *
+     * @param  bbuf  buffer
+     * @param  ioff  offset into bbuf of data start
+     * @param  count  number of values to read
+     * @param  a    array into which values will be read, starting at element 0
+     */
     static void readBytes( ByteBuffer bbuf, int ioff, int count, byte[] a ) {
         if ( count == 1 ) {
             a[ 0 ] = bbuf.get( ioff );
@@ -91,6 +153,15 @@ public class Bufs {
         }
     }
 
+    /**
+     * Utility method to read an array of short values from an NIO buffer
+     * into an array.
+     *
+     * @param  bbuf  buffer
+     * @param  ioff  offset into bbuf of data start
+     * @param  count  number of values to read
+     * @param  a    array into which values will be read, starting at element 0
+     */
     static void readShorts( ByteBuffer bbuf, int ioff, int count, short[] a ) {
         if ( count == 1 ) {
             a[ 0 ] = bbuf.getShort( ioff );
@@ -103,6 +174,15 @@ public class Bufs {
         }
     }
 
+    /**
+     * Utility method to read an array of int values from an NIO buffer
+     * into an array.
+     *
+     * @param  bbuf  buffer
+     * @param  ioff  offset into bbuf of data start
+     * @param  count  number of values to read
+     * @param  a    array into which values will be read, starting at element 0
+     */
     static void readInts( ByteBuffer bbuf, int ioff, int count, int[] a ) {
         if ( count == 1 ) {
             a[ 0 ] = bbuf.getInt( ioff );
@@ -115,6 +195,15 @@ public class Bufs {
         }
     }
 
+    /**
+     * Utility method to read an array of long values from an NIO buffer
+     * into an array.
+     *
+     * @param  bbuf  buffer
+     * @param  ioff  offset into bbuf of data start
+     * @param  count  number of values to read
+     * @param  a    array into which values will be read, starting at element 0
+     */
     static void readLongs( ByteBuffer bbuf, int ioff, int count, long[] a ) {
         if ( count == 1 ) {
             a[ 0 ] = bbuf.getLong( ioff );
@@ -127,6 +216,15 @@ public class Bufs {
         }
     }
 
+    /**
+     * Utility method to read an array of float values from an NIO buffer
+     * into an array.
+     *
+     * @param  bbuf  buffer
+     * @param  ioff  offset into bbuf of data start
+     * @param  count  number of values to read
+     * @param  a    array into which values will be read, starting at element 0
+     */
     static void readFloats( ByteBuffer bbuf, int ioff, int count, float[] a ) {
         if ( count == 1 ) {
             a[ 0 ] = bbuf.getFloat( ioff );
@@ -139,6 +237,15 @@ public class Bufs {
         }
     }
 
+    /**
+     * Utility method to read an array of double values from an NIO buffer
+     * into an array.
+     *
+     * @param  bbuf  buffer
+     * @param  ioff  offset into bbuf of data start
+     * @param  count  number of values to read
+     * @param  a    array into which values will be read, starting at element 0
+     */
     static void readDoubles( ByteBuffer bbuf, int ioff, int count,
                              double[] a ) {
         if ( count == 1 ) {
@@ -153,12 +260,18 @@ public class Bufs {
     }
 
     /**
-     * Tedious.  You'd think there was an implementation of this in the
-     * J2SE somewhere, but I can't see one.
+     * Input stream that reads from an NIO buffer.
+     * You'd think there was an implementation of this in the J2SE somewhere,
+     * but I can't see one.
      */
     private static class ByteBufferInputStream extends InputStream {
         private final ByteBuffer bbuf_;
 
+        /**
+         * Constructor.
+         *
+         * @param  bbuf  NIO buffer supplying data
+         */
         ByteBufferInputStream( ByteBuffer bbuf ) {
             bbuf_ = bbuf;
         }
