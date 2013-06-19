@@ -113,7 +113,7 @@ public abstract class BankBuf implements Buf {
     public synchronized void setEncoding( boolean bigend ) {
         isBigendian_ = bigend;
         for ( Bank bank : getExistingBanks() ) {
-            bank.updateBankEncoding();
+            bank.setEncoding( isBigendian_ );
         }
     }
 
@@ -297,7 +297,7 @@ public abstract class BankBuf implements Buf {
         SingleBankBuf( ByteBuffer byteBuffer, boolean isBit64,
                        boolean isBigendian ) {
             super( byteBuffer.capacity(), isBit64, isBigendian );
-            bank_ = new Bank( byteBuffer, 0 );
+            bank_ = new Bank( byteBuffer, 0, isBigendian );
         }
         public Bank getBank( long offset, int count ) {
             return bank_;
@@ -327,7 +327,7 @@ public abstract class BankBuf implements Buf {
             long pos = 0L;
             for ( int ibank = 0; ibank < nbank; ibank++ ) {
                 ByteBuffer byteBuffer = byteBuffers[ ibank ];
-                banks_[ ibank ] = new Bank( byteBuffer, pos );
+                banks_[ ibank ] = new Bank( byteBuffer, pos, isBigendian );
                 starts_[ ibank ] = pos;
                 pos += byteBuffer.capacity();
                 ends_[ ibank ] = pos;
@@ -390,7 +390,8 @@ public abstract class BankBuf implements Buf {
                         bankOff = 0;
                         ibank++;
                     }
-                    return new Bank( ByteBuffer.wrap( tmp ), offset );
+                    return new Bank( ByteBuffer.wrap( tmp ), offset,
+                                     isBigendian() );
                 }
             }
         }
@@ -468,7 +469,8 @@ public abstract class BankBuf implements Buf {
                     bankOff = 0;
                     ibank++;
                 }
-                return new Bank( ByteBuffer.wrap( tmp ), offset );
+                return new Bank( ByteBuffer.wrap( tmp ), offset,
+                                 isBigendian() );
             }
         }
 
@@ -514,21 +516,21 @@ public abstract class BankBuf implements Buf {
                 int leng = (int) ( end - start );
                 ByteBuffer bbuf =
                     channel_.map( FileChannel.MapMode.READ_ONLY, start, leng );
-                banks_[ ibank ] = new Bank( bbuf, start );
+                banks_[ ibank ] = new Bank( bbuf, start, isBigendian() );
             }
             return banks_[ ibank ];
         }
     }
 
-    protected class Bank {
+    protected static class Bank {
         private final ByteBuffer byteBuffer_;
         private final ByteBuffer dataBuffer_;
         private final long start_;
-        public Bank( ByteBuffer byteBuffer, long start ) {
+        public Bank( ByteBuffer byteBuffer, long start, boolean isBigendian ) {
             byteBuffer_ = byteBuffer;
             dataBuffer_ = byteBuffer.duplicate();
             start_ = start;
-            updateBankEncoding();
+            setEncoding( isBigendian );
         }
         private int adjust( long pos ) {
             long offset = pos - start_;
@@ -540,9 +542,15 @@ public abstract class BankBuf implements Buf {
                                                   + " for bank at " + start_ );
             }
         }
-        private void updateBankEncoding() {
-            dataBuffer_.order( isBigendian_ ? ByteOrder.BIG_ENDIAN
-                                            : ByteOrder.LITTLE_ENDIAN );
+
+        /**
+         * Resets the endianness for the data buffer of this bank.
+         *
+         * @param  isBigendian  true for big-endian, false for little-endian
+         */
+        private void setEncoding( boolean isBigendian ) {
+            dataBuffer_.order( isBigendian ? ByteOrder.BIG_ENDIAN
+                                           : ByteOrder.LITTLE_ENDIAN );
         }
     }
 }
