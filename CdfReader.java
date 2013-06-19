@@ -94,8 +94,8 @@ public class CdfReader {
                     return new SequenceInputStream( in1, in2 );
                 }
             };
-            buf = Compression.uncompress( padCompress, buf, ccr.getDataOffset(),
-                                          ccr.uSize_ + prepad );
+            buf = Bufs.uncompress( padCompress, buf, ccr.getDataOffset(),
+                                   ccr.uSize_ + prepad );
         }
         cdr_ = recordFactory_.createRecord( buf, offsetRec0,
                                             CdfDescriptorRecord.class );

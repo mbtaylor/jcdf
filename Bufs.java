@@ -1,5 +1,6 @@
 package cdf;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -69,6 +70,29 @@ public class Bufs {
             return BankBuf.createMultiBankBuf( channel, leng, BANK_SIZE,
                                                isBit64, isBigendian );
         }
+    }
+
+    /**
+     * Decompresses part of an input Buf into an output Buf.
+     *
+     * @param  compression  compression format 
+     * @param  inBuf   buffer containing input compressed data
+     * @param  inOffset   offset into <code>inBuf</code> at which the
+     *                    compressed data starts
+     * @param   outSize  byte count of the uncompressed data
+     * @return   new buffer of size <code>outSize</code> containing
+     *           uncompressed data
+     */
+    public static Buf uncompress( Compression compression, Buf inBuf,
+                                  long inOffset, long outSize )
+            throws IOException {
+        InputStream uin =
+             compression
+            .uncompressStream( new BufferedInputStream(
+                                   inBuf.createInputStream( inOffset ) ) );
+        Buf ubuf = inBuf.fillNewBuf( outSize, uin );
+        uin.close();
+        return ubuf;
     }
 
     /**

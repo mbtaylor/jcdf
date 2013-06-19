@@ -1,32 +1,49 @@
 package cdf;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
+/**
+ * Defines a data compression type supported for compressing CDF data.
+ *
+ * @author   Mark Taylor
+ * @since    19 Jun 2013
+ */
 public abstract class Compression {
 
-    public static final Compression NONE =
-        createFailCompression( "NONE", "Can't uncompress uncompressed data" );
+    /** No compression. */
+    public static final Compression NONE = new Compression( "NONE" ) {
+        public InputStream uncompressStream( InputStream in ) {
+            return in;
+        }
+    };
+
+    /** Run length encoding. */
     public static final Compression RLE = new Compression( "RLE" ) {
         public InputStream uncompressStream( InputStream in )
                 throws IOException {
             return new RunLengthInputStream( in, (byte) 0 );
         }
     };
+
+    /** Huffman encoding. */
     public static final Compression HUFF = new Compression( "HUFF" ) {
         public InputStream uncompressStream( InputStream in )
                 throws IOException {
             return new BitExpandInputStream.HuffmanInputStream( in );
         }
     };
+
+    /** Adaptive Huffman encoding. */
     public static final Compression AHUFF = new Compression( "AHUFF" ) {
         public InputStream uncompressStream( InputStream in )
                 throws IOException {
             return new BitExpandInputStream.AdaptiveHuffmanInputStream( in );
         }
     };
+
+    /** Gzip compression. */
     public static final Compression GZIP = new Compression( "GZIP" ) {
         public InputStream uncompressStream( InputStream in )
                 throws IOException {
@@ -34,76 +51,67 @@ public abstract class Compression {
         }
     };
 
-    // Get compression type code.  The mapping is missing from the
-    // CDF Internal Format Description document, but cdf.h says:
-    //    #define NO_COMPRESSION                  0L
-    //    #define RLE_COMPRESSION                 1L
-    //    #define HUFF_COMPRESSION                2L
-    //    #define AHUFF_COMPRESSION               3L
-    //    #define GZIP_COMPRESSION                5L
-    private static final Compression[] KNOWN_COMPRESSIONS;
-    static {
-        KNOWN_COMPRESSIONS = new Compression[ 6 ];
-        KNOWN_COMPRESSIONS[ 0 ] = NONE;
-        KNOWN_COMPRESSIONS[ 1 ] = RLE;
-        KNOWN_COMPRESSIONS[ 2 ] = HUFF;
-        KNOWN_COMPRESSIONS[ 3 ] = AHUFF;
-        KNOWN_COMPRESSIONS[ 5 ] = GZIP;
-    };
-
     private final String name_;
 
+    /**
+     * Constructor.
+     *
+     * @param   name   compression format name
+     */
     protected Compression( String name ) {
         name_ = name;
     }
 
+    /**
+     * Turns a stream containing compressed data into a stream containing
+     * uncompressed data.
+     *
+     * @param  in  compressed input stream
+     * @return  uncompressed input stream
+     */
     public abstract InputStream uncompressStream( InputStream in )
             throws IOException;
 
+    /**
+     * Returns this compression format's name.
+     *
+     * @return  name
+     */
     public String getName() {
         return name_;
     }
 
     /**
-     * Utility method.
-     * @param   outSize  the size of the uncompressed data
+     * Returns a Compression object corresponding to a given compression code.
+     *
+     * @param  cType  compression code, as taken from the CPR cType field
+     * @return  compression object
+     * @throws  CdfFormatException if the compression type is unknown
      */
-    public static Buf uncompress( Compression compression, Buf inBuf,
-                                  long inOffset, long outSize )
-            throws IOException {
-        InputStream uin =
-             compression
-            .uncompressStream( new BufferedInputStream(
-                                   inBuf.createInputStream( inOffset ) ) );
-        Buf ubuf = inBuf.fillNewBuf( outSize, uin );
-        uin.close();
-        return ubuf;
-    }
+    public static Compression getCompression( int cType )
+            throws CdfFormatException {
 
-    public static Compression getCompression( int cType ) {
-        Compression[] kc = KNOWN_COMPRESSIONS;
-        Compression comp = null;
-        if ( cType >= 0 && cType < kc.length ) {
-            comp = kc[ cType ];
+        // The mapping is missing from the CDF Internal Format Description
+        // document, but cdf.h says:
+        //    #define NO_COMPRESSION                  0L
+        //    #define RLE_COMPRESSION                 1L
+        //    #define HUFF_COMPRESSION                2L
+        //    #define AHUFF_COMPRESSION               3L
+        //    #define GZIP_COMPRESSION                5L
+        switch ( cType ) {
+            case 0:
+                return NONE;
+            case 1:
+                return RLE;
+            case 2:
+                return HUFF;
+            case 3:
+                return AHUFF;
+            case 5:
+                return GZIP;
+            default:
+                throw new CdfFormatException( "Unknown compression format "
+                                            + "cType=" + cType );
         }
-        return comp == null
-             ? createFailCompression( "??",
-                                      "Unknown compression format " + cType )
-             : comp;
-    }
-
-    private static Compression createFailCompression( String name,
-                                                      final String failMsg ) {
-        return new Compression( name ) {
-            public InputStream uncompressStream( InputStream cin )
-                    throws CdfFormatException {
-                throw new CdfFormatException( failMsg );
-            }
-        };
-    }
-
-    private static Compression createUnsupportedCompression( String name ) {
-        return createFailCompression( name, "Unsupported compression format "
-                                    + name );
     }
 }
