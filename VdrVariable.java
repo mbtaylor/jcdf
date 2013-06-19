@@ -40,7 +40,7 @@ class VdrVariable implements Variable {
         int nraw = shaper_.getRawItemCount();
         dataReader_ = new DataReader( dataType_, numElems, nraw );
         rvaleng_ = Array.getLength( dataReader_.createValueArray() );
-        long padOffset = vdr.getPadOffset();
+        long padOffset = vdr.getPadValueOffset();
         String shapeTxt = "";
         String varyTxt = "";
         for ( int idim = 0; idim < dimSizes.length; idim++ ) {
@@ -52,7 +52,7 @@ class VdrVariable implements Variable {
         }
         if ( padOffset >= 0 ) {
             DataReader padReader = new DataReader( dataType_, numElems, 1 );
-            assert vdr.getPadSize() == padReader.getRecordSize();
+            assert vdr.getPadValueSize() == padReader.getRecordSize();
             Object padValueArray = padReader.createValueArray();
             padReader.readValue( buf_, padOffset, padValueArray );
             Object rva = dataReader_.createValueArray();

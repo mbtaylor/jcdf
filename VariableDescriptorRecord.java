@@ -90,11 +90,11 @@ public abstract class VariableDescriptorRecord extends Record {
     /**
      * Will be -1 if no pad.
      */
-    public long getPadOffset() {
+    public long getPadValueOffset() {
         return padOffset_;
     }
 
-    public int getPadSize() {
+    public int getPadValueSize() {
         return padBytes_;
     }
 
