@@ -111,10 +111,10 @@ public abstract class BankBuf implements Buf {
     }
 
     public synchronized void setEncoding( boolean bigend ) {
+        isBigendian_ = bigend;
         for ( Bank bank : getExistingBanks() ) {
             bank.updateBankEncoding();
         }
-        isBigendian_ = bigend;
     }
 
     public boolean isBigendian() {
