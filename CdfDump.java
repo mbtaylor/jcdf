@@ -154,7 +154,12 @@ public class CdfDump {
 
     private String formatOffsetRef( long offset ) {
         String txt = "0x" + Long.toHexString( offset );
-        return ( html_ && offset != -1L )
+
+        // Only format strictly positive values.  In some circumstances
+        // -1 and 0 are used as special values indicating no reference exists.
+        // The first record in any case starts at 0x8 (after the magic numbers)
+        // so any such values can't be genuine offsets.
+        return ( html_ && offset > 0L )
              ? "<a href='#" + txt + "'>" + txt + "</a>"
              : txt;
     }
