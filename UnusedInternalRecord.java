@@ -4,18 +4,28 @@ import java.io.IOException;
 
 public class UnusedInternalRecord extends Record {
 
-    public final long nextUirOffset_;
-    public final long prevUirOffset_;
+    public final long nextUir_;
+    public final long prevUir_;
 
-    public UnusedInternalRecord( RecordPlan plan ) {
+    public UnusedInternalRecord( RecordPlan plan ) throws IOException {
         super( plan, "UIR", -1 );
-
-        // In case this is an Unsociable UIR, don't actually read the
-        // next/prev link offsets here, since they might not exist,
-        // and might even if very unlucky cause an error by attempting
-        // to read off the end of the file.  Just record their positions.
+        Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        nextUirOffset_ = ptr.getAndIncrement( 8 );
-        prevUirOffset_ = ptr.getAndIncrement( 8 );
+        int planHeaderSize = (int) plan.getReadCount( ptr );
+
+        // This UIR may be unsociable and too small to contain UIR fields.
+        // If so, don't attempt to read them (if we are extremely unlucky
+        // they might be off the end of the file).  Check the record size
+        // is large enough to accommodate these fields before reading them.
+        int pointerSize = buf.isBit64() ? 8 : 4;
+        int sociableUirSize = planHeaderSize + 2 * pointerSize;
+        if ( plan.getRecordSize() >= sociableUirSize ) {
+            nextUir_ = buf.readOffset( ptr );
+            prevUir_ = buf.readOffset( ptr );
+        }
+        else {  // too small to be sociable
+            nextUir_ = -1L;
+            prevUir_ = -1L;
+        }
     }
 }
