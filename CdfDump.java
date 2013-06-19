@@ -2,6 +2,8 @@ package cdf.util;
 
 import cdf.Buf;
 import cdf.CdfReader;
+import cdf.CdfDescriptorRecord;
+import cdf.GlobalDescriptorRecord;
 import cdf.Record;
 import cdf.RecordFactory;
 import java.io.File;
@@ -35,13 +37,32 @@ public class CdfDump {
         RecordFactory recFact = crdr_.getRecordFactory();
         long offset = 8;
         long leng = buf.getLength();
+        long eof = leng;
+        CdfDescriptorRecord cdr = null;
+        GlobalDescriptorRecord gdr = null;
+        long gdroff = -1;
         if ( html_ ) {
             out_.println( "<html><body><pre>" );
         }
-        for ( int ix = 0; offset < leng; ix++ ) {
+        for ( int ix = 0; offset < eof; ix++ ) {
             Record rec = recFact.createRecord( buf, offset );
             dumpRecord( ix, rec, offset );
+            if ( cdr == null && rec instanceof CdfDescriptorRecord ) {
+                cdr = (CdfDescriptorRecord) rec;
+                gdroff = cdr.gdrOffset_;
+            }
+            if ( offset == gdroff && rec instanceof GlobalDescriptorRecord ) {
+                gdr = (GlobalDescriptorRecord) rec;
+                eof = gdr.eof_;
+            }
             offset += rec.getRecordSize();
+        }
+        if ( html_ ) {
+            out_.println( "<hr />" );
+        }
+        long extra = leng - eof;
+        if ( extra > 0 ) {
+            out_.println( " + " + extra + " bytes after final record" );
         }
         if ( html_ ) {
             out_.println( "</pre></body></html>" );
