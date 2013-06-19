@@ -4,9 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Run length encoding decompression stream.
- * The compressed stream is just like the uncompressed
- * one, except that a byte with the special value V is followed by
+ * Decompression stream for CDF's version of Run Length Encoding.
+ *
+ * <p>The compressed stream is just like the uncompressed one,
+ * except that a byte with the special value V is followed by
  * a byte giving the number of additional bytes V to consider present
  * in the stream.
  * Thus the compressed stream:
@@ -18,6 +19,7 @@ import java.io.InputStream;
  *    1 2 3 0 4 5 6 0 0 0 
  * </blockquote>
  * (assuming a special value V=0).
+ *
  * <p>This format was deduced from reading the cdfrle.c source file
  * from the CDF distribution.
  * 
@@ -30,11 +32,19 @@ class RunLengthInputStream extends InputStream {
     private final int rleVal_;
     private int vCount_;
 
+    /**
+     * Constructor.
+     *
+     * @param  base   input stream containing RLE-compressed data
+     * @param  rleVal  the byte value whose run lengths are compressed
+     *                 (always zero for CDF as far as I can tell)
+     */
     public RunLengthInputStream( InputStream base, byte rleVal ) {
         base_ = base;
         rleVal_ = rleVal & 0xff;
     } 
 
+    @Override
     public int read() throws IOException {
         if ( vCount_ > 0 ) {
             vCount_--;
@@ -58,14 +68,17 @@ class RunLengthInputStream extends InputStream {
         }
     }
 
+    @Override
     public int available() throws IOException {
         return base_.available() + vCount_;
     }
 
+    @Override
     public void close() throws IOException {
         base_.close();
     }
 
+    @Override
     public boolean markSupported() {
         return false;
     }

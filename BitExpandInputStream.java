@@ -5,9 +5,40 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * This code is based on the C implementation in "The Data Compression Book"
- * (Mark Nelson, 1992), via the code in cdfhuff.c of the CDF source
- * distribution.  Only decompression, not compression, is present/required.
+ * Abstract InputStream implementation suitable for implementing
+ * decompression of a bit stream.
+ * Only decompression, not compression, is supported.
+ * Two concrete subclasses are provided,
+ * {@link BitExpandInputStream.HuffmanInputStream
+ *                             HuffmanInputStream} and
+ * {@link BitExpandInputStream.AdaptiveHuffmanInputStream
+ *                             AdaptiveHuffmanInputStream}.
+ *
+ * <h3>Attribution</h3>
+ *
+ * The code for the Huffman and Adaptive Huffman decompressing stream
+ * implementations in this class is based on the C implementation in
+ * "The Data Compression Book" (Mark Nelson, 1992), via the code
+ * in cdfhuff.c from the CDF source distribution.
+ *
+ * <p>On the topic of intellectual property, Mark Nelson
+ * <a href="http://marknelson.us/code-use-policy">says</a>:
+ * <ul>
+ * <li>It is my intention that anyone who buys the book or magazine be free
+ *     to use the source code in any form they please. I only request that
+ *     any use that involves public reproduction include proper attribution.
+ *     any use that involves public reproduction include proper attribution.
+ * <li>I assert that in no case will I initiate or cooperate with any attempt
+ *     to enforce the copyright on the source code, whether it belongs to me
+ *     or a publisher.
+ * </ul>
+ * And I even bought the book (MBT).
+ *
+ * @author   Mark Taylor
+ * @author   Mark Nelson
+ * @author   J Love
+ * @since    19 Jun 2013
+ * @see      "<i>The Data Compression Book</i>, Mark Nelson, 1992"
  */
 abstract class BitExpandInputStream extends InputStream {
 
@@ -16,21 +47,30 @@ abstract class BitExpandInputStream extends InputStream {
     private int mask_;
     private boolean ended_;
 
-    private static final int END_OF_STREAM = 256;
+    /** End of stream marker. */
+    protected static final int END_OF_STREAM = 256;
 
-    public BitExpandInputStream( InputStream base ) {
+    /**
+     * Constructor.
+     *
+     * @param  base  compressed bit stream
+     */
+    protected BitExpandInputStream( InputStream base ) {
         base_ = base;
         mask_ = 0x80;
     }
 
+    @Override
     public void close() throws IOException {
         base_.close();
     }
 
+    @Override
     public boolean markSupported() {
         return false;
     }
 
+    @Override
     public int read() throws IOException {
         if ( ended_ ) {
             return -1;
@@ -46,14 +86,22 @@ abstract class BitExpandInputStream extends InputStream {
     }
 
     /**
-     * Reads a single character.  The result may be either a byte value
+     * Reads a single uncompressed character.
+     * The result may be either a byte value
      * in the range 0--255, or the terminator value END_OF_STREAM.
      * The actual end of the input stream should not be encountered
      * (it should be flagged by an END_OF_STREAM indicator token);
      * if it is, an EOFException is thrown.
+     *
+     * @return   next uncompressed character, or END_OF_STREAM  
      */
     protected abstract int readToken() throws IOException;
 
+    /**
+     * Reads the next bit from the compressed base stream.
+     *
+     * @return   true/false for next input bit 1/0
+     */
     public boolean readBit() throws IOException {
         if ( mask_ == 0x80 ) {
             rack_ = read1( base_ );
@@ -66,6 +114,13 @@ abstract class BitExpandInputStream extends InputStream {
         return value != 0;
     }
 
+    /**
+     * Reads up to 32 bits from the compressed input stream
+     * and returns them in the least-significant end of an int.
+     *
+     * @param  bitCount  number of bits to read
+     * @return  int containing bits
+     */
     public int readBits( int bitCount ) throws IOException {
         int mask = 1 << ( bitCount - 1 );
         int value = 0;
@@ -78,6 +133,13 @@ abstract class BitExpandInputStream extends InputStream {
         return value;
     }
 
+    /**
+     * Reads a single byte from an input stream.
+     * If the end of stream is encountered, an exception is thrown.
+     *
+     * @param   in   input stream
+     * @return   byte value in the range 0--255
+     */
     private static int read1( InputStream in ) throws IOException {
         int b = in.read();
         if ( b < 0 ) {
@@ -86,18 +148,28 @@ abstract class BitExpandInputStream extends InputStream {
         return b;
     }
 
+    /**
+     * Decompresses an input stream compressed using the CDF (Nelson)
+     * version of Huffman coding.
+     */
     public static class HuffmanInputStream extends BitExpandInputStream {
 
         private final Node[] nodes_;
         private final int iRoot_;
         private boolean ended_;
 
+        /**
+         * Constructor.
+         *
+         * @param  base  compressed bit stream
+         */
         public HuffmanInputStream( InputStream base ) throws IOException {
             super( base );
             nodes_ = inputCounts( base );
             iRoot_ = buildTree( nodes_ );
         }
 
+        @Override
         protected int readToken() throws IOException {
             int inode = iRoot_;
             do {
@@ -166,6 +238,9 @@ abstract class BitExpandInputStream extends InputStream {
             return nextFree;
         }
 
+        /**
+         * Data structure containing a Huffman tree node.
+         */
         private static class Node {
             int count_;
             int savedCount_;
@@ -174,10 +249,14 @@ abstract class BitExpandInputStream extends InputStream {
         }
     }
 
+    /**
+     * Decompresses an input stream compressed using the CDF (Nelson)
+     * version of Huffman coding.
+     */
     public static class AdaptiveHuffmanInputStream
             extends BitExpandInputStream {
 
-        /* Tree members.  This class acts as its own tree. */
+        // Tree members.  This class acts as its own tree.
         private final int[] leafs_;
         private final Node[] nodes_;
         private int nextFreeNode_;
@@ -188,6 +267,11 @@ abstract class BitExpandInputStream extends InputStream {
         private static final int ROOT_NODE = 0;
         private static final int MAX_WEIGHT = 0x8000;
 
+        /**
+         * Constructor.
+         *
+         * @param  base  compressed bit stream
+         */
         public AdaptiveHuffmanInputStream( InputStream base ) {
             super( base );
 
@@ -206,6 +290,7 @@ abstract class BitExpandInputStream extends InputStream {
             }
         }
 
+        @Override
         protected int readToken() throws IOException {
             int iCurrentNode = ROOT_NODE;
             while ( ! nodes_[ iCurrentNode ].childIsLeaf_ ) {
@@ -316,6 +401,9 @@ abstract class BitExpandInputStream extends InputStream {
             }
         }
 
+        /**
+         * Data structure representing an Adaptive Huffman tree node.
+         */
         private static class Node {
             int child_;
             boolean childIsLeaf_;
