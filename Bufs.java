@@ -47,6 +47,111 @@ public class Bufs {
         return new ByteBufferInputStream( bbuf );
     }
 
+    // Utility methods to read arrays of data from buffers.
+    // We work differently according to whether we are in fact reading
+    // single value or multiple values.  This is because NIO Buffer
+    // classes have absolute read methods for scalar reads, but only
+    // relative read methods for array reads (i.e. you need to position
+    // a pointer and then do the read).  For thread safety we need to
+    // synchronize in that case to make sure somebody else doesn't
+    // reposition before the read takes place.
+
+    // For the array reads, we also recast the ByteBuffer to a Buffer of
+    // the appropriate type for the data being read.  This is probably(?)
+    // more efficient than doing multiple scalar reads.
+
+    static String readAsciiString( ByteBuffer bbuf, int ioff, int nbyte ) {
+        byte[] abuf = new byte[ nbyte ];
+        synchronized ( bbuf ) {
+            bbuf.position( ioff );
+            bbuf.get( abuf, 0, nbyte );
+        }
+        StringBuffer sbuf = new StringBuffer( nbyte );
+        for ( int i = 0; i < nbyte; i++ ) {
+            byte b = abuf[ i ];
+            if ( b == 0 ) {
+                break;
+            }
+            else {
+                sbuf.append( (char) b );
+            }
+        }
+        return sbuf.toString();
+    }
+
+    static void readBytes( ByteBuffer bbuf, int ioff, int count, byte[] a ) {
+        if ( count == 1 ) {
+            a[ 0 ] = bbuf.get( ioff );
+        }
+        else {
+            synchronized ( bbuf ) {
+                bbuf.position( ioff );
+                bbuf.get( a, 0, count );
+            }
+        }
+    }
+
+    static void readShorts( ByteBuffer bbuf, int ioff, int count, short[] a ) {
+        if ( count == 1 ) {
+            a[ 0 ] = bbuf.getShort( ioff );
+        }
+        else {
+            synchronized ( bbuf ) {
+                bbuf.position( ioff );
+                bbuf.asShortBuffer().get( a, 0, count );
+            }
+        }
+    }
+
+    static void readInts( ByteBuffer bbuf, int ioff, int count, int[] a ) {
+        if ( count == 1 ) {
+            a[ 0 ] = bbuf.getInt( ioff );
+        }
+        else {
+            synchronized ( bbuf ) {
+                bbuf.position( ioff );
+                bbuf.asIntBuffer().get( a, 0, count );
+            }
+        }
+    }
+
+    static void readLongs( ByteBuffer bbuf, int ioff, int count, long[] a ) {
+        if ( count == 1 ) {
+            a[ 0 ] = bbuf.getLong( ioff );
+        }
+        else {
+            synchronized ( bbuf ) {
+                bbuf.position( ioff );
+                bbuf.asLongBuffer().get( a, 0, count );
+            }
+        }
+    }
+
+    static void readFloats( ByteBuffer bbuf, int ioff, int count, float[] a ) {
+        if ( count == 1 ) {
+            a[ 0 ] = bbuf.getFloat( ioff );
+        }
+        else {
+            synchronized ( bbuf ) {
+                bbuf.position( ioff );
+                bbuf.asFloatBuffer().get( a, 0, count );
+            }
+        }
+    }
+
+    static void readDoubles( ByteBuffer bbuf, int ioff, int count,
+                             double[] a ) {
+        if ( count == 1 ) {
+            a[ 0 ] = bbuf.getDouble( ioff );
+        }
+        else {
+            synchronized ( bbuf ) {
+                bbuf.position( ioff );
+                bbuf.asDoubleBuffer().get( a, 0, count );
+            }
+        }
+    }
+
     /**
      * Tedious.  You'd think there was an implementation of this in the
      * J2SE somewhere, but I can't see one.

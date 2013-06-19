@@ -42,22 +42,9 @@ public class SimpleNioBuf implements Buf {
     }
 
     public String readAsciiString( Pointer ptr, int nbyte ) {
-        byte[] abuf = new byte[ nbyte ];
-        synchronized ( byteBuf_ ) {
-            byteBuf_.position( toInt( ptr.getAndIncrement( nbyte ) ) );
-            byteBuf_.get( abuf, 0, nbyte );
-        }
-        StringBuilder sbuf = new StringBuilder( nbyte );
-        for ( int i = 0; i < nbyte; i++ ) {
-            byte b = abuf[ i ];
-            if ( b == 0 ) {
-                break;
-            }
-            else {
-                sbuf.append( (char) b );
-            }
-        }
-        return sbuf.toString();
+        return Bufs.readAsciiString( byteBuf_,
+                                     toInt( ptr.getAndIncrement( nbyte ) ),
+                                     nbyte );
     }
 
     public synchronized void setBit64( boolean isBit64 ) {
@@ -79,75 +66,27 @@ public class SimpleNioBuf implements Buf {
     }
 
     public void readDataBytes( long offset, int count, byte[] array ) {
-        if ( count == 1 ) {
-            array[ 0 ] = dataBuf_.get( toInt( offset ) );
-        }
-        else {
-            synchronized ( dataBuf_ ) {
-                dataBuf_.position( toInt( offset ) );
-                dataBuf_.get( array, 0, count );
-            }
-        }
+        Bufs.readBytes( dataBuf_, toInt( offset ), count, array );
     }
 
     public void readDataShorts( long offset, int count, short[] array ) {
-        if ( count == 1 ) {
-            array[ 0 ] = dataBuf_.getShort( toInt( offset ) );
-        }
-        else {
-            synchronized ( dataBuf_ ) {
-                dataBuf_.position( toInt( offset ) );
-                dataBuf_.asShortBuffer().get( array, 0, count );
-            }
-        }
+        Bufs.readShorts( dataBuf_, toInt( offset ), count, array );
     }
 
     public void readDataInts( long offset, int count, int[] array ) {
-        if ( count == 1 ) {
-            array[ 0 ] = dataBuf_.getInt( toInt( offset ) );
-        }
-        else {
-            synchronized ( dataBuf_ ) {
-                dataBuf_.position( toInt( offset ) );
-                dataBuf_.asIntBuffer().get( array, 0, count );
-            }
-        }
+        Bufs.readInts( dataBuf_, toInt( offset ), count, array );
     }
 
     public void readDataLongs( long offset, int count, long[] array ) {
-        if ( count == 1 ) {
-            array[ 0 ] = dataBuf_.getLong( toInt( offset ) );
-        }
-        else {
-            synchronized ( dataBuf_ ) {
-                dataBuf_.position( toInt( offset ) );
-                dataBuf_.asLongBuffer().get( array, 0, count );
-            }
-        }
+        Bufs.readLongs( dataBuf_, toInt( offset ), count, array );
     }
 
     public void readDataFloats( long offset, int count, float[] array ) {
-        if ( count == 1 ) {
-            array[ 0 ] = dataBuf_.getFloat( toInt( offset ) );
-        }
-        else {
-            synchronized ( dataBuf_ ) {
-                dataBuf_.position( toInt( offset ) );
-                dataBuf_.asFloatBuffer().get( array, 0, count );
-            }
-        }
+        Bufs.readFloats( dataBuf_, toInt( offset ), count, array );
     }
 
     public void readDataDoubles( long offset, int count, double[] array ) {
-        if ( count == 1 ) {
-            array[ 0 ] = dataBuf_.getDouble( toInt( offset ) );
-        }
-        else {
-            synchronized ( dataBuf_ ) {
-                dataBuf_.position( toInt( offset ) );
-                dataBuf_.asDoubleBuffer().get( array, 0, count );
-            }
-        }
+        Bufs.readDoubles( dataBuf_, toInt( offset ), count, array );
     }
 
     public InputStream createInputStream( long offset ) {

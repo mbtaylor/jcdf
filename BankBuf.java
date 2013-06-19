@@ -81,25 +81,10 @@ public abstract class BankBuf implements Buf {
     }
 
     public String readAsciiString( Pointer ptr, int nbyte ) throws IOException {
-        long pos = ptr.getAndIncrement( nbyte );
-        Bank bank = getBank( pos, nbyte );
-        byte[] abuf = new byte[ nbyte ];
-        ByteBuffer bbuf = bank.byteBuffer_;
-        synchronized ( bbuf ) {
-            bbuf.position( bank.adjust( pos ) );
-            bbuf.get( abuf, 0, nbyte );
-        }
-        StringBuilder sbuf = new StringBuilder( nbyte );
-        for ( int i = 0; i < nbyte; i++ ) {
-            byte b = abuf[ i ];
-            if ( b == 0 ) {
-                break;
-            }
-            else {
-                sbuf.append( (char) b );
-            }
-        }
-        return sbuf.toString();
+        long offset = ptr.getAndIncrement( nbyte );
+        Bank bank = getBank( offset, nbyte );
+        return Bufs.readAsciiString( bank.byteBuffer_, bank.adjust( offset ),
+                                     nbyte );
     }
 
     public synchronized void setBit64( boolean isBit64 ) {
@@ -124,97 +109,40 @@ public abstract class BankBuf implements Buf {
     public void readDataBytes( long offset, int count, byte[] array )
             throws IOException {
         Bank bank = getBank( offset, count );
-        ByteBuffer dbuf = bank.dataBuffer_;
-        int apos = bank.adjust( offset );
-        if ( count == 1 ) {
-            array[ 0 ] = dbuf.get( apos );
-        }
-        else {
-            synchronized ( dbuf ) {
-                dbuf.position( apos );
-                dbuf.get( array, 0, count );
-            }
-        }
+        Bufs.readBytes( bank.dataBuffer_, bank.adjust( offset ), count, array );
     }
 
     public void readDataShorts( long offset, int count, short[] array )
             throws IOException {
         Bank bank = getBank( offset, count * 2 );
-        ByteBuffer dbuf = bank.dataBuffer_;
-        int apos = bank.adjust( offset );
-        if ( count == 1 ) {
-            array[ 0 ] = dbuf.getShort( apos );
-        }
-        else {
-            synchronized ( dbuf ) {
-                dbuf.position( apos );
-                dbuf.asShortBuffer().get( array, 0, count );
-            }
-        }
+        Bufs.readShorts( bank.dataBuffer_, bank.adjust( offset ),
+                         count, array );
     }
 
     public void readDataInts( long offset, int count, int[] array )
             throws IOException {
         Bank bank = getBank( offset, count * 4 );
-        ByteBuffer dbuf = bank.dataBuffer_;
-        int apos = bank.adjust( offset );
-        if ( count == 1 ) {
-            array[ 0 ] = dbuf.getInt( apos );
-        }
-        else {
-            synchronized ( dbuf ) {
-                dbuf.position( apos );
-                dbuf.asIntBuffer().get( array, 0, count );
-            }
-        }
+        Bufs.readInts( bank.dataBuffer_, bank.adjust( offset ), count, array );
     }
 
     public void readDataLongs( long offset, int count, long[] array )
             throws IOException {
         Bank bank = getBank( offset, count * 8 );
-        ByteBuffer dbuf = bank.dataBuffer_;
-        int apos = bank.adjust( offset );
-        if ( count == 1 ) {
-            array[ 0 ] = dbuf.getLong( apos );
-        }
-        else {
-            synchronized ( dbuf ) {
-                dbuf.position( apos );
-                dbuf.asLongBuffer().get( array, 0, count );
-            }
-        }
+        Bufs.readLongs( bank.dataBuffer_, bank.adjust( offset ), count, array );
     }
 
     public void readDataFloats( long offset, int count, float[] array )
             throws IOException {
         Bank bank = getBank( offset, count * 4 );
-        ByteBuffer dbuf = bank.dataBuffer_;
-        int apos = bank.adjust( offset );
-        if ( count == 1 ) {
-            array[ 0 ] = dbuf.getFloat( apos );
-        }
-        else {
-            synchronized ( dbuf ) {
-                dbuf.position( apos );
-                dbuf.asFloatBuffer().get( array, 0, count );
-            }
-        }
+        Bufs.readFloats( bank.dataBuffer_, bank.adjust( offset ),
+                         count, array );
     }
 
     public void readDataDoubles( long offset, int count, double[] array )
             throws IOException {
         Bank bank = getBank( offset, count * 8 );
-        ByteBuffer dbuf = bank.dataBuffer_;
-        int apos = bank.adjust( offset );
-        if ( count == 1 ) {
-            array[ 0 ] = dbuf.getDouble( apos );
-        }
-        else {
-            synchronized ( dbuf ) {
-                dbuf.position( apos );
-                dbuf.asDoubleBuffer().get( array, 0, count );
-            }
-        }
+        Bufs.readDoubles( bank.dataBuffer_, bank.adjust( offset ),
+                          count, array );
     }
 
     public InputStream createInputStream( final long offset ) {
