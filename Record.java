@@ -41,7 +41,7 @@ public abstract class Record {
         return abbrev_;
     }
 
-    public long getContentOffset() throws IOException {
+    public long getContentOffset() {
         return plan_.createContentPointer().get();
     }
 

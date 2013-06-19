@@ -20,8 +20,4 @@ public class Pointer {
     public void set( long value ) {
         value_ = value;
     }
-
-    public void increment( int increment ) {
-        value_ += increment;
-    }
 }

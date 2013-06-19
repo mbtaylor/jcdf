@@ -1,7 +1,5 @@
 package cdf;
 
-import java.io.IOException;
-
 public class RecordPlan {
 
     private final long start_;
@@ -28,17 +26,20 @@ public class RecordPlan {
         return buf_;
     }
 
-    public Pointer createContentPointer() throws IOException {
-        Pointer ptr = new Pointer( start_ );
-
-        // This is slightly wasteful (reading rather than just calculating
-        // the offset), but it ensures that the content offset is correct -
-        // buf may read 4 or 8 bytes for the record size.
-        buf_.readOffset( ptr );  // record size
-        buf_.readInt( ptr );     // record type
-        return ptr;
+    public Pointer createContentPointer() {
+        long pos = start_;
+        pos += buf_.isBit64() ? 8 : 4;  // record size
+        pos += 4;                       // record type
+        return new Pointer( pos );
     }
 
+    /**
+     * Returns the number of bytes in this record read (or skipped) by the
+     * current state of a given pointer.
+     *
+     * @param   ptr  pointer
+     * @return  number of bytes between record start and pointer value
+     */
     public long getReadCount( Pointer ptr ) {
         return ptr.get() - start_;
     }

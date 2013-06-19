@@ -82,8 +82,8 @@ public abstract class VariableDescriptorRecord extends Record {
         for ( int i = 0; i < ndim; i++ ) {
             dimVarys_[ i ] = iDimVarys[ i ] != 0;
         }
-        padOffset_ = hasPad ? ptr.get() : -1L;
-        ptr.increment( padBytes_ );
+        long padpos = ptr.getAndIncrement( padBytes_ );
+        padOffset_ = hasPad ? padpos : -1L;
         checkEndRecord( ptr );
     }
 
