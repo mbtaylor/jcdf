@@ -2,11 +2,22 @@ package cdf;
 
 import java.io.IOException;
 
+/**
+ * Field data for CDF record of type Unused Internal Record.
+ *
+ * @author   Mark Taylor
+ * @since    19 Jun 2013
+ */
 public class UnusedInternalRecord extends Record {
 
     public final long nextUir_;
     public final long prevUir_;
 
+    /**
+     * Constructor.
+     *
+     * @param  plan   basic record information
+     */
     public UnusedInternalRecord( RecordPlan plan ) throws IOException {
         super( plan, "UIR", -1 );
         Buf buf = plan.getBuf();

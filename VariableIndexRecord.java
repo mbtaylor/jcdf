@@ -2,6 +2,12 @@ package cdf;
 
 import java.io.IOException;
 
+/**
+ * Field data for CDF record of type Variable Index Record.
+ *
+ * @author   Mark Taylor
+ * @since    19 Jun 2013
+ */
 public class VariableIndexRecord extends Record {
 
     public final long vxrNext_;
@@ -11,6 +17,11 @@ public class VariableIndexRecord extends Record {
     public final int[] last_;
     public final long[] offset_;
 
+    /** 
+     * Constructor.
+     *
+     * @param  plan   basic record information
+     */
     public VariableIndexRecord( RecordPlan plan ) throws IOException {
         super( plan, "VXR", 6 );
         Buf buf = plan.getBuf();

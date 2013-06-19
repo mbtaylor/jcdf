@@ -2,6 +2,13 @@ package cdf;
 
 import java.io.IOException;
 
+/**
+ * Abstract superclass for CDF Variable Descriptor Records.
+ * Two concrete subclasses exist for rVDRs and zVDRs.
+ *
+ * @author   Mark Taylor
+ * @since    19 Jun 2013
+ */
 public abstract class VariableDescriptorRecord extends Record {
 
     public final long vdrNext_;
@@ -25,6 +32,16 @@ public abstract class VariableDescriptorRecord extends Record {
     private final long padOffset_;
     private final int padBytes_;
 
+    /**
+     * Constructor.
+     *
+     * @param  plan  basic record info
+     * @param  abbrev   abbreviated name for record type
+     * @param  recordType   record type code
+     * @param  hasDims  true iff the zNumDims and zDimSizes fields
+     *                  will be present
+     * @param  nameLeng  number of characters used for attribute names
+     */
     private VariableDescriptorRecord( RecordPlan plan, String abbrev,
                                       int recordType, boolean hasDims,
                                       int nameLeng )
@@ -88,23 +105,52 @@ public abstract class VariableDescriptorRecord extends Record {
     }
 
     /**
-     * Will be -1 if no pad.
+     * Returns the file offset at which this record's PadValue can be found.
+     * If there is no pad value, -1 is returned.
+     *
+     * @return  pad file offset, or -1
      */
     public long getPadValueOffset() {
         return padOffset_;
     }
 
+    /**
+     * Returns the number of bytes in the pad value.
+     * If there is no pad value, 0 is returned.
+     *
+     * @return  pad value size in bytes
+     */
     public int getPadValueSize() {
         return padBytes_;
     }
 
+    /**
+     * Field data for CDF record of type rVariable Descriptor Record.
+     */
     public static class RVariant extends VariableDescriptorRecord {
+
+        /**
+         * Constructor.
+         *
+         * @param  plan  basic record info
+         * @param  nameLeng  number of characters used for attribute names
+         */
         public RVariant( RecordPlan plan, int nameLeng ) throws IOException {
             super( plan, "rVDR", 3, false, nameLeng );
         }
     }
 
+    /**
+     * Field data for CDF record of type zVariable Descriptor Record.
+     */
     public static class ZVariant extends VariableDescriptorRecord {
+
+        /**
+         * Constructor.
+         *
+         * @param  plan  basic record info
+         * @param  nameLeng  number of characters used for attribute names
+         */
         public ZVariant( RecordPlan plan, int nameLeng ) throws IOException {
             super( plan, "zVDR", 8, true, nameLeng );
         }

@@ -2,6 +2,12 @@ package cdf;
 
 import java.io.IOException;
 
+/**
+ * Field data for CDF record of type Global Descriptor Record.
+ *
+ * @author   Mark Taylor
+ * @since    19 Jun 2013
+ */
 public class GlobalDescriptorRecord extends Record {
 
     public final long rVdrHead_;
@@ -19,6 +25,11 @@ public class GlobalDescriptorRecord extends Record {
     public final int rfuE_;
     public final int[] rDimSizes_;
 
+    /**
+     * Constructor.
+     *
+     * @param  plan   basic record information
+     */
     public GlobalDescriptorRecord( RecordPlan plan ) throws IOException {
         super( plan, "GDR", 2 );
         Buf buf = plan.getBuf();

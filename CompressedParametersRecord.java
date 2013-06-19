@@ -2,6 +2,12 @@ package cdf;
 
 import java.io.IOException;
 
+/**
+ * Field data for CDF record of type Compressed Parameters Record.
+ *
+ * @author   Mark Taylor
+ * @since    19 Jun 2013
+ */
 public class CompressedParametersRecord extends Record {
 
     public final int cType_;
@@ -9,6 +15,11 @@ public class CompressedParametersRecord extends Record {
     public final int pCount_;
     public final int[] cParms_;
 
+    /**
+     * Constructor.
+     *
+     * @param  plan   basic record information
+     */
     public CompressedParametersRecord( RecordPlan plan ) throws IOException {
         super( plan, "CPR", 11 );
         Buf buf = plan.getBuf();

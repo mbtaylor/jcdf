@@ -2,6 +2,12 @@ package cdf;
 
 import java.io.IOException;
 
+/**
+ * Field data for CDF record of type CDF Descriptor Record.
+ *
+ * @author   Mark Taylor
+ * @since    19 Jun 2013
+ */
 public class CdfDescriptorRecord extends Record {
 
     public final long gdrOffset_;
@@ -16,6 +22,11 @@ public class CdfDescriptorRecord extends Record {
     public final int rfuE_;
     public final String[] copyright_;
 
+    /**
+     * Constructor.
+     *
+     * @param   plan   basic record information
+     */
     public CdfDescriptorRecord( RecordPlan plan ) throws IOException {
         super( plan, "CDR", 1 );
         Buf buf = plan.getBuf();
@@ -35,7 +46,15 @@ public class CdfDescriptorRecord extends Record {
         checkEndRecord( ptr );
     }
 
-    public boolean versionAtLeast( int targetVersion, int targetRelease ) {
+    /**
+     * Determines whether this CDR represents a CDF version of equal to
+     * or greater than a given target version.
+     *
+     * @param   targetVersion  major version number to test against
+     * @param   targetRelease  minor version number to test against
+     * @return  true iff this version is at least targetVersion.targetRelease
+     */
+    private boolean versionAtLeast( int targetVersion, int targetRelease ) {
         return version_ > targetVersion
             || version_ == targetVersion && release_ >= targetRelease;
     }

@@ -2,6 +2,13 @@ package cdf;
 
 import java.io.IOException;
 
+/**
+ * Abstract superclass for CDF Attribute Entry Descriptor Records.
+ * Two concrete subclasses exist for AzEDRs and AgrEDRs.
+ *
+ * @author   Mark Taylor
+ * @since    19 Jun 2013
+ */
 public abstract class AttributeEntryDescriptorRecord extends Record {
 
     public final long aedrNext_;
@@ -16,6 +23,13 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
     public final int rfuE_;
     private final long valueOffset_;
 
+    /**
+     * Constructor.
+     *
+     * @param  plan  basic record info
+     * @param  abbrev  abbreviated name for record type
+     * @param  recordType  record type code
+     */
     private AttributeEntryDescriptorRecord( RecordPlan plan, String abbrev,
                                             int recordType )
             throws IOException {
@@ -35,19 +49,40 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
         valueOffset_ = ptr.get();
     }
 
+    /**
+     * Returns the file offset at which this record's Value field starts.
+     *
+     * @return  file offset of Value field
+     */
     public long getValueOffset() {
         return valueOffset_;
     }
 
+    /**
+     * Field data for CDF record of type Attribute g/rEntry Descriptor Record.
+     */
     public static class GrVariant extends AttributeEntryDescriptorRecord {
-        public static final int RECORD_TYPE = 5;
+
+        /**
+         * Constructor.
+         *
+         * @param  plan   basic record information
+         */
         public GrVariant( RecordPlan plan ) throws IOException {
             super( plan, "AgrEDR", 5 );
         }
     }
 
+    /**
+     * Field data for CDF record of type Attribute zEntry Descriptor Record.
+     */
     public static class ZVariant extends AttributeEntryDescriptorRecord {
-        public static final int RECORD_TYPE = 9;
+
+        /**
+         * Constructor.
+         *
+         * @param  plan   basic record information
+         */
         public ZVariant( RecordPlan plan ) throws IOException {
             super( plan, "AzEDR", 9 );
         }

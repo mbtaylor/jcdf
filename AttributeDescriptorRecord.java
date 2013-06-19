@@ -2,6 +2,12 @@ package cdf;
 
 import java.io.IOException;
 
+/**
+ * Field data for CDF record of type Attribute Descriptor Record.
+ *
+ * @author   Mark Taylor
+ * @since    19 Jun 2013
+ */
 public class AttributeDescriptorRecord extends Record {
 
     public final long adrNext_;
@@ -17,6 +23,12 @@ public class AttributeDescriptorRecord extends Record {
     public final int rfuE_;
     public final String name_;
 
+    /**
+     * Constructor.
+     *
+     * @param  plan  basic record info
+     * @param  nameLeng  number of characters used for attribute names
+     */
     public AttributeDescriptorRecord( RecordPlan plan, int nameLeng )
             throws IOException {
         super( plan, "ADR", 4 );
