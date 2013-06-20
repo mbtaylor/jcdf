@@ -30,7 +30,8 @@ CDF Data Format version:
    supported, maybe others, but I haven't checked them all.
 
 Large files:
-   No file size restriction (>2Gb is allowed).
+   No file size restriction.  Files >2Gb are allowed, but require use
+   of a 64-bit system (OS+JVM).
 
 Fill values:
    Implemented for CDF and CEF for scalars and floating point arrays.
@@ -44,11 +45,6 @@ I/O:
 
 Array access:
    Read raw array or shaped array - less flexibility than HyperRead.
-
-Exceptions:
-   Currently unchecked.  Probably need to subclass from IOException.
-   Check they behave OK for instance when encountering an unsupported
-   compression format during cell read.
 
 
 Implementation notes for CEF
@@ -92,9 +88,13 @@ Code status:
    Code is public on github (https://github.com/mbtaylor/cdf)
    but not formally released.
 
-   No user documentation etc.
+   Javadocs mostly done.
 
-   No unit tests.
+   Some tests involving comparison of simple data files with results
+   from CDF library tools, and matching CDF files that have been
+   modified using CDF format conversion tools.  This is not a bad
+   suite of tests, though more could be added.  Some CDF data types
+   not tested, since I can't find and test data (e.g. EPOCH16 variables).
 
 Release questions:
    Any opinions on how release should be done?
@@ -125,15 +125,15 @@ SAMP:
    TOPCAT user documentation at v4.0-b, though it will be in later
    releases.
 
+   Discussion of table.load.cdf (and maybe .cef) under way on apps-samp.
+
 
 Plans:
 ------
 
 CDF/CEF I/O:
-   Some more work to do, though how much depends on how complete
-   compatibility is required.
-   Public independent CDF/CEF library release (when?)
-   Improvements in CDF compatibility (how much effort?)
+   Public independent CDF library release (when?)
+   CEF within STILTS?  doesn't really deserve its own library.
 
 TOPCAT visualisation:
    Implement time series layer plot (like stacked line plot?)
