@@ -4,6 +4,12 @@ import java.io.IOException;
 
 import java.lang.reflect.Array;
 
+/**
+ * Enumerates the data types supported by the CDF format.
+ *
+ * @author   Mark Taylor
+ * @since    20 Jun 2013
+ */
 public abstract class DataType {
 
     private final String name_;
@@ -30,8 +36,15 @@ public abstract class DataType {
     public static final DataType TIME_TT2000 = new Tt2kDataType( "TIME_TT2000");
     public static final DataType UCHAR = new CharDataType( "UCHAR" );
     
-    private static final DataType[] TYPE_TABLE = createTypeTable();
-
+    /**
+     * Constructor.
+     *
+     * @param  name  type name
+     * @param  byteCount  number of bytes to store one item
+     * @param  groupSize  number of elements of type
+     *                    <code>arrayElementClass</code> that are read
+     *                    into the value array for a single item read
+     */
     private DataType( String name, int byteCount, int groupSize,
                       Class<?> arrayElementClass, Class<?> scalarClass ) {
         name_ = name;
@@ -41,43 +54,108 @@ public abstract class DataType {
         scalarClass_ = scalarClass;
     }
 
+    /**
+     * Returns the name for this data type.
+     *
+     * @param  data type name
+     */
     public String getName() {
         return name_;
     }
 
+    /**
+     * Returns the number of bytes used in a CDF to store a single item
+     * of this type.
+     *
+     * @return  size in bytes
+     */
     public int getByteCount() {
         return byteCount_;
     }
 
+    /** 
+     * Returns the element class of an array that this data type can
+     * be read into.
+     * In most cases this is a primitive type or String.
+     *
+     * @return   array raw value element class
+     */
     public Class<?> getArrayElementClass() {
         return arrayElementClass_;
     }
 
+    /**
+     * Returns the type of objects obtained by the <code>getScalar</code>
+     * method.
+     *
+     * @return   scalar type associated with this data type
+     */
     public Class<?> getScalarClass() {
         return scalarClass_;
     }
 
+    /**
+     * Provides a string view of a scalar value obtained for this data type.
+     *
+     * @param  value   value returned by <code>getScalar</code>
+     * @return   string representation
+     */
     public String formatScalarValue( Object value ) {
-        return value.toString();
+        return value == null ? "" : value.toString();
     }
 
+    /**
+     * Provides a string view of an item obtained from an array value
+     * of this data type.
+     *
+     * @param   array  array value populated by <code>readValues</code>
+     * @param   index  index into array (not necessarily item count)
+     * @return  string representation
+     */
     public String formatArrayValue( Object array, int index ) {
-        return Array.get( array, index ).toString();
+        Object value = Array.get( array, index );
+        return value == null ? "" : value.toString();
     }
 
     /**
      * Number of elements of type arrayElementClass that are read into
      * valueArray for a single item read.
+     * This is usually 1, but not, for instance, for EPOCH16.
+     *
+     * @return   number of array elements per item
      */
     public int getGroupSize() {
         return groupSize_;
     }
 
+    /**
+     * Reads data of this data type from a buffer into an appropriately
+     * typed value array.
+     *
+     * @param   buf  data buffer
+     * @param   offset  byte offset into buffer at which data starts
+     * @param   numElems  number of elements per item;
+     *                    usually 1, but may not be for strings
+     * @param   valueArray  array to receive result data
+     * @param   count  number of items to read
+     */
     public abstract void readValues( Buf buf, long offset, int numElems,
                                      Object valueArray, int count )
             throws IOException;
 
-    /** Index is the index into the array. */
+    /** 
+     * Reads a single item from an array which has previously been
+     * populated by {@link #readValues readValues}.
+     * The class of the returned value is that returned by
+     * {@link #getScalarClass}.
+     *
+     * @param   valueArray  array filled with data for this data type
+     * @param  index  index into <code>valueArray</code> at which the item
+     *                to read is found; note this is not necessarily
+     *                the <code>index</code>'th data item in the array
+     * @return  scalar representation of object at position <code>index</code>
+     *          in <code>valueArray</code>
+     */
     public abstract Object getScalar( Object valueArray, int index );
 
     @Override
@@ -85,40 +163,40 @@ public abstract class DataType {
         return name_;
     }
 
-    public static DataType getDataType( int dtype ) throws CdfFormatException {
-        DataType dataType = dtype >= 0 && dtype < TYPE_TABLE.length
-                          ? TYPE_TABLE[ dtype ]
-                          : null;
-        if ( dataType != null ) {
-            return dataType;
-        }
-        else {
-            throw new CdfFormatException( "Unknown data type " + dtype );
+    /**
+     * Returns the DataType object corresponding to a CDF data type code.
+     *
+     * @param  dataType  dataType field of AEDR or VDR
+     * @return   data type object
+     */
+    public static DataType getDataType( int dataType )
+            throws CdfFormatException {
+        switch ( dataType ) {
+            case  1: return INT1;
+            case  2: return INT2;
+            case  4: return INT4;
+            case  8: return INT8;
+            case 11: return UINT1;
+            case 12: return UINT2;
+            case 14: return UINT4;
+            case 41: return BYTE;
+            case 21: return REAL4;
+            case 22: return REAL8;
+            case 44: return FLOAT;
+            case 45: return DOUBLE;
+            case 31: return EPOCH;
+            case 32: return EPOCH16;
+            case 33: return TIME_TT2000;
+            case 51: return CHAR;
+            case 52: return UCHAR;
+            default:
+                throw new CdfFormatException( "Unknown data type " + dataType );
         }
     }
 
-    private static final DataType[] createTypeTable() {
-        DataType[] table = new DataType[ 53 ];
-        table[ 1 ] = INT1;
-        table[ 2 ] = INT2;
-        table[ 4 ] = INT4;
-        table[ 8 ] = INT8;
-        table[ 11 ] = UINT1;
-        table[ 12 ] = UINT2;
-        table[ 14 ] = UINT4;
-        table[ 41 ] = BYTE;
-        table[ 21 ] = REAL4;
-        table[ 22 ] = REAL8;
-        table[ 44 ] = FLOAT;
-        table[ 45 ] = DOUBLE;
-        table[ 31 ] = EPOCH;
-        table[ 32 ] = EPOCH16;
-        table[ 33 ] = TIME_TT2000;
-        table[ 51 ] = CHAR;
-        table[ 52 ] = UCHAR;
-        return table;
-    }
-
+    /**
+     * DataType for signed 1-byte integer.
+     */
     private static final class Int1DataType extends DataType {
         Int1DataType( String name ) {
             super( name, 1, 1, byte.class, Byte.class );
@@ -132,6 +210,9 @@ public abstract class DataType {
         }
     }
 
+    /**
+     * DataType for signed 2-byte integer.
+     */
     private static final class Int2DataType extends DataType {
         Int2DataType( String name ) {
             super( name, 2, 1, short.class, Short.class );
@@ -145,6 +226,9 @@ public abstract class DataType {
         }
     }
 
+    /**
+     * DataType for signed 4-byte integer.
+     */
     private static final class Int4DataType extends DataType {
         Int4DataType( String name ) {
             super( name, 4, 1, int.class, Integer.class );
@@ -158,6 +242,9 @@ public abstract class DataType {
         }
     }
 
+    /**
+     * DataType for signed 8-byte integer.
+     */
     private static class Int8DataType extends DataType {
         Int8DataType( String name ) {
             super( name, 8, 1, long.class, Long.class );
@@ -171,6 +258,11 @@ public abstract class DataType {
         }
     }
 
+    /**
+     * DataType for unsigned 1-byte integer.
+     * Output values are 2-byte signed integers because of the difficulty
+     * of handling unsigned integers in java.
+     */
     private static class UInt1DataType extends DataType {
         UInt1DataType( String name ) {
             super( name, 1, 1, short.class, Short.class );
@@ -188,6 +280,11 @@ public abstract class DataType {
         }
     }
 
+    /**
+     * DataType for unsigned 2-byte integer.
+     * Output vaules are 4-byte signed integers because of the diffculty
+     * of handling unsigned integers in java.
+     */
     private static class UInt2DataType extends DataType {
         UInt2DataType( String name ) {
             super( name, 2, 1, int.class, Integer.class );
@@ -209,6 +306,11 @@ public abstract class DataType {
         }
     }
 
+    /** 
+     * DataType for unsigned 4-byte integer.
+     * Output values are 8-byte signed integers because of the difficulty
+     * of handling unsigned integers in java.
+     */
     private static class UInt4DataType extends DataType {
         UInt4DataType( String name ) {
             super( name, 4, 1, long.class, Long.class );
@@ -233,6 +335,9 @@ public abstract class DataType {
         }
     }
 
+    /**
+     * DataType for 4-byte floating point.
+     */
     private static class Real4DataType extends DataType {
         Real4DataType( String name ) {
             super( name, 4, 1, float.class, Float.class );
@@ -246,6 +351,9 @@ public abstract class DataType {
         }
     }
 
+    /**
+     * DataType for 8-byte floating point.
+     */
     private static class Real8DataType extends DataType {
         Real8DataType( String name ) {
             super( name, 8, 1, double.class, Double.class );
@@ -259,6 +367,9 @@ public abstract class DataType {
         }
     }
 
+    /**
+     * DataType for TIME_TT2000.
+     */
     private static class Tt2kDataType extends Int8DataType {
         final EpochFormatter formatter_ = new EpochFormatter();
         Tt2kDataType( String name ) {
@@ -280,6 +391,10 @@ public abstract class DataType {
         }
     }
 
+    /**
+     * DataType for 1-byte character.
+     * Output is as numElem-character String.
+     */
     private static class CharDataType extends DataType {
         CharDataType( String name ) {
             super( name, 1, 1, String.class, String.class );
@@ -300,6 +415,9 @@ public abstract class DataType {
         }
     }
 
+    /**
+     * DataType for 8-byte floating point epoch.
+     */
     private static class EpochDataType extends Real8DataType {
         private final EpochFormatter formatter_ = new EpochFormatter();
         EpochDataType( String name ) {
@@ -319,6 +437,10 @@ public abstract class DataType {
         }
     }
 
+    /**
+     * DataType for 16-byte (2*double) epoch.
+     * Output is as a 2-element array of doubles.
+     */
     private static class Epoch16DataType extends DataType {
         private final EpochFormatter formatter_ = new EpochFormatter();
         Epoch16DataType( String name ) {

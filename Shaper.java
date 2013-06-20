@@ -3,23 +3,99 @@ package cdf;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
+/**
+ * Takes care of turning raw variable record values into shaped
+ * record values.  The raw values are those stored in the CDF data stream,
+ * and the shaped ones are those notionally corresponding to record values.
+ *
+ * @author   Mark Taylor
+ * @since    20 Jun 2013
+ */
 public abstract class Shaper {
 
+    private final int[] dimSizes_;
+    private final boolean[] dimVarys_;
+
+    /**
+     * Constructor.
+     *
+     * @param   dimSizes  dimensionality of shaped array
+     * @param   dimVarys  for each dimension, true for varying, false for fixed
+     */
+    protected Shaper( int[] dimSizes, boolean[] dimVarys ) {
+        dimSizes_ = dimSizes;
+        dimVarys_ = dimVarys;
+    }
+
+    /**
+     * Returns the number of array elements in the raw value array.
+     *
+     * @return  raw value array size
+     */
     public abstract int getRawItemCount();
 
+
+    /**
+     * Returns the number of array elements in the shaped value array.
+     *
+     * @return  shaped value array size
+     */
     public abstract int getShapedItemCount();
 
-    public abstract int[] getDimSizes();
+    /** 
+     * Returns the dimensions of the notional array.
+     *
+     * @return   dimension sizes array
+     */
+    public int[] getDimSizes() {
+        return dimSizes_;
+    }
 
+    /**
+     * Returns the dimension variances of the array.
+     *
+     * @return   for each dimension, true if the data varies, false if fixed
+     */
+    public boolean[] getDimVarys() {
+        return dimVarys_;
+    }
+
+    /**
+     * Returns the data type of the result of the {@link #shape shape} method.
+     *
+     * @return  shaped value class
+     */
     public abstract Class<?> getShapeClass();
 
     /**
+     * Takes a raw value array and turns it into an object of
+     * the notional shape for this shaper.
      * The returned object is new; it is not rawValue.
+     *
+     * @param   rawValue  input raw value array
+     * @return  rowMajor  required majority for result;
+     *                    true for row major, false for column major
      */
     public abstract Object shape( Object rawValue, boolean rowMajor );
 
+    /**
+     * Returns the index into the raw value array at which the value for
+     * the given element of the notional array can be found.
+     *
+     * @param   coords  coordinate array, same length as dimensionality
+     * @return  index into raw value array
+     */
     public abstract int getArrayIndex( int[] coords );
 
+    /**
+     * Returns an appropriate shaper instance.
+     *
+     * @param   dataType  data type
+     * @param   dimSizes  dimensions of notional shaped array
+     * @param   dimVarys  variances of shaped array
+     * @param   rowMajor  majority of raw data array;
+     *                    true for row major, false for column major
+     */
     public static Shaper createShaper( DataType dataType,
                                        int[] dimSizes, boolean[] dimVarys,
                                        boolean rowMajor ) {
@@ -39,8 +115,9 @@ public abstract class Shaper {
             return new ScalarShaper( dataType );
         }
         else if ( ndim == 1  && nDimVary == 1 ) {
-            assert shapedItemCount == rawItemCount;
-            return new VectorShaper( dataType, dimSizes, shapedItemCount );
+            assert Arrays.equals( dimVarys, new boolean[] { true } ); 
+            assert Arrays.equals( dimSizes, new int[] { rawItemCount } );
+            return new VectorShaper( dataType, rawItemCount );
         }
         else if ( nDimVary == ndim ) {
             return new SimpleArrayShaper( dataType, dimSizes, rowMajor );
@@ -50,9 +127,19 @@ public abstract class Shaper {
         }
     }
 
+    /**
+     * Shaper implementation for scalar values.  Easy.
+     */
     private static class ScalarShaper extends Shaper {
         private final DataType dataType_;
+
+        /**
+         * Constructor.
+         *
+         * @param  dataType  data type
+         */
         ScalarShaper( DataType dataType ) {
+            super( new int[ 0 ], new boolean[ 0 ] );
             dataType_ = dataType;
         }
         public int getRawItemCount() {
@@ -60,9 +147,6 @@ public abstract class Shaper {
         }
         public int getShapedItemCount() {
             return 1;
-        }
-        public int[] getDimSizes() {
-            return new int[ 0 ];
         }
         public Class<?> getShapeClass() {
             return dataType_.getScalarClass();
@@ -80,13 +164,27 @@ public abstract class Shaper {
         }
     }
 
+    /**
+     * Shaper implementation for 1-dimensional arrays with true dimension
+     * variance along the single dimension.
+     * No need to worry about majority, since the question doesn't arise
+     * in one dimension.
+     */
     private static class VectorShaper extends Shaper {
-        private final int[] dimSizes_;
+        private final DataType dataType_;
         private final int itemCount_;
         private final int step_;
         private final Class<?> shapeClass_;
-        VectorShaper( DataType dataType, int[] dimSizes, int itemCount ) {
-            dimSizes_ = dimSizes;
+
+        /**
+         * Constructor.
+         *
+         * @param  dataType  data type
+         * @param  itemCount   number of elements in raw and shaped arrays
+         */
+        VectorShaper( DataType dataType, int itemCount ) {
+            super( new int[] { itemCount }, new boolean[] { true } );
+            dataType_ = dataType;
             itemCount_ = itemCount;
             step_ = dataType.getGroupSize();
             shapeClass_ = getArrayClass( dataType.getArrayElementClass() );
@@ -97,25 +195,30 @@ public abstract class Shaper {
         public int getShapedItemCount() {
             return itemCount_;
         }
-        public int[] getDimSizes() {
-            return dimSizes_;
-        }
         public Class<?> getShapeClass() {
             return shapeClass_;
         }
         public Object shape( Object rawValue, boolean rowMajor ) {
-            return rawValue;
+            Object out = Array.newInstance( dataType_.getArrayElementClass(),
+                                            itemCount_ );
+
+            // Contract requires that we return a new object.
+            System.arraycopy( rawValue, 0, out, 0, itemCount_ );
+            return out;
         }
         public int getArrayIndex( int[] coords ) {
             return coords[ 0 ] * step_;
         }
     }
 
+    /**
+     * Shaper implementation that can deal with multiple dimensions,
+     * majority switching, and dimension variances,
+     */
     private static class GeneralShaper extends Shaper {
 
         private final DataType dataType_;
         private final int[] dimSizes_;
-        private final boolean[] dimVarys_;
         private final boolean rowMajor_;
         private final int ndim_;
         private final int rawItemCount_;
@@ -124,11 +227,20 @@ public abstract class Shaper {
         private final int itemSize_;
         private final Class<?> shapeClass_;
         
+        /**
+         * Constructor.
+         *
+         * @param   dataType  data type
+         * @param   dimSizes  dimensionality of shaped array
+         * @param   dimVarys  variances of shaped array
+         * @param   rowMajor  majority of raw data array;
+         *                    true for row major, false for column major
+         */
         GeneralShaper( DataType dataType, int[] dimSizes, boolean[] dimVarys,
                        boolean rowMajor ) {
+            super( dimSizes, dimVarys );
             dataType_ = dataType;
             dimSizes_ = dimSizes;
-            dimVarys_ = dimVarys;
             rowMajor_ = rowMajor;
             ndim_ = dimSizes.length;
 
@@ -159,10 +271,6 @@ public abstract class Shaper {
 
         public int getShapedItemCount() {
             return shapedItemCount_;
-        }
-
-        public int[] getDimSizes() {
-            return dimSizes_;
         }
 
         public int getArrayIndex( int[] coords ) {
@@ -197,11 +305,23 @@ public abstract class Shaper {
         }
     }
 
+    /**
+     * Shaper implementation that can deal with multiple dimensions and
+     * majority switching, but not false dimension variances.
+     */
     private static class SimpleArrayShaper extends GeneralShaper {
 
         private final DataType dataType_;
         private final boolean rowMajor_;
 
+        /**
+         * Constructor.
+         *
+         * @param   dataType  data type
+         * @param   dimSizes  dimensionality of shaped array
+         * @param   rowMajor  majority of raw data array;
+         *                    true for row major, false for column major
+         */
         public SimpleArrayShaper( DataType dataType, int[] dimSizes,
                                   boolean rowMajor ) {
             super( dataType, dimSizes, trueArray( dimSizes.length ),
@@ -228,6 +348,13 @@ public abstract class Shaper {
             }
         }
 
+        /**
+         * Utility method that returns a boolean array of a given size
+         * populated with true values.
+         *
+         * @param  n  size
+         * @return   n-element array filled with true
+         */
         private static boolean[] trueArray( int n ) {
             boolean[] a = new boolean[ n ];
             Arrays.fill( a, true );
@@ -235,6 +362,12 @@ public abstract class Shaper {
         }
     }
 
+    /**
+     * Returns the array class corresponding to a given scalar class.
+     *
+     * @param  elementClass  scalar class
+     * @return   array class
+     */
     private static Class<?> getArrayClass( Class elementClass ) {
         return Array.newInstance( elementClass, 0 ).getClass();
     }
