@@ -107,13 +107,16 @@ public abstract class DataType {
     /**
      * Provides a string view of an item obtained from an array value
      * of this data type.
+     * <p>The <code>arrayIndex</code> argument is the index into the 
+     * array object, not necessarily the item index -
+     * see the {@link #getArrayIndex getArrayIndex} method.
      *
      * @param   array  array value populated by <code>readValues</code>
-     * @param   index  index into array (not necessarily item count)
+     * @param   arrayIndex  index into array
      * @return  string representation
      */
-    public String formatArrayValue( Object array, int index ) {
-        Object value = Array.get( array, index );
+    public String formatArrayValue( Object array, int arrayIndex ) {
+        Object value = Array.get( array, arrayIndex );
         return value == null ? "" : value.toString();
     }
 
@@ -126,6 +129,16 @@ public abstract class DataType {
      */
     public int getGroupSize() {
         return groupSize_;
+    }
+
+    /**
+     * Returns the index into a value array which corresponds to the
+     * <code>item</code>'th element.
+     *
+     * @return   <code>itemIndex</code> * <code>groupSize</code>
+     */
+    public int getArrayIndex( int itemIndex ) {
+        return groupSize_ * itemIndex;
     }
 
     /**
@@ -149,14 +162,16 @@ public abstract class DataType {
      * The class of the returned value is that returned by
      * {@link #getScalarClass}.
      *
+     * <p>The <code>arrayIndex</code> argument is the index into the 
+     * array object, not necessarily the item index -
+     * see the {@link #getArrayIndex getArrayIndex} method.
+     *
      * @param   valueArray  array filled with data for this data type
-     * @param  index  index into <code>valueArray</code> at which the item
-     *                to read is found; note this is not necessarily
-     *                the <code>index</code>'th data item in the array
+     * @param  arrayIndex  index into array at which the item to read is found
      * @return  scalar representation of object at position <code>index</code>
      *          in <code>valueArray</code>
      */
-    public abstract Object getScalar( Object valueArray, int index );
+    public abstract Object getScalar( Object valueArray, int arrayIndex );
 
     @Override
     public String toString() {

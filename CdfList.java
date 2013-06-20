@@ -84,8 +84,9 @@ public class CdfList {
         if ( abuf == null ) {
         }
         else if ( abuf.getClass().isArray() ) {
+            int groupSize = dataType.getGroupSize();
             int len = Array.getLength( abuf );
-            for ( int i = 0; i < len; i++ ) {
+            for ( int i = 0; i < len; i += groupSize ) {
                 if ( i > 0 ) {
                     sbuf.append( ", " );
                 }
