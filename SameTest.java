@@ -29,11 +29,11 @@ public class SameTest {
     }
 
     public void run() throws IOException {
-        CdfContent c0 = new CdfReader( files_[ 0 ] ).readCdf();
+        CdfContent c0 = new CdfReader( files_[ 0 ] ).readContent();
         context_.clear();
         for ( int i = 1; i < files_.length; i++ ) {
             pushContext( files_[ 0 ].getName(), files_[ i ].getName() );
-            compareCdf( c0, new CdfReader( files_[ i ] ).readCdf() );
+            compareCdf( c0, new CdfReader( files_[ i ] ).readContent() );
             popContext();
         }
         if ( nerror_ > 0 ) {

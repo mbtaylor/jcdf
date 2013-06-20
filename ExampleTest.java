@@ -22,7 +22,7 @@ public class ExampleTest {
     private static boolean assertionsOn_;
 
     public void testExample1( File ex1file ) throws IOException {
-        CdfContent content = new CdfReader( ex1file ).readCdf();
+        CdfContent content = new CdfReader( ex1file ).readContent();
 
         GlobalAttribute[] gatts = content.getGlobalAttributes();
         assert gatts.length == 1;
@@ -73,7 +73,7 @@ public class ExampleTest {
     }
 
     public void testExample2( File ex2file ) throws IOException {
-        CdfContent content = new CdfReader( ex2file ).readCdf();
+        CdfContent content = new CdfReader( ex2file ).readContent();
 
         GlobalAttribute[] gatts = content.getGlobalAttributes();
         assert gatts.length == 1;

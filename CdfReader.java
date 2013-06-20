@@ -131,7 +131,7 @@ public class CdfReader {
         return cdr_;
     }
 
-    public CdfContent readCdf() throws IOException {
+    public CdfContent readContent() throws IOException {
         CdfDescriptorRecord cdr = cdr_;
         Buf buf = buf_;
 

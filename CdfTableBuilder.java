@@ -78,7 +78,7 @@ public class CdfTableBuilder implements TableBuilder {
         // Fix the Buf implementation so that it uses the supplied
         // storage policy for allocating any more required storage.
         Buf buf = new StoragePolicyBuf( nbuf, storagePolicy );
-        CdfContent content = new CdfReader( buf ).readCdf();
+        CdfContent content = new CdfReader( buf ).readContent();
         return new CdfStarTable( content, profile_ );
     }
 

@@ -28,7 +28,7 @@ public class CdfList {
     }
 
     public void run() throws IOException {
-        CdfContent cdf = crdr_.readCdf();
+        CdfContent cdf = crdr_.readContent();
         GlobalAttribute[] gAtts = cdf.getGlobalAttributes();
         VariableAttribute[] vAtts = cdf.getVariableAttributes();
         Variable[] vars = cdf.getVariables();
