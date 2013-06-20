@@ -121,6 +121,13 @@ public class SameTest {
                           var1.readShapedRecord( irec, true, work1 ) );
             popContext();
         }
+        if ( nrec > 0 ) {
+            // see readShapedRecord contract.
+            assert var0.readShapedRecord( 0, false, work0 ) != work0;
+            assert var1.readShapedRecord( 1, false, work1 ) != work1;
+            assert var0.readShapedRecord( 0, true, work0 ) != work0;
+            assert var1.readShapedRecord( 1, true, work1 ) != work1;
+        }
         popContext();
     }
 
