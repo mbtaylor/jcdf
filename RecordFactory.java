@@ -31,6 +31,8 @@ public class RecordFactory {
 
     /**
      * Creates a Record object from a given position in a buffer.
+     * The returned object will be an instance of one of the
+     * Record subclasses as appropriate for its type.
      *
      * @param  buf  byte buffer
      * @param  offset  start of record in buf
@@ -63,11 +65,13 @@ public class RecordFactory {
 
     /** 
      * Creates a Record object with a known type from a given position in
-     * a buffer.
+     * a buffer.  This simply calls the untyped <code>getRecord</code>
+     * method, and attempts to cast the result, throwing a
+     * CdfFormatException if it has the wrong type.
      *
      * @param  buf  byte buffer
      * @param  offset  start of record in buf
-     * @param  clazz   record class required
+     * @param  clazz   record class asserted for the result
      * @return  record
      * @throws  CdfFormatException  if the record found there turns out
      *          not to be of type <code>clazz</code>
