@@ -106,10 +106,6 @@ class VdrVariable implements Variable {
         return dataType_;
     }
 
-    public DataReader getDataReader() {
-        return dataReader_;
-    }
-
     public Shaper getShaper() {
         return shaper_;
     }

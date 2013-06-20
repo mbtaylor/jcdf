@@ -14,7 +14,6 @@ public interface Variable {
      */
     int getRecordCount();
     DataType getDataType();
-    DataReader getDataReader();
     Shaper getShaper();
     boolean getRecordVariance();
 
