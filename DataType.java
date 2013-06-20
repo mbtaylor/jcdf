@@ -57,7 +57,7 @@ public abstract class DataType {
     /**
      * Returns the name for this data type.
      *
-     * @param  data type name
+     * @return  data type name
      */
     public String getName() {
         return name_;
@@ -92,32 +92,6 @@ public abstract class DataType {
      */
     public Class<?> getScalarClass() {
         return scalarClass_;
-    }
-
-    /**
-     * Provides a string view of a scalar value obtained for this data type.
-     *
-     * @param  value   value returned by <code>getScalar</code>
-     * @return   string representation
-     */
-    public String formatScalarValue( Object value ) {
-        return value == null ? "" : value.toString();
-    }
-
-    /**
-     * Provides a string view of an item obtained from an array value
-     * of this data type.
-     * <p>The <code>arrayIndex</code> argument is the index into the 
-     * array object, not necessarily the item index -
-     * see the {@link #getArrayIndex getArrayIndex} method.
-     *
-     * @param   array  array value populated by <code>readValues</code>
-     * @param   arrayIndex  index into array
-     * @return  string representation
-     */
-    public String formatArrayValue( Object array, int arrayIndex ) {
-        Object value = Array.get( array, arrayIndex );
-        return value == null ? "" : value.toString();
     }
 
     /**
@@ -172,6 +146,32 @@ public abstract class DataType {
      *          in <code>valueArray</code>
      */
     public abstract Object getScalar( Object valueArray, int arrayIndex );
+
+    /**
+     * Provides a string view of a scalar value obtained for this data type.
+     *
+     * @param  value   value returned by <code>getScalar</code>
+     * @return   string representation
+     */
+    public String formatScalarValue( Object value ) {
+        return value == null ? "" : value.toString();
+    }
+
+    /**
+     * Provides a string view of an item obtained from an array value
+     * of this data type.
+     * <p>The <code>arrayIndex</code> argument is the index into the 
+     * array object, not necessarily the item index -
+     * see the {@link #getArrayIndex getArrayIndex} method.
+     *
+     * @param   array  array value populated by <code>readValues</code>
+     * @param   arrayIndex  index into array
+     * @return  string representation
+     */
+    public String formatArrayValue( Object array, int arrayIndex ) {
+        Object value = Array.get( array, arrayIndex );
+        return value == null ? "" : value.toString();
+    }
 
     @Override
     public String toString() {
