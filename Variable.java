@@ -80,6 +80,9 @@ public interface Variable {
      * the given index.
      * Reading a record will give you a result in any case, but if this
      * returns false it will be some kind of fixed or default value.
+     *
+     * @param   irec  record index
+     * @return   true iff a file-based record exists for irec
      */
     boolean hasRecord( int irec ) throws IOException;
 
@@ -128,7 +131,8 @@ public interface Variable {
      *                   dimensionality &gt;=2
      * @param  rawValueArrayWorkspace  workspace array, as created by the
      *                                 <code>createRawValueArray</code> method
-     * @return   a new object (not the same object as <code>rawValueArray</code>
+     * @return   a new object containing the shaped result
+     *           (not the same object as <code>rawValueArray</code>
      */
     Object readShapedRecord( int irec, boolean rowMajor,
                              Object rawValueArrayWorkspace ) throws IOException;

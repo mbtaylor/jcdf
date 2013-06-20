@@ -6,6 +6,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Variable implementation based on a Variable Description Record.
+ *
+ * @author   Mark Taylor
+ * @since    20 Jun 2013
+ */
 class VdrVariable implements Variable {
 
     private final VariableDescriptorRecord vdr_;
@@ -23,8 +29,17 @@ class VdrVariable implements Variable {
     private final String summaryTxt_;
     private RecordReader recordReader_;
 
+    /**
+     * Constructor.
+     *
+     * @param   vdr   variable descriptor record for the variable
+     * @param   cdfInfo  global CDF information
+     * @param   recFact  record factory
+     */
     public VdrVariable( VariableDescriptorRecord vdr, CdfInfo info,
                         RecordFactory recFact ) throws IOException {
+
+        // Prepare state for reading data.
         vdr_ = vdr;
         buf_ = vdr.getBuf();
         recFact_ = recFact;
@@ -40,16 +55,9 @@ class VdrVariable implements Variable {
         int nraw = shaper_.getRawItemCount();
         dataReader_ = new DataReader( dataType_, numElems, nraw );
         rvaleng_ = Array.getLength( dataReader_.createValueArray() );
+
+        // Read pad value if present.
         long padOffset = vdr.getPadValueOffset();
-        String shapeTxt = "";
-        String varyTxt = "";
-        for ( int idim = 0; idim < dimSizes.length; idim++ ) {
-            if ( idim > 0 ) {
-                shapeTxt += ',';
-            }
-            shapeTxt += dimSizes[ idim ];
-            varyTxt += dimVarys[ idim ] ? 'T' : 'F';
-        }
         if ( padOffset >= 0 ) {
             DataReader padReader = new DataReader( dataType_, numElems, 1 );
             assert vdr.getPadValueSize() == padReader.getRecordSize();
@@ -68,6 +76,17 @@ class VdrVariable implements Variable {
             padRawValueArray_ = null;
             shapedPadValueRowMajor_ = null;
             shapedPadValueColumnMajor_ = null;
+        }
+
+        // Assemble a short summary string.
+        String shapeTxt = "";
+        String varyTxt = "";
+        for ( int idim = 0; idim < dimSizes.length; idim++ ) {
+            if ( idim > 0 ) {
+                shapeTxt += ',';
+            }
+            shapeTxt += dimSizes[ idim ];
+            varyTxt += dimVarys[ idim ] ? 'T' : 'F';
         }
         summaryTxt_ = new StringBuffer()
             .append( dataType_.getName() )
@@ -138,13 +157,26 @@ class VdrVariable implements Variable {
                .readShapedRecord( irec, rowMajor, rawValueArrayWorkspace );
     }
 
-    private RecordReader getRecordReader() throws IOException {
+    /**
+     * Returns an object that can read records for this variable.
+     * Constructing it requires reading maps of where the record values
+     * are stored, which might in principle involve a bit of work,
+     * so do it lazily.
+     *
+     * @return  record reader
+     */
+    private synchronized RecordReader getRecordReader() throws IOException {
         if ( recordReader_ == null ) {
             recordReader_ = createRecordReader();
         }
         return recordReader_;
     }
 
+    /**
+     * Constructs a record reader.
+     *
+     * @return  new record reader
+     */
     private RecordReader createRecordReader() throws IOException {
         RecordMap recMap =
             RecordMap.createRecordMap( vdr_, recFact_,
@@ -164,20 +196,63 @@ class VdrVariable implements Variable {
         }
     }
 
+    /**
+     * Object which can read record values for this variable.
+     * This provides the implementations of several of the Variable methods.
+     */
     private interface RecordReader {
+
+        /**
+         * Indicates whether a real file-based record exists for the given
+         * record index.
+         *
+         * @param  irec  record index
+         * @return  true iff a file-based record exists for irec
+         */
         boolean hasRecord( int irec );
+
+        /**
+         * Reads the data from a single record into a supplied raw value array.
+         *
+         * @param  irec  record index
+         * @param  rawValueArray  workspace array
+         */
         void readRawRecord( int irec, Object rawValueArray )
             throws IOException;
+
+        /**
+         * Reads the data from a single record and returns it as an object
+         * of a suitable type for this variable.
+         *
+         * @param  irec  record index
+         * @param  rowMajor  required majority of output array
+         * @param  rawValueArrayWorkspace  workspace array
+         * @return   a new object containing shaped result
+         */
         Object readShapedRecord( int irec, boolean rowMajor,
                                  Object rawValueArrayWorkspace )
             throws IOException;
     }
 
+    /**
+     * RecordReader implementation for non-record-varying variables.
+     */
     private class NoVaryRecordReader implements RecordReader {
         private final Object rawValue_;
         private final Object rowMajorValue_;
         private final Object colMajorValue_;
+
+        /**
+         * Constructor.
+         *
+         * @param   recMap  record map
+         */
         NoVaryRecordReader( RecordMap recMap ) throws IOException {
+
+            // When record variance is false, the fixed value appears
+            // to be located where you woul otherwise expect to find record #0.
+            // Read it once and store it in raw, row-major and column-major
+            // versions for later use.
             RecordReader rt = new PadRecordReader( recMap );
             rawValue_ = createRawValueArray();
             rt.readRawRecord( 0, rawValue_ );
@@ -196,8 +271,18 @@ class VdrVariable implements Variable {
         }
     }
 
+    /**
+     * RecordReader implementation for record-varying variables
+     * with sparse padding or no padding.
+     */
     private class PadRecordReader implements RecordReader {
         private final RecordMap recMap_;
+
+        /**
+         * Constructor.
+         *
+         * @param  recMap  record map
+         */
         PadRecordReader( RecordMap recMap ) {
             recMap_ = recMap;
         }
@@ -238,8 +323,18 @@ class VdrVariable implements Variable {
         }
     }
 
+    /**
+     * RecordReader implementation for record-varying variables
+     * with previous padding.
+     */
     private class PreviousRecordReader implements RecordReader {
         private final RecordMap recMap_;
+
+        /**
+         * Constructor.
+         *
+         * @param  recMap  record map
+         */
         PreviousRecordReader( RecordMap recMap ) {
             recMap_ = recMap;
         }
