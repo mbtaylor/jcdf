@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Turns bytes in a buffer into typed and populated CDF records.
@@ -15,6 +16,8 @@ import java.util.Map;
 public class RecordFactory {
 
     private final Map<Integer,TypedRecordFactory> factoryMap_;
+    private final Logger logger_ =
+        Logger.getLogger( RecordFactory.class.getName() );
 
     /**
      * Constructor.
@@ -43,7 +46,18 @@ public class RecordFactory {
             throw new CdfFormatException( "Unknown record type " + recType );
         }
         else {
-            return tfact.createRecord( plan );
+            Record rec = tfact.createRecord( plan );
+            String msg = new StringBuffer()
+               .append( "CDF Record:\t" )
+               .append( "0x" )
+               .append( Long.toHexString( offset ) )
+               .append( "\t+" )
+               .append( recSize )
+               .append( "\t" )
+               .append( rec.getRecordTypeAbbreviation() )
+               .toString();
+            logger_.config( msg );
+            return rec;
         }
     }
 

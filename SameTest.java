@@ -207,7 +207,6 @@ public class SameTest {
     }
 
     public static void main( String[] args ) throws IOException {
-        Logger.getLogger( "cdf.CdfReader" ).setLevel( Level.WARNING );
         File[] files = new File[ args.length ];
         for ( int i = 0; i < args.length; i++ ) {
             files[ i ] = new File( args[ i ] );

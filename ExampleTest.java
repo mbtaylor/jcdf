@@ -175,7 +175,6 @@ public class ExampleTest {
         if ( ! assertionsOn_ ) {
             throw new RuntimeException( "Assertions disabled - bit pointless" );
         }
-        Logger.getLogger( "cdf" ).setLevel( Level.WARNING );
         String usage = "Usage: " + ExampleTest.class.getName()
                      + " example1.cdf example2.cdf";
         if ( args.length != 2 ) {
