@@ -439,7 +439,7 @@ public class CdfReader {
             }
             public Object getEntry( Variable variable ) {
                 Object[] entries = variable.isZVariable() ? zEntries
-                                                          : grEntries;
+                                                          : rEntries;
                 int ix = variable.getNum();
                 return ix < entries.length ? entries[ ix ] : null;
             }
