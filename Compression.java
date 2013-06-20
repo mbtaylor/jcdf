@@ -99,16 +99,11 @@ public abstract class Compression {
         //    #define AHUFF_COMPRESSION               3L
         //    #define GZIP_COMPRESSION                5L
         switch ( cType ) {
-            case 0:
-                return NONE;
-            case 1:
-                return RLE;
-            case 2:
-                return HUFF;
-            case 3:
-                return AHUFF;
-            case 5:
-                return GZIP;
+            case 0: return NONE;
+            case 1: return RLE;
+            case 2: return HUFF;
+            case 3: return AHUFF;
+            case 5: return GZIP;
             default:
                 throw new CdfFormatException( "Unknown compression format "
                                             + "cType=" + cType );
