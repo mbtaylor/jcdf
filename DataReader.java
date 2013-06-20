@@ -19,7 +19,8 @@ public class DataReader {
      * Will return an array of a primitive type or String.
      */
     public Object createValueArray() {
-        return Array.newInstance( dataType_.getArrayElementClass(), nItem_ );
+        return Array.newInstance( dataType_.getArrayElementClass(),
+                                  nItem_ * dataType_.getGroupSize() );
     }
 
     public void readValue( Buf buf, long offset, Object valueArray )
