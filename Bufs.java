@@ -7,14 +7,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.logging.Logger;
 
 /**
  * Factory and utility methods for use with Bufs.
+ *
+ * @author   Mark Taylor
+ * @since    21 Jun 2013
  */
 public class Bufs {
 
     /** Preferred maximum size for a bank buffer.  */
     private static final int BANK_SIZE = 1 << 30;
+    private static Logger logger_ = Logger.getLogger( Bufs.class.getName() );
 
     /**
      * Private constructor prevents instantiation.
@@ -86,6 +91,8 @@ public class Bufs {
     public static Buf uncompress( Compression compression, Buf inBuf,
                                   long inOffset, long outSize )
             throws IOException {
+        logger_.config( "Uncompressing CDF data to new " + outSize
+                      + "-byte buffer" );
         InputStream uin =
              compression
             .uncompressStream( new BufferedInputStream(
