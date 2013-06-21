@@ -37,7 +37,7 @@ public class DataReader {
      * @return   workspace array for this reader
      */
     public Object createValueArray() {
-        return Array.newInstance( dataType_.getArrayElementClass(),
+        return Array.newInstance( dataType_.getArrayClass().getComponentType(),
                                   nItem_ * dataType_.getGroupSize() );
     }
 

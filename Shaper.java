@@ -187,7 +187,7 @@ public abstract class Shaper {
             dataType_ = dataType;
             itemCount_ = itemCount;
             step_ = dataType.getGroupSize();
-            shapeClass_ = getArrayClass( dataType.getArrayElementClass() );
+            shapeClass_ = dataType.getArrayClass();
         }
         public int getRawItemCount() {
             return itemCount_;
@@ -199,8 +199,9 @@ public abstract class Shaper {
             return shapeClass_;
         }
         public Object shape( Object rawValue, boolean rowMajor ) {
-            Object out = Array.newInstance( dataType_.getArrayElementClass(),
-                                            itemCount_ );
+            Object out =
+                Array.newInstance( dataType_.getArrayClass().getComponentType(),
+                                   itemCount_ );
 
             // Contract requires that we return a new object.
             System.arraycopy( rawValue, 0, out, 0, itemCount_ );
@@ -262,7 +263,7 @@ public abstract class Shaper {
             rawItemCount_ = rawItemCount;
             shapedItemCount_ = shapedItemCount;
             itemSize_ = dataType_.getGroupSize();
-            shapeClass_ = getArrayClass( dataType.getArrayElementClass() );
+            shapeClass_ = dataType.getArrayClass();
         }
 
         public int getRawItemCount() {
@@ -286,8 +287,9 @@ public abstract class Shaper {
         }
 
         public Object shape( Object rawValue, boolean rowMajor ) {
-            Object out = Array.newInstance( dataType_.getArrayElementClass(),
-                                            shapedItemCount_ * itemSize_ );
+            Object out =
+                Array.newInstance( dataType_.getArrayClass().getComponentType(),
+                                   shapedItemCount_ * itemSize_ );
             int[] coords = new int[ ndim_ ];
             Arrays.fill( coords, -1 );
             for ( int ix = 0; ix < shapedItemCount_; ix++ ) {
@@ -334,7 +336,8 @@ public abstract class Shaper {
             if ( rowMajor == rowMajor_ ) {
                 int count = Array.getLength( rawValue );
                 Object out =
-                    Array.newInstance( dataType_.getArrayElementClass(),
+                    Array.newInstance( dataType_.getArrayClass()
+                                                .getComponentType(),
                                        count );
                 System.arraycopy( rawValue, 0, out, 0, count );
                 return out;
@@ -360,15 +363,5 @@ public abstract class Shaper {
             Arrays.fill( a, true );
             return a;
         }
-    }
-
-    /**
-     * Returns the array class corresponding to a given scalar class.
-     *
-     * @param  elementClass  scalar class
-     * @return   array class
-     */
-    private static Class<?> getArrayClass( Class elementClass ) {
-        return Array.newInstance( elementClass, 0 ).getClass();
     }
 }
