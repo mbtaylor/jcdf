@@ -15,14 +15,18 @@ Data types:
    (CDF_UINT1 -> short, CDF_UINT2 -> int, CDF_UINT4 -> long).
    CDF_UCHAR treated like CDF_CHAR (-> char, which is 16 bit anyway).
 
-   CDF_EPOCH, CDF_EPOCH16, CDF_TT2000 treated as double, double[2], long
-   respectively, not obviously times.
+   CDF_EPOCH, CDF_EPOCH16, CDF_TIME_TT2000 treated as double, double[2],
+   long respectively, not obviously times.
    Options: transform them to ISO8601 strings on input, or make sure
    TOPCAT can transform them to epochs (in that case you could plot them,
    but they wouldn't look OK in the table view, stats window etc).
    Probably best to transform these to iso8601 strings in the STIL layer.
    Think about how that affects precision for CDF_EPOCH16 and leap seconds.
    Is precision at that level important?
+
+   Time string formatting to ISO-8601 is performed for the time formats,
+   but currently done wrong for TT2000 since it does not cope with
+   leap seconds.
 
 CDF Data Format version:
    Version 3.4 supported (v3.4 document used for implementation).
@@ -94,7 +98,9 @@ Code status:
    from CDF library tools, and matching CDF files that have been
    modified using CDF format conversion tools.  This is not a bad
    suite of tests, though more could be added.  Some CDF data types
-   not tested, since I can't find and test data (e.g. EPOCH16 variables).
+   not tested, since I can't find and test data
+   (e.g. EPOCH16, TIME_TT2000 variables).  More tests on time formatting
+   would be good too.
 
 Release questions:
    Any opinions on how release should be done?
