@@ -17,6 +17,20 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Utility to dump the records of a CDF file, optionally with field values.
+ * Intended to be used fro the command line via the <code>main</code> method.
+ * The function is roughly comparable to the <code>cdfirsdump</code>
+ * command in the CDF distribution.
+ *
+ * <p>The output can optionally be written in HTML format.
+ * The point of this is so that field values which represent pointers
+ * to records can be displayed as hyperlinks, which makes it very easy
+ * to chase pointers around the CDF file in a web browser.
+ *
+ * @author   Mark Taylor
+ * @since    21 Jun 2013
+ */
 public class CdfDump {
 
     private final CdfReader crdr_;
@@ -24,6 +38,14 @@ public class CdfDump {
     private final boolean writeFields_;
     private final boolean html_;
 
+    /**
+     * Constructor.
+     *
+     * @param  crdr  CDF reader
+     * @param  out   output stream for listing
+     * @param  writeFields   true to write field data as well as record IDs
+     * @param  html   true to write output in HTML format
+     */
     public CdfDump( CdfReader crdr, PrintStream out, boolean writeFields,
                     boolean html ) {
         crdr_ = crdr;
@@ -32,10 +54,13 @@ public class CdfDump {
         html_ = html;
     }
 
+    /**
+     * Does the work, writing output.
+     */
     public void run() throws IOException {
         Buf buf = crdr_.getBuf();
         RecordFactory recFact = crdr_.getRecordFactory();
-        long offset = 8;
+        long offset = 8;  // magic number
         long leng = buf.getLength();
         long eof = leng;
         CdfDescriptorRecord cdr = null;
@@ -69,6 +94,13 @@ public class CdfDump {
         }
     }
 
+    /**
+     * Writes infromation about a single record to the output.
+     *
+     * @param   index  record index
+     * @param   rec   recor object
+     * @param   offset  byte offset into the file of the record
+     */
     private void dumpRecord( int index, Record rec, long offset ) {
         StringBuffer sbuf = new StringBuffer();
         if ( html_ ) {
@@ -87,14 +119,14 @@ public class CdfDump {
             sbuf.append( "</strong>" );
         }
         out_.println( sbuf.toString() );
+
+        // If required write the field values.  Rather than list them
+        // for each record type, just obtain them by introspection.
         if ( writeFields_ ) {
             Field[] fields = rec.getClass().getFields();
             for ( int i = 0; i < fields.length; i++ ) {
                 Field field = fields[ i ];
-                int mods = field.getModifiers();
-                if ( Modifier.isFinal( mods ) &&
-                     Modifier.isPublic( mods ) && 
-                     ! Modifier.isStatic( mods ) ) {
+                if ( isCdfRecordField( field ) ) {
                     String name = field.getName();
                     Object value;
                     try {
@@ -110,6 +142,29 @@ public class CdfDump {
         }
     }
 
+    /** 
+     * Determines whether a given object field is a field of the CDF record.
+     * All the record subclasses are pretty simple (any cleverness is
+     * elsewhere), and the only public fields they have are CDF record fields.
+     * But probably the Right Way to do this would be to use an annotation.
+     *
+     * @param   field  field of java Record subclass
+     * @return  true iff field represents a field of the corresponding CDF
+     *          record type
+     */
+    private boolean isCdfRecordField( Field field ) {
+        int mods = field.getModifiers();
+        return Modifier.isFinal( mods )
+            && Modifier.isPublic( mods )
+            && ! Modifier.isStatic( mods );
+    }
+
+    /**
+     * Formats a field name/value pair for output.
+     *
+     * @param   name  field name
+     * @param  value  field value
+     */
     private String formatFieldValue( String name, Object value ) {
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( spaces( 4 ) );
@@ -138,6 +193,10 @@ public class CdfDump {
                 }
             }
         }
+
+        // If it's a long it is probably a pointer to another record,
+        // and can be formatted as such.  It could be a size though.
+        // Fortunately, those ones have "Size" in their name.
         else {
             sbuf.append( value instanceof Long && ! name.endsWith( "Size" )
                              ? formatOffsetRef( ((Long) value).longValue() )
@@ -146,12 +205,26 @@ public class CdfDump {
         return sbuf.toString();
     }
 
+    /**
+     * Format a value for output if it represents a possible target of
+     * a pointer.
+     *
+     * @param  offset  pointer target value
+     * @return   string for output
+     */
     private String formatOffsetId( long offset ) {
         String txt = "0x" + Long.toHexString( offset );
         return html_ ? "<a name='" + txt + "'>" + txt + "</a>"
                      : txt;
     }
 
+    /**
+     * Format a value for output if it apparentl represents a pointer
+     * to a particular file offset.
+     *
+     * @param  offset  target file offset
+     * @return  string for output
+     */
     private String formatOffsetRef( long offset ) {
         String txt = "0x" + Long.toHexString( offset );
 
@@ -164,12 +237,26 @@ public class CdfDump {
              : txt;
     }
 
+    /**
+     * Massage Java object field names to become CDF record field names.
+     *
+     * @param  name  object member name
+     * @return  record field name
+     */
     private String adjustFieldName( String name ) {
+
+        // Remove stylistic underscores.
         return name.endsWith( "_" )
              ? name.substring( 0, name.length() - 1 )
              : name;
     }
 
+    /**
+     * Construct a padding string.
+     *
+     * @param   count   number of spaces
+     * @return  string composed only of <code>count</code> spaces
+     */
     private static String spaces( int count ) {
         StringBuffer sbuf = new StringBuffer( count );
         for ( int i = 0; i < count; i++ ) {
@@ -178,6 +265,13 @@ public class CdfDump {
         return sbuf.toString();
     }
 
+    /**
+     * Does the work for the command line tool, handling arguments.
+     * Sucess is indicated by the return value.
+     *
+     * @param  args   command-line arguments
+     * @return   0 for success, non-zero for failure
+     */
     public static int runMain( String[] args ) throws IOException {
         String usage = new StringBuffer()
            .append( "\n   Usage:" )
@@ -190,6 +284,7 @@ public class CdfDump {
            .append( "\n" )
            .toString();
 
+        // Process arguments.
         List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         int verb = 0;
         File file = null;
@@ -223,6 +318,8 @@ public class CdfDump {
                 file = new File( arg );
             }
         }
+
+        // Validate arguments.
         if ( ! argList.isEmpty() ) {
             System.err.println( "Unused args: " + argList );
             System.err.println( usage );
@@ -232,13 +329,17 @@ public class CdfDump {
             System.err.println( usage );
             return 1;
         }
-        LogUtil.setVerbosity( verb );
 
+        // Configure and run.
+        LogUtil.setVerbosity( verb );
         new CdfDump( new CdfReader( file ), System.out, writeFields, html )
            .run();
         return 0;
     }
 
+    /**
+     * Main method.  Use -help for arguments.
+     */
     public static void main( String[] args ) throws IOException {
         int status = runMain( args );
         if ( status != 0 ) {

@@ -15,24 +15,47 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Utility to describe a CDF file, optionally with record data.
+ * Intended to be used from the commandline via the <code>main</code> method.
+ * The output format is somewhat reminiscent of the <code>cdfdump</code>
+ * command in the CDF distribution.
+ *
+ * @author   Mark Taylor
+ * @since    21 Jun 2013
+ */
 public class CdfList {
 
     private final CdfReader crdr_;
     private final PrintStream out_;
     private final boolean writeData_;
 
+    /**
+     * Constructor.
+     *
+     * @param   crdr   CDF reader
+     * @param   out   output stream for listing
+     * @param   writeData  true if data values as well as metadata are to
+     *                     be written
+     */
     public CdfList( CdfReader crdr, PrintStream out, boolean writeData ) {
         crdr_ = crdr;
         out_ = out;
         writeData_ = writeData;
     }
 
+    /**
+     * Does the work, writing output.
+     */
     public void run() throws IOException {
+
+        // Read the CDF.
         CdfContent cdf = crdr_.readContent();
         GlobalAttribute[] gAtts = cdf.getGlobalAttributes();
         VariableAttribute[] vAtts = cdf.getVariableAttributes();
         Variable[] vars = cdf.getVariables();
         
+        // Write global attribute information.
         header( "Global Attributes" );
         for ( int iga = 0; iga < gAtts.length; iga++ ) {
             GlobalAttribute gAtt = gAtts[ iga ];
@@ -43,6 +66,7 @@ public class CdfList {
             }
         }
 
+        // Write variable information.
         for ( int iv = 0; iv < vars.length; iv++ ) {
             out_.println();
             Variable var = vars[ iv ];
@@ -55,6 +79,8 @@ public class CdfList {
                     out_.println( "    " + vAtt.getName() + ":\t" + entry );
                 }
             }
+
+            // Optionally write variable data as well.
             if ( writeData_ ) {
                 DataType dataType = var.getDataType();
                 Object abuf = var.createRawValueArray();
@@ -79,6 +105,13 @@ public class CdfList {
         }
     }
 
+    /**
+     * Applies string formatting to a value of a given data type.
+     *
+     * @param  abuf   array buffer containing data
+     * @param  dataType  data type for data
+     * @return  string representation of value
+     */
     private String formatValues( Object abuf, DataType dataType ) {
         StringBuffer sbuf = new StringBuffer();
         if ( abuf == null ) {
@@ -99,6 +132,11 @@ public class CdfList {
         return sbuf.toString();
     }
 
+    /**
+     * Writes a header to the output listing.
+     *
+     * @param  txt  header text
+     */
     private void header( String txt ) {
         out_.println( txt );
         StringBuffer sbuf = new StringBuffer( txt.length() );
@@ -108,7 +146,16 @@ public class CdfList {
         out_.println( sbuf.toString() );
     }
 
+    /**
+     * Does the work for the command line tool, handling arguments.
+     * Sucess is indicated by the return value.
+     *
+     * @param  args   command-line arguments
+     * @return   0 for success, non-zero for failure
+     */
     public static int runMain( String[] args ) throws IOException {
+
+        // Usage string.
         String usage = new StringBuffer()
            .append( "\n   Usage: " )
            .append( CdfList.class.getName() )
@@ -119,6 +166,7 @@ public class CdfList {
            .append( "\n" )
            .toString();
 
+        // Process arguments.
         List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         File file = null;
         boolean writeData = false;
@@ -147,6 +195,8 @@ public class CdfList {
                 file = new File( arg );
             }
         }
+
+        // Validate arguments.
         if ( ! argList.isEmpty() ) {
             System.err.println( "Unused args: " + argList );
             System.err.println( usage );
@@ -154,12 +204,18 @@ public class CdfList {
         }
         if ( file == null ) {
             System.err.println( usage );
+            return 1;
         }
+
+        // Configure and run.
         LogUtil.setVerbosity( verb );
         new CdfList( new CdfReader( file ), System.out, writeData ).run();
         return 0;
     }
 
+    /**
+     * Main method.  Use -help for arguments.
+     */
     public static void main( String[] args ) throws IOException {
         int status = runMain( args );
         if ( status != 0 ) {
