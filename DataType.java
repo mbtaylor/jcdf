@@ -141,8 +141,14 @@ public abstract class DataType<A,S> {
      * @param   valueArray  array to receive result data
      * @param   count  number of items to read
      */
-    public abstract void readValues( Buf buf, long offset, int numElems,
-                                     A valueArray, int count )
+    @SuppressWarnings("unchecked")
+    public final void readValues( Buf buf, long offset, int numElems,
+                                  Object valueArray, int count )
+            throws IOException {
+        readValuesT( buf, offset, numElems, (A) valueArray, count );
+    }
+    abstract void readValuesT( Buf buf, long offset, int numElems,
+                               A valueArray, int count )
             throws IOException;
 
     /** 
@@ -158,7 +164,11 @@ public abstract class DataType<A,S> {
      * @return  scalar representation of object at position <code>index</code>
      *          in <code>valueArray</code>
      */
-    public abstract S getScalar( A valueArray, int arrayIndex );
+    @SuppressWarnings("unchecked")
+    public final Object getScalar( Object valueArray, int arrayIndex ) {
+        return getScalarT( (A) valueArray, arrayIndex );
+    }
+    abstract S getScalarT( A valueArray, int arrayIndex );
 
     /**
      * Provides a string view of a scalar value obtained for this data type.
@@ -166,7 +176,11 @@ public abstract class DataType<A,S> {
      * @param  value   value returned by <code>getScalar</code>
      * @return   string representation
      */
-    public String formatScalarValue( S value ) {
+    @SuppressWarnings("unchecked")
+    public final String formatScalarValue( Object value ) {
+        return formatScalarValueT( (S) value );
+    }
+    String formatScalarValueT( S value ) {
         return value == null ? "" : value.toString();
     }
 
@@ -181,7 +195,11 @@ public abstract class DataType<A,S> {
      * @param   arrayIndex  index into array
      * @return  string representation
      */
-    public String formatArrayValue( A array, int arrayIndex ) {
+    @SuppressWarnings("unchecked")
+    public final String formatArrayValue( Object array, int arrayIndex ) {
+        return formatArrayValueT( (A) array, arrayIndex );
+    }
+    String formatArrayValueT( A array, int arrayIndex ) {
         Object value = Array.get( array, arrayIndex );
         return value == null ? "" : value.toString();
     }
@@ -229,11 +247,11 @@ public abstract class DataType<A,S> {
         Int1DataType( String name ) {
             super( name, 1, 1, byte[].class, Byte.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValuesT( Buf buf, long offset, int numElems,
                                 byte[] array, int n ) throws IOException {
             buf.readDataBytes( offset, n, array );
         }
-        public Byte getScalar( byte[] array, int index ) {
+        public Byte getScalarT( byte[] array, int index ) {
             return new Byte( array[ index ] );
         }
     }
@@ -245,11 +263,11 @@ public abstract class DataType<A,S> {
         Int2DataType( String name ) {
             super( name, 2, 1, short[].class, Short.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValuesT( Buf buf, long offset, int numElems,
                                 short[] array, int n ) throws IOException {
             buf.readDataShorts( offset, n, array );
         }
-        public Short getScalar( short[] array, int index ) {
+        public Short getScalarT( short[] array, int index ) {
             return new Short( array[ index ] );
         }
     }
@@ -261,11 +279,11 @@ public abstract class DataType<A,S> {
         Int4DataType( String name ) {
             super( name, 4, 1, int[].class, Integer.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValuesT( Buf buf, long offset, int numElems,
                                 int[] array, int n ) throws IOException {
             buf.readDataInts( offset, n, array );
         }
-        public Integer getScalar( int[] array, int index ) {
+        public Integer getScalarT( int[] array, int index ) {
             return new Integer( array[ index ] );
         }
     }
@@ -277,11 +295,11 @@ public abstract class DataType<A,S> {
         Int8DataType( String name ) {
             super( name, 8, 1, long[].class, Long.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValuesT( Buf buf, long offset, int numElems,
                                 long[] array, int n ) throws IOException {
             buf.readDataLongs( offset, n, array );
         }
-        public Long getScalar( long[] array, int index ) {
+        public Long getScalarT( long[] array, int index ) {
             return new Long( array[ index ] );
         }
     }
@@ -295,14 +313,14 @@ public abstract class DataType<A,S> {
         UInt1DataType( String name ) {
             super( name, 1, 1, short[].class, Short.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValuesT( Buf buf, long offset, int numElems,
                                 short[] array, int n ) throws IOException {
             Pointer ptr = new Pointer( offset );
             for ( int i = 0; i < n; i++ ) {
                 array[ i ] = (short) buf.readUnsignedByte( ptr );
             }
         }
-        public Short getScalar( short[] array, int index ) {
+        public Short getScalarT( short[] array, int index ) {
             return new Short( array[ index ] );
         }
     }
@@ -316,7 +334,7 @@ public abstract class DataType<A,S> {
         UInt2DataType( String name ) {
             super( name, 2, 1, int[].class, Integer.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValuesT( Buf buf, long offset, int numElems,
                                 int[] array, int n ) throws IOException {
             Pointer ptr = new Pointer( offset );
             boolean bigend = buf.isBigendian();
@@ -327,7 +345,7 @@ public abstract class DataType<A,S> {
                                     : b0 | ( b1 << 8 );
             }
         }
-        public Integer getScalar( int[] array, int index ) {
+        public Integer getScalarT( int[] array, int index ) {
             return new Integer( array[ index ] );
         }
     }
@@ -341,7 +359,7 @@ public abstract class DataType<A,S> {
         UInt4DataType( String name ) {
             super( name, 4, 1, long[].class, Long.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValuesT( Buf buf, long offset, int numElems,
                                 long[] array, int n ) throws IOException {
             Pointer ptr = new Pointer( offset );
             boolean bigend = buf.isBigendian();
@@ -355,7 +373,7 @@ public abstract class DataType<A,S> {
                            : b0 | ( b1 << 8 ) | ( b2 << 16 ) | ( b3 << 24 );
             }
         }
-        public Long getScalar( long[] array, int index ) {
+        public Long getScalarT( long[] array, int index ) {
             return new Long( ((long[]) array )[ index ] );
         }
     }
@@ -367,11 +385,11 @@ public abstract class DataType<A,S> {
         Real4DataType( String name ) {
             super( name, 4, 1, float[].class, Float.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValuesT( Buf buf, long offset, int numElems,
                                 float[] array, int n ) throws IOException {
             buf.readDataFloats( offset, n, array );
         }
-        public Float getScalar( float[] array, int index ) {
+        public Float getScalarT( float[] array, int index ) {
             return new Float( array[ index ] );
         }
     }
@@ -383,11 +401,11 @@ public abstract class DataType<A,S> {
         Real8DataType( String name ) {
             super( name, 8, 1, double[].class, Double.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValuesT( Buf buf, long offset, int numElems,
                                 double[] array, int n ) throws IOException {
             buf.readDataDoubles( offset, n, array );
         }
-        public Double getScalar( double[] array, int index ) {
+        public Double getScalarT( double[] array, int index ) {
             return new Double( array[ index ] );
         }
     }
@@ -401,13 +419,13 @@ public abstract class DataType<A,S> {
             super( name );
         }
         @Override
-        public String formatScalarValue( Long value ) {
+        public String formatScalarValueT( Long value ) {
             synchronized ( formatter_ ) {
                 return formatter_.formatTimeTt2000( value.longValue() );
             }
         }
         @Override
-        public String formatArrayValue( long[] array, int index ) {
+        public String formatArrayValueT( long[] array, int index ) {
             synchronized ( formatter_ ) {
                 return formatter_.formatTimeTt2000( array[ index ] );
             }
@@ -422,7 +440,7 @@ public abstract class DataType<A,S> {
         CharDataType( String name ) {
             super( name, 1, 1, String[].class, String.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValuesT( Buf buf, long offset, int numElems,
                                 String[] array, int n ) throws IOException {
             byte[] cbuf = new byte[ numElems * n ];
             buf.readDataBytes( offset, numElems * n, cbuf );
@@ -432,7 +450,7 @@ public abstract class DataType<A,S> {
                 array[ i ] = s;
             }
         }
-        public String getScalar( String[] array, int index ) {
+        public String getScalarT( String[] array, int index ) {
             return array[ index ];
         }
     }
@@ -446,13 +464,13 @@ public abstract class DataType<A,S> {
             super( name );
         }
         @Override
-        public String formatScalarValue( Double value ) {
+        public String formatScalarValueT( Double value ) {
             synchronized ( formatter_ ) {
                 return formatter_.formatEpoch( value.doubleValue() );
             }
         }
         @Override
-        public String formatArrayValue( double[] array, int index ) {
+        public String formatArrayValueT( double[] array, int index ) {
             synchronized ( formatter_ ) {
                 return formatter_.formatEpoch( array[ index ] );
             }
@@ -468,21 +486,21 @@ public abstract class DataType<A,S> {
         Epoch16DataType( String name ) {
             super( name, 8, 2, double[].class, double[].class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValuesT( Buf buf, long offset, int numElems,
                                 double[] array, int n ) throws IOException {
             buf.readDataDoubles( offset, n * 2, array );
         }
-        public double[] getScalar( double[] array, int index ) {
+        public double[] getScalarT( double[] array, int index ) {
             return new double[] { array[ index ], array[ index + 1 ] };
         }
         @Override
-        public String formatScalarValue( double[] v2 ) {
+        public String formatScalarValueT( double[] v2 ) {
             synchronized ( formatter_ ) {
                 return formatter_.formatEpoch16( v2[ 0 ], v2[ 1 ] );
             }
         }
         @Override
-        public String formatArrayValue( double[] array, int index ) {
+        public String formatArrayValueT( double[] array, int index ) {
             synchronized ( formatter_ ) {
                 return formatter_.formatEpoch16( array[ index ],
                                                  array[ index + 1 ] );
