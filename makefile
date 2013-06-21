@@ -52,6 +52,7 @@ JSRC = \
        \
        CdfDump.java \
        CdfList.java \
+       LogUtil.java \
        \
        CdfStarTable.java \
        CdfTableBuilder.java \

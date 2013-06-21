@@ -113,6 +113,7 @@ public class CdfList {
            .append( "\n   Usage: " )
            .append( CdfList.class.getName() )
            .append( " [-help]" )
+           .append( " [-verbose]" ) 
            .append( " [-data]" )
            .append( " <cdf-file>" )
            .append( "\n" )
@@ -121,12 +122,21 @@ public class CdfList {
         List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         File file = null;
         boolean writeData = false;
+        int verb = 0;
         for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
             String arg = it.next();
             if ( arg.startsWith( "-h" ) ) {
                 it.remove();
                 System.out.println( usage );
                 return 0;
+            }
+            else if ( arg.equals( "-verbose" ) || arg.equals( "-v" ) ) {
+                it.remove();
+                verb++;
+            }
+            else if ( arg.equals( "+verbose" ) || arg.equals( "+v" ) ) {
+                it.remove();
+                verb--;
             }
             else if ( arg.equals( "-data" ) ) {
                 it.remove();
@@ -145,7 +155,7 @@ public class CdfList {
         if ( file == null ) {
             System.err.println( usage );
         }
-
+        LogUtil.setVerbosity( verb );
         new CdfList( new CdfReader( file ), System.out, writeData ).run();
         return 0;
     }

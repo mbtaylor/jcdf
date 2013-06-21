@@ -183,6 +183,7 @@ public class CdfDump {
            .append( "\n   Usage:" )
            .append( CdfDump.class.getName() )
            .append( " [-help]" )
+           .append( " [-verbose]" )
            .append( " [-fields]" )
            .append( " [-html]" )
            .append( " <cdf-file>" )
@@ -190,6 +191,7 @@ public class CdfDump {
            .toString();
 
         List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
+        int verb = 0;
         File file = null;
         boolean writeFields = false;
         boolean html = false;
@@ -203,6 +205,14 @@ public class CdfDump {
                 it.remove();
                 System.out.println( usage );
                 return 0;
+            }
+            else if ( arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
+                it.remove();
+                verb++;
+            }
+            else if ( arg.equals( "+v" ) || arg.equals( "+verbose" ) ) {
+                it.remove();
+                verb--;
             }
             else if ( arg.startsWith( "-field" ) ) {
                 it.remove();
@@ -222,6 +232,7 @@ public class CdfDump {
             System.err.println( usage );
             return 1;
         }
+        LogUtil.setVerbosity( verb );
 
         new CdfDump( new CdfReader( file ), System.out, writeFields, html )
            .run();
