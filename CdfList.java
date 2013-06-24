@@ -26,20 +26,20 @@ import java.util.List;
  */
 public class CdfList {
 
-    private final CdfReader crdr_;
+    private final CdfContent cdf_;
     private final PrintStream out_;
     private final boolean writeData_;
 
     /**
      * Constructor.
      *
-     * @param   crdr   CDF reader
+     * @param   cdf   CDF content
      * @param   out   output stream for listing
      * @param   writeData  true if data values as well as metadata are to
      *                     be written
      */
-    public CdfList( CdfReader crdr, PrintStream out, boolean writeData ) {
-        crdr_ = crdr;
+    public CdfList( CdfContent cdf, PrintStream out, boolean writeData ) {
+        cdf_ = cdf;
         out_ = out;
         writeData_ = writeData;
     }
@@ -50,10 +50,9 @@ public class CdfList {
     public void run() throws IOException {
 
         // Read the CDF.
-        CdfContent cdf = crdr_.readContent();
-        GlobalAttribute[] gAtts = cdf.getGlobalAttributes();
-        VariableAttribute[] vAtts = cdf.getVariableAttributes();
-        Variable[] vars = cdf.getVariables();
+        GlobalAttribute[] gAtts = cdf_.getGlobalAttributes();
+        VariableAttribute[] vAtts = cdf_.getVariableAttributes();
+        Variable[] vars = cdf_.getVariables();
         
         // Write global attribute information.
         header( "Global Attributes" );
@@ -209,7 +208,8 @@ public class CdfList {
 
         // Configure and run.
         LogUtil.setVerbosity( verb );
-        new CdfList( new CdfReader( file ), System.out, writeData ).run();
+        new CdfList( new CdfContent( new CdfReader( file ) ),
+                     System.out, writeData ).run();
         return 0;
     }
 

@@ -47,7 +47,6 @@ JSRC = \
        Shaper.java \
        Variable.java \
        VariableAttribute.java \
-       VdrVariable.java \
        WrapperBuf.java \
        \
        CdfDump.java \
@@ -71,7 +70,8 @@ jar: $(JARFILE)
 docs: $(JSRC)
 	rm -rf docs
 	mkdir docs
-	$(JAVADOC) -classpath $(STILJAR) -quiet -d docs $(JSRC)
+	$(JAVADOC) -classpath $(STILJAR) -quiet -d docs \
+                   $(JSRC) package-info.java
 
 build: jar docs
 

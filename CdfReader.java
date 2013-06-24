@@ -5,14 +5,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Examines a CDF file and provides methods to access its contents.
+ * Examines a CDF file and provides methods to access its records.
  *
  * <p>Constructing an instance of this class reads enough of a file
  * to identify it as a CDF and work out how to access its records.
@@ -20,11 +16,7 @@ import java.util.logging.Logger;
  * as required.
  * Although only the magic numbers and CDR are read during construction,
  * in the case of a file-compressed CDF the whole thing is uncompressed,
- * so it may still be an expensive operation.
- *
- * <p>Having constructed a CdfReader, there are two ways to make use of it,
- * low-level access to the internal records, or high-level access to the
- * attributes and variables.
+ * so it could still be an expensive operation.
  *
  * <p>For low-level access to the CDF internal records, use the
  * {@link #getCdr} method to get the CdfDescriptorRecord and use that
@@ -33,11 +25,6 @@ import java.util.logging.Logger;
  * other records.  When you have a pointer to another record, you can
  * use the record factory got from {@link #getRecordFactory} to turn
  * it into a typed Record object.
- *
- * <p>For high-level access to the CDF data and metadata,
- * use the {@link #readContent} method, which returns an object from
- * which the attributes and variables that constitute a CDF file
- * can be obtained.
  *
  * @author   Mark Taylor
  * @since    19 Jun 2013
@@ -153,7 +140,7 @@ public class CdfReader {
     }
 
     /**
-     * Constructs a CdfReader from a readable file containig its byte data.
+     * Constructs a CdfReader from a readable file containing its byte data.
      *
      * @param  file  CDF file
      */
@@ -190,260 +177,6 @@ public class CdfReader {
      */
     public CdfDescriptorRecord getCdr() {
         return cdr_;
-    }
-
-    /** 
-     * Returns an object which provides a high-level read-only
-     * representation of the data and metadata contained in this reader's CDF.
-     *
-     * <p>This method reads attribute metadata and entries
-     * and variable metadata.
-     * Record data for variables is not read except by the relevant calls
-     * on {@link Variable} objects.
-     *
-     * @return    CDF content object
-     */
-    public CdfContent readContent() throws IOException {
-        CdfDescriptorRecord cdr = cdr_;
-        Buf buf = buf_;
-
-        // Get global descriptor record.
-        GlobalDescriptorRecord gdr =
-            recordFactory_.createRecord( buf, cdr.gdrOffset_,
-                                         GlobalDescriptorRecord.class );
-
-        // Store global format information.
-        boolean rowMajor = Record.hasBit( cdr.flags_, 0 );
-        int[] rDimSizes = gdr.rDimSizes_;
-        CdfInfo cdfInfo = new CdfInfo( rowMajor, rDimSizes );
-
-        // Read the rVariable and zVariable records.
-        VariableDescriptorRecord[] rvdrs =
-            walkVariableList( buf, gdr.nrVars_, gdr.rVdrHead_ );
-        VariableDescriptorRecord[] zvdrs =
-            walkVariableList( buf, gdr.nzVars_, gdr.zVdrHead_ );
-
-        // Collect the rVariables and zVariables into a single list.
-        // Turn the rVariable and zVariable records into a single list of
-        // Variable objects.
-        VariableDescriptorRecord[] vdrs = arrayConcat( rvdrs, zvdrs );
-        final Variable[] variables = new Variable[ vdrs.length ];
-        for ( int iv = 0; iv < vdrs.length; iv++ ) {
-            variables[ iv ] = createVariable( vdrs[ iv ], cdfInfo );
-        }
-
-        // Read the attributes records (global and variable attributes
-        // are found in the same list).
-        AttributeDescriptorRecord[] adrs =
-            walkAttributeList( buf, gdr.numAttr_, gdr.adrHead_ );
-
-        // Read the entries for all the attributes, and turn the records
-        // with their entries into two lists, one of global attributes and
-        // one of variable attributes.
-        List<GlobalAttribute> globalAtts = new ArrayList<GlobalAttribute>();
-        List<VariableAttribute> varAtts = new ArrayList<VariableAttribute>();
-        for ( int ia = 0; ia < adrs.length; ia++ ) {
-            AttributeDescriptorRecord adr = adrs[ ia ];
-            Object[] grEntries =
-                walkEntryList( buf, adr.nGrEntries_, adr.agrEdrHead_,
-                               adr.maxGrEntry_ + 1, cdfInfo );
-            Object[] zEntries =
-                walkEntryList( buf, adr.nZEntries_, adr.azEdrHead_,
-                               adr.maxZEntry_ + 1, cdfInfo );
-            boolean isGlobal = Record.hasBit( adr.scope_, 0 );
-            if ( isGlobal ) {
-                // grEntries are gEntries
-                globalAtts.add( createGlobalAttribute( adr, grEntries,
-                                                       zEntries ) );
-            }
-            else {
-                // grEntries are rEntries
-                varAtts.add( createVariableAttribute( adr, grEntries,
-                                                      zEntries ) );
-            }
-        }
-        final GlobalAttribute[] gAtts =
-            globalAtts.toArray( new GlobalAttribute[ 0 ] );
-        final VariableAttribute[] vAtts =
-            varAtts.toArray( new VariableAttribute[ 0 ] );
-
-        // Return the result as a single object containing more or less
-        // everything there is to know about the data and metadata
-        // contained in the CDF.
-        return new CdfContent() {
-            public GlobalAttribute[] getGlobalAttributes() {
-                return gAtts;
-            }
-            public VariableAttribute[] getVariableAttributes() {
-                return vAtts;
-            }
-            public Variable[] getVariables() {
-                return variables;
-            }
-        };
-    }
-
-    /**
-     * Follows a linked list of Variable Descriptor Records
-     * and returns an array of them.
-     *
-     * @param  data buffer
-     * @param  nvar  number of VDRs in list
-     * @param  head  offset into buffer of first VDR
-     * @return  list of VDRs
-     */
-    private VariableDescriptorRecord[] walkVariableList( Buf buf, int nvar,
-                                                         long head )
-            throws IOException {
-        VariableDescriptorRecord[] vdrs = new VariableDescriptorRecord[ nvar ];
-        long off = head;
-        for ( int iv = 0; iv < nvar; iv++ ) {
-            VariableDescriptorRecord vdr =
-                recordFactory_.createRecord( buf, off,
-                                             VariableDescriptorRecord.class );
-            vdrs[ iv ] = vdr;
-            off = vdr.vdrNext_;
-        }
-        return vdrs;
-    }
-
-    /**
-     * Follows a linked list of Attribute Descriptor Records
-     * and returns an array of them.
-     *
-     * @param  buf  data buffer
-     * @param  natt  number of ADRs in list
-     * @param  head  offset into buffer of first ADR
-     * @return  list of ADRs
-     */
-    private AttributeDescriptorRecord[] walkAttributeList( Buf buf, int natt,
-                                                           long head )
-            throws IOException {
-        AttributeDescriptorRecord[] adrs =
-            new AttributeDescriptorRecord[ natt ];
-        long off = head;
-        for ( int ia = 0; ia < natt; ia++ ) {
-            AttributeDescriptorRecord adr =
-                recordFactory_.createRecord( buf, off,
-                                             AttributeDescriptorRecord.class );
-            adrs[ ia ] = adr;
-            off = adr.adrNext_;
-        }
-        return adrs;
-    }
-
-    /**
-     * Follows a linked list of Attribute Entry Descriptor Records
-     * and returns an array of entry values.
-     *
-     * @param   buf  data buffer
-     * @param   head   offset into buffer of first AEDR
-     * @param   maxent  upper limit of entry count
-     * @param   info   global information about the CDF file
-     * @return  entry values
-     */
-    private Object[] walkEntryList( Buf buf, int nent, long head, int maxent,
-                                    CdfInfo info )
-            throws IOException {
-        Object[] entries = new Object[ maxent ];
-        long off = head;
-        for ( int ie = 0; ie < nent; ie++ ) {
-            AttributeEntryDescriptorRecord aedr =
-                recordFactory_
-               .createRecord( buf, off, AttributeEntryDescriptorRecord.class );
-            entries[ aedr.num_ ] = getEntryValue( aedr, info );
-            off = aedr.aedrNext_;
-        }
-        return entries;
-    }
-
-    /**
-     * Obtains the value of an entry from an Atribute Entry Descriptor Record.
-     *
-     * @param  aedr  attribute entry descriptor record
-     * @param  info  global information about the CDF file
-     * @return   entry value
-     */
-    private Object getEntryValue( AttributeEntryDescriptorRecord aedr,
-                                  CdfInfo info ) throws IOException {
-        DataType dataType = DataType.getDataType( aedr.dataType_ );
-        int numElems = aedr.numElems_;
-        final DataReader dataReader = new DataReader( dataType, numElems, 1 );
-        Object va = dataReader.createValueArray();
-        dataReader.readValue( aedr.getBuf(), aedr.getValueOffset(), va );
-
-        // Majority is not important since this is a scalar value.
-        // The purpose of using the shaper is just to turn the array
-        // element into a (probably Number or String) Object.
-        Shaper shaper = Shaper.createShaper( dataType, new int[ 0 ],
-                                             new boolean[ 0 ], true );
-        return shaper.shape( va, true );
-    }
-
-    /**
-     * Turns a Variable Descriptor Record into a Variable.
-     *
-     * @param   vdr  record
-     * @param   info  global CDF information
-     * @return  variable object
-     */
-    private Variable createVariable( VariableDescriptorRecord vdr,
-                                     CdfInfo info ) throws IOException {
-        return new VdrVariable( vdr, info, recordFactory_ );
-    }
-
-    /**
-     * Turns an Attribute Descriptor Record plus entries
-     * into a Global Attribute object.
-     * The g/rEntries and zEntries are collected together in a single list,
-     * on the grounds that users are not likely to be much interested
-     * in the difference.
-     *
-     * @param  adr  record
-     * @param  gEntries  gEntry values for this attribute
-     * @param  zEntries  zEntry values for this attribute
-     * @return  global attribute object
-     */
-    private GlobalAttribute
-            createGlobalAttribute( AttributeDescriptorRecord adr,
-                                   Object[] gEntries, Object[] zEntries ) {
-        final Object[] entries = arrayConcat( gEntries, zEntries );
-        final String name = adr.name_;
-        return new GlobalAttribute() {
-            public String getName() {
-                return name;
-            }
-            public Object[] getEntries() {
-                return entries;
-            }
-        };
-    }
-
-    /**
-     * Turns an Attribute Descriptor Record plus entries
-     * into a Variable Atttribute object.
-     *
-     * @param   adr   record
-     * @param   rEntries   rEntry values for this attribute
-     * @param   zEntries   zEntry values for this attribute
-     * @return  variable attribute object
-     */
-    private VariableAttribute
-            createVariableAttribute( AttributeDescriptorRecord adr,
-                                     final Object[] rEntries,
-                                     final Object[] zEntries ) {
-        final String name = adr.name_;
-        return new VariableAttribute() {
-            public String getName() {
-                return name;
-            }
-            public Object getEntry( Variable variable ) {
-                Object[] entries = variable.isZVariable() ? zEntries
-                                                          : rEntries;
-                int ix = variable.getNum();
-                return ix < entries.length ? entries[ ix ] : null;
-            }
-        };
     }
 
     /**
@@ -532,25 +265,6 @@ public class CdfReader {
             return null;
         }
         return new CdfVariant( label, bit64, nameLeng, compressed );
-    }
-
-    /**
-     * Concatenates two arrays to form a single one.
-     *
-     * @param  a1  first array
-     * @param  a2  second array
-     * @return  concatenated array
-     */
-    private static <T> T[] arrayConcat( T[] a1, T[] a2 ) {
-        int count = a1.length + a2.length;
-        List<T> list = new ArrayList<T>( count );
-        list.addAll( Arrays.asList( a1 ) );
-        list.addAll( Arrays.asList( a2 ) );
-        Class eClazz = a1.getClass().getComponentType();
-        @SuppressWarnings("unchecked")
-        T[] result =
-            (T[]) list.toArray( (Object[]) Array.newInstance( eClazz, count ) );
-        return result;
     }
 
     /**

@@ -7,14 +7,34 @@ package cdf;
  * @author   Mark Taylor
  * @since    20 Jun 2013
  */
-public interface VariableAttribute {
+public class VariableAttribute {
+
+    private final String name_;
+    private final Object[] rEntries_;
+    private final Object[] zEntries_;
+
+    /**
+     * Constructor.
+     *
+     * @param  name  attribute name
+     * @param  rEntries  rEntry values for this attribute
+     * @param  zEntries  zEntry values for this attribute
+     */
+    public VariableAttribute( String name, Object[] rEntries,
+                              Object[] zEntries ) {
+        name_ = name;
+        rEntries_ = rEntries;
+        zEntries_ = zEntries;
+    }
 
     /**
      * Returns this attribute's name.
      *
      * @return  attribute name
      */
-    String getName();
+    public String getName() {
+        return name_;
+    }
 
     /**
      * Returns the entry value that a given variable has for this attribute.
@@ -23,5 +43,10 @@ public interface VariableAttribute {
      * @param  variable  CDF variable from the same CDF as this attribute
      * @return   this attribute's value for <code>variable</code>
      */
-    Object getEntry( Variable variable );
+    public Object getEntry( Variable variable ) {
+        Object[] entries = variable.isZVariable() ? zEntries_
+                                                  : rEntries_;
+        int ix = variable.getNum();
+        return ix < entries.length ? entries[ ix ] : null;
+    }
 }
