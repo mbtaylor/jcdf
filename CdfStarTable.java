@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -19,6 +20,12 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
 
+/**
+ * StarTable implementation for CDF files.
+ *
+ * @author   Mark Taylor
+ * @since    24 Jun 2013
+ */
 public class CdfStarTable extends AbstractStarTable {
 
     private final Variable[] vars_;
@@ -27,7 +34,16 @@ public class CdfStarTable extends AbstractStarTable {
     private final long nrow_;
     private final ColumnInfo[] colInfos_;
     private final VariableAttribute blankvalAtt_;
+    private static final Logger logger_ =
+        Logger.getLogger( CdfStarTable.class.getName() );
 
+    /**
+     * Constructor.
+     *
+     * @param   content  CDF data content object
+     * @param   profile  parameterisation of how CDFs should get turned
+     *                   into StarTables
+     */
     public CdfStarTable( CdfContent content, CdfTableProfile profile )
             throws IOException {
 
@@ -35,7 +51,7 @@ public class CdfStarTable extends AbstractStarTable {
         // and one to turn into parameters.  The parameters one will only
         // have entries if there are non-varying variables
         // (recordVariance = false) and the profile says these are to be
-        // treated as paramters.
+        // treated as parameters.
         List<Variable> varList =
             new ArrayList<Variable>( Arrays.asList( content.getVariables() ) );
         List<Variable> paramVarList = new ArrayList<Variable>();
@@ -52,15 +68,18 @@ public class CdfStarTable extends AbstractStarTable {
         vars_ = varList.toArray( new Variable[ 0 ] );
         ncol_ = vars_.length;
 
-        // Calculate row count, as the longest record count of any of
-        // the variables.
+        // Calculate the row count.  CDF does not have a concept of a row
+        // count as such, but it makes sense to use the longest record
+        // count of any of the variables (typically you'd expect the
+        // record count to be the same for all variables).
         long nrow = 0;
         for ( int iv = 0; iv < vars_.length; iv++ ) {
             nrow = Math.max( nrow, vars_[ iv ].getRecordCount() );
         }
         nrow_ = nrow;
 
-        // Try to work out which attributes represent units and description.
+        // Try to work out which attributes represent units and description
+        // by using the hints in the supplied profile.
         VariableAttribute[] vatts = content.getVariableAttributes();
         String[] attNames = new String[ vatts.length ];
         for ( int iva = 0; iva < vatts.length; iva++ ) {
@@ -89,8 +108,9 @@ public class CdfStarTable extends AbstractStarTable {
         }
         blankvalAtt_ = blankvalAtt;
 
-        // Remove those from the variable attributes to give a miscellaneous
-        // attribute list.
+        // Remove the attributes we've used for a specific purpose above
+        // from the variable attribute list to give a list of miscellaneous
+        // attributes.
         List<VariableAttribute> miscAttList =
             new ArrayList<VariableAttribute>( Arrays.asList( vatts ) );
         miscAttList.remove( descAtt );
@@ -189,13 +209,23 @@ public class CdfStarTable extends AbstractStarTable {
         };
     }
 
+    /**
+     * Turns a CDF global attribute into a STIL table parameter.
+     *
+     * @param  gatt  global attribute
+     * @return   described value for use as a table parameter
+     */
     private static DescribedValue createParameter( GlobalAttribute gatt ) {
         String name = gatt.getName();
         Object[] entries = gatt.getEntries();
         int nent = entries.length;
+
+        // No entries, treat as a blank value.
         if ( nent == 0 ) {
             return null;
         }
+
+        // One entry, treat as a scalar value.
         else if ( nent == 1 ) {
             Object value = entries[ 0 ];
             if ( value == null ) {
@@ -207,6 +237,8 @@ public class CdfStarTable extends AbstractStarTable {
                 return new DescribedValue( info, value );
             }
         }
+
+        // Multiple entries, treat as a vector value.
         else {
             Object value = entries;
             DefaultValueInfo info =
@@ -216,6 +248,14 @@ public class CdfStarTable extends AbstractStarTable {
         }
     }
 
+    /**
+     * Gets a basic value header from a CDF variable and extra information.
+     *
+     * @param  var  CDF variable
+     * @param  descrip   variable description text, or null
+     * @param  units    variable units text, or null
+     * @return   value metadata
+     */
     private static ValueInfo createValueInfo( Variable var, String descrip,
                                               String units ) {
         String name = var.getName();
@@ -229,9 +269,25 @@ public class CdfStarTable extends AbstractStarTable {
         return info;
     }
 
+    /**
+     * Gets a column header, including auxiliary metadata, from a CDF variable
+     * and extra information.
+     *
+     * @param  var  CDF variable
+     * @param  descrip   variable description text, or null
+     * @param  units    variable units text, or null
+     * @return   column metadata
+     */
     private static ColumnInfo createColumnInfo( Variable var, String descrip,
                                                 String units,
                                                 Map<String,Object> attMap ) {
+
+        // Create basic column metadata.
+        ColumnInfo info =
+            new ColumnInfo( createValueInfo( var, descrip, units ) );
+
+        // Augment it with auxiliary metadata for the column by examining
+        // the attribute values for the variable.
         List<DescribedValue> auxData = new ArrayList<DescribedValue>();
         for ( Map.Entry<String,Object> attEntry : attMap.entrySet() ) {
             String auxName = attEntry.getKey();
@@ -242,18 +298,32 @@ public class CdfStarTable extends AbstractStarTable {
                 auxData.add( new DescribedValue( auxInfo, auxValue ) );
             }
         }
-        ColumnInfo info =
-            new ColumnInfo( createValueInfo( var, descrip, units ) );
         info.setAuxData( auxData );
+
+        // Return metadata.
         return info;
     }
 
+    /**
+     * Gets a variable's attribute value expected to be of string type.
+     *
+     * @param   att  attribute
+     * @param   var  variable
+     * @return   string value of att for var, or null if it doesn't exist
+     *           or has the wrong type
+     */
     private static String getStringEntry( VariableAttribute att,
                                           Variable var ) {
         Object entry = att == null ? null : att.getEntry( var );
         return entry instanceof String ? (String) entry : null;
     }
 
+    /**
+     * Converts a long to an int when the value is a record/row index.
+     *
+     * @param   irow   StarTable row index
+     * @retrun   CDF record index
+     */
     private static int toRecordIndex( long irow ) {
         int irec = (int) irow;
         if ( irec != irow ) {
@@ -263,9 +333,19 @@ public class CdfStarTable extends AbstractStarTable {
         return irec;
     }
 
+    /**
+     * Constructs a reader for a give variable.
+     *
+     * @param    var   variable whose values will be read
+     * @param   blankValAtt  attribute providing per-variable blank values
+     *                       (probably FILLVAL)
+     * @return   new variable reader
+     */
     private static VariableReader
             createVariableReader( Variable var,
                                   VariableAttribute blankvalAtt ) {
+
+        // Check if we have a fixed blank value (FILLVAL) for this variable.
         final Object blankval = blankvalAtt == null
                               ? null
                               : blankvalAtt.getEntry( var );
@@ -342,6 +422,9 @@ public class CdfStarTable extends AbstractStarTable {
         // make use of the blank value (can't set integer array elements to
         // null/NaN), so ignore the blank value.
         else {
+            logger_.warning( "Magic value " + blankvalAtt.getName()
+                           + " ignored for CDF variable "
+                           + var.getName() + " " + var.getSummary() );
             return new VariableReader( var, false );
         }
     }
@@ -358,17 +441,35 @@ public class CdfStarTable extends AbstractStarTable {
         private final Variable var_;
         private final boolean usesBlankValue_;
         private final Object work_;
+
+        /**
+         * Constructor.
+         *
+         * @param  var  variable
+         * @param  usesBlankValue  true iff this reader will attempt to
+         *                         use the blank value to blank out
+         *                         matching values (in some cases this can't
+         *                         be done in STIL)
+         */
         VariableReader( Variable var, boolean usesBlankValue ) {
             var_ = var;
             usesBlankValue_ = usesBlankValue;
             work_ = var.createRawValueArray();
         }
-        // synchronize so the work array doesn't get trampled on.
+
+        // Synchronize so the work array doesn't get trampled on.
         // Subclasses should synchronize too (synchronization is not
         // inherited).
         synchronized Object readShapedRecord( int irec ) throws IOException {
             return var_.readShapedRecord( irec, false, work_ );
         }
+
+        /**
+         * Returns true iff this reader attempts to match values against
+         * a magic blank value.
+         *
+         * @param  true  iff reader tries to use magic blanks
+         */
         boolean usesBlankValue() {
             return usesBlankValue_;
         }

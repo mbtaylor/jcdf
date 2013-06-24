@@ -12,9 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
@@ -26,8 +25,15 @@ import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.IOUtils;
 
+/**
+ * Table input handler for NASA CDF (Common Data Format) files.
+ *
+ * @author   Mark Taylor
+ * @since    24 Jun 2013
+ */
 public class CdfTableBuilder implements TableBuilder {
 
+    /** Default CDF-StarTable translation profile. */
     public static final CdfTableProfile DEFAULT_PROFILE = createProfile(
         true,
         new String[] { "CATDESC", "FIELDNAM", "DESCRIP", "DESCRIPTION", },
@@ -37,14 +43,25 @@ public class CdfTableBuilder implements TableBuilder {
 
     private final CdfTableProfile profile_;
 
+    /**
+     * Constructs a default Cdf table builder.
+     */
     public CdfTableBuilder() {
         this( DEFAULT_PROFILE );
     }
 
+    /**
+     * Constructs a Cdf table builder with a custom translation profile.
+     *
+     * @param   profile  CDF-Startable translation profile
+     */
     public CdfTableBuilder( CdfTableProfile profile ) {
         profile_ = profile;
     }
 
+    /**
+     * Returns "CDF".
+     */
     public String getFormatName() {
         return "CDF";
     }
@@ -55,6 +72,8 @@ public class CdfTableBuilder implements TableBuilder {
         if ( ! CdfReader.isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( "Not a CDF file" );
         }
+
+        // Get a buf containing the byte data from the input source.
         final Buf nbuf;
         if ( datsrc instanceof FileDataSource &&
              datsrc.getCompression() == Compression.NONE ) {
@@ -78,6 +97,8 @@ public class CdfTableBuilder implements TableBuilder {
         // Fix the Buf implementation so that it uses the supplied
         // storage policy for allocating any more required storage.
         Buf buf = new StoragePolicyBuf( nbuf, storagePolicy );
+
+        // Turn the buf into a CdfContent and thence into a StarTable.
         CdfContent content = new CdfContent( new CdfReader( buf ) );
         return new CdfStarTable( content, profile_ );
     }
@@ -101,17 +122,32 @@ public class CdfTableBuilder implements TableBuilder {
         throw new TableFormatException( "Can't stream from CDF format" );
     }
 
+    /**
+     * Buf implementation that delegates most methods to a base instance,
+     * but when creating new Buf objects it does so in accordance with
+     * a give STIL StoragePolicy.
+     */
     private static class StoragePolicyBuf extends WrapperBuf {
         private final Buf baseBuf_;
         private final StoragePolicy storagePolicy_;
 
+        /**
+         * Constructor.
+         *
+         * @param   baseBuf  buf supplying base behaviour
+         * @param  storagePolicy  policy for managing new buffer creation
+         */
         StoragePolicyBuf( Buf baseBuf, StoragePolicy storagePolicy ) {
             super( baseBuf );
             baseBuf_ = baseBuf;
             storagePolicy_ = storagePolicy;
         }
 
+        @Override
         public Buf fillNewBuf( long count, InputStream in ) throws IOException {
+
+            // Copy the input stream data to a byte store obtained from
+            // the storage policy.
             ByteStore byteStore = storagePolicy_.makeByteStore();
             OutputStream out = byteStore.getOutputStream();
             int bufsiz = 16384;
@@ -129,13 +165,32 @@ public class CdfTableBuilder implements TableBuilder {
                 }
             }
             out.flush();
+
+            // Turn the byte store into NIO buffers.
             ByteBuffer[] bbufs = byteStore.toByteBuffers();
             byteStore.close();
+
+            // Turn the NIO buffers into a Buf.
             return Bufs.createBuf( bbufs,
                                    super.isBit64(), super.isBigendian() );
         }
     }
 
+    /**
+     * Constructs an instance of CdfTableProfile with some suggestions
+     * for attribute names with known semantics.
+     *
+     * @param  invarParams  true for turning non-row-varying variables into
+     *                      table parameters, false for turning them into
+     *                      variables
+     * @param  descripAttNames  ordered list of names of attributes
+     *                          that might supply description metadata
+     * @param  unitAttNames     ordered list of names of attributes
+     *                          that might supply units metadata
+     * @param  blankvalAttNames ordered list of names of attributes
+     *                          that might supply magic blank values
+     * @return  new profile instance
+     */
     public static CdfTableProfile createProfile( boolean invarParams,
                                                  String[] descripAttNames,
                                                  String[] unitAttNames,
@@ -144,19 +199,35 @@ public class CdfTableBuilder implements TableBuilder {
                                         unitAttNames, blankvalAttNames );
     }
 
+    /**
+     * CdfTableProfile implementation based on lists of names.
+     */
     private static class ListCdfTableProfile implements CdfTableProfile {
         private final boolean invarParams_;
-        private final Collection<String> descAttNames_;
-        private final Collection<String> unitAttNames_;
-        private final Collection<String> blankvalAttNames_;
+        private final String[] descAttNames_;
+        private final String[] unitAttNames_;
+        private final String[] blankvalAttNames_;
 
+        /**
+         * Constructor.
+         *
+         * @param  invarParams  true for turning non-row-varying variables into
+         *                      table parameters, false for turning them into
+         *                      variables
+         * @param  descripAttNames  ordered list of names of attributes
+         *                          that might supply description metadata
+         * @param  unitAttNames     ordered list of names of attributes
+         *                          that might supply units metadata
+         * @param  blankvalAttNames ordered list of names of attributes
+         *                          that might supply magic blank values
+         */
         ListCdfTableProfile( boolean invarParams, String[] descripAttNames,
                              String[] unitAttNames,
                              String[] blankvalAttNames ) {
             invarParams_ = invarParams;
-            descAttNames_ = toNormalisedList( descripAttNames );
-            unitAttNames_ = toNormalisedList( unitAttNames );
-            blankvalAttNames_ = toNormalisedList( blankvalAttNames );
+            descAttNames_ = descripAttNames;
+            unitAttNames_ = unitAttNames;
+            blankvalAttNames_ = blankvalAttNames;
         }
 
         public boolean invariantVariablesToParameters() {
@@ -164,39 +235,46 @@ public class CdfTableBuilder implements TableBuilder {
         }
 
         public String getDescriptionAttribute( String[] attNames ) {
-            return match( attNames, descAttNames_ );
+            return match( descAttNames_, attNames );
         }
 
         public String getUnitAttribute( String[] attNames ) {
-            return match( attNames, unitAttNames_ );
+            return match( unitAttNames_, attNames );
         }
 
         public String getBlankValueAttribute( String[] attNames ) {
-            return match( attNames, blankvalAttNames_ );
+            return match( blankvalAttNames_, attNames );
         }
 
-        private static Collection<String> toNormalisedList( String[] names ) {
-            // Use a LinkedHashMap for its ordering properties.
-            // Only keys are used, values are ignored.
-            Map<String,Object> map = new LinkedHashMap<String,Object>();
-            for ( int in = 0; in < names.length; in++ ) {
-                map.put( normalise( names[ in ] ), null );
+        /**
+         * Returns the first element of a list of options that matches
+         * any element of a list of targets.  Matching is normalised.
+         *
+         * @param  opts  options
+         * @param  targets  targets
+         * @return  first matching option, or null if none match
+         */
+        private String match( String[] opts, String[] targets ) {
+            Set<String> targetSet = new HashSet<String>();
+            for ( int i = 0; i < targets.length; i++ ) {
+                targetSet.add( normalise( targets[ i ] ) );
             }
-            return map.keySet();
-        }
-
-        private static String match( String[] opts,
-                                     Collection<String> targetList ) {
             for ( int i = 0; i < opts.length; i++ ) {
                 String opt = opts[ i ];
-                if ( targetList.contains( normalise( opt ) ) ) {
+                if ( targetSet.contains( normalise( opt ) ) ) {
                     return opt;
                 }
             }
             return null;
         }
 
-        private static String normalise( String txt ) {
+        /**
+         * Normalises a token by folding case.
+         *
+         * @param  txt  token
+         * @return  normalised token
+         */
+        private String normalise( String txt ) {
             return txt.trim().toLowerCase();
         }
     }
