@@ -1,4 +1,6 @@
-package cdf;
+package cdf.record;
+
+import cdf.CdfFormatException;
 
 /**
  * Enumeration of numeric encoding values supported by CDF.

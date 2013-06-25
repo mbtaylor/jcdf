@@ -10,22 +10,23 @@ STILJAR = stil.jar
 TEST_CDFS = data/*.cdf
 
 JSRC = \
-       AttributeDescriptorRecord.java \
-       AttributeEntryDescriptorRecord.java \
        BankBuf.java \
        Buf.java \
        Bufs.java \
+       Pointer.java \
+       SimpleNioBuf.java \
+       WrapperBuf.java \
+       \
+       AttributeDescriptorRecord.java \
+       AttributeEntryDescriptorRecord.java \
        CdfDescriptorRecord.java \
-       CdfFormatException.java \
        CompressedCdfRecord.java \
        CompressedParametersRecord.java \
        CompressedVariableValuesRecord.java \
        GlobalDescriptorRecord.java \
-       Pointer.java \
        Record.java \
        RecordFactory.java \
        RecordPlan.java \
-       SimpleNioBuf.java \
        SparsenessParametersRecord.java \
        UnusedInternalRecord.java \
        VariableDescriptorRecord.java \
@@ -33,21 +34,22 @@ JSRC = \
        VariableValuesRecord.java \
        \
        BitExpandInputStream.java \
+       Compression.java \
+       NumericEncoding.java \
+       RunLengthInputStream.java \
+       RecordMap.java \
+       DataReader.java \
+       EpochFormatter.java \
+       \
        CdfContent.java \
+       GlobalAttribute.java \
+       VariableAttribute.java \
+       Variable.java \
        CdfInfo.java \
        CdfReader.java \
-       Compression.java \
-       DataReader.java \
        DataType.java \
-       EpochFormatter.java \
-       GlobalAttribute.java \
-       NumericEncoding.java \
-       RecordMap.java \
-       RunLengthInputStream.java \
        Shaper.java \
-       Variable.java \
-       VariableAttribute.java \
-       WrapperBuf.java \
+       CdfFormatException.java \
        \
        CdfDump.java \
        CdfList.java \
@@ -67,7 +69,7 @@ JSRC = \
 
 jar: $(JARFILE)
 
-docs: $(JSRC)
+docs: $(JSRC) package-info.java
 	rm -rf docs
 	mkdir docs
 	$(JAVADOC) -classpath $(STILJAR) -quiet -d docs \

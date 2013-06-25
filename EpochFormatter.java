@@ -1,4 +1,4 @@
-package cdf;
+package cdf.record;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

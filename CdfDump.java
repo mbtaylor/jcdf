@@ -1,11 +1,11 @@
 package cdf.util;
 
-import cdf.Buf;
 import cdf.CdfReader;
-import cdf.CdfDescriptorRecord;
-import cdf.GlobalDescriptorRecord;
-import cdf.Record;
-import cdf.RecordFactory;
+import cdf.record.Buf;
+import cdf.record.CdfDescriptorRecord;
+import cdf.record.GlobalDescriptorRecord;
+import cdf.record.Record;
+import cdf.record.RecordFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;

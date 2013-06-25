@@ -1,5 +1,15 @@
 package cdf;
 
+import cdf.record.Buf;
+import cdf.record.Bufs;
+import cdf.record.CdfDescriptorRecord;
+import cdf.record.CompressedCdfRecord;
+import cdf.record.CompressedParametersRecord;
+import cdf.record.Compression;
+import cdf.record.NumericEncoding;
+import cdf.record.Pointer;
+import cdf.record.Record;
+import cdf.record.RecordFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;

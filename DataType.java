@@ -1,7 +1,9 @@
 package cdf;
 
+import cdf.record.Buf;
+import cdf.record.EpochFormatter;
+import cdf.record.Pointer;
 import java.io.IOException;
-
 import java.lang.reflect.Array;
 
 /**

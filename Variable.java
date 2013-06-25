@@ -1,5 +1,11 @@
 package cdf;
 
+import cdf.record.Buf;
+import cdf.record.DataReader;
+import cdf.record.Record;
+import cdf.record.RecordFactory;
+import cdf.record.RecordMap;
+import cdf.record.VariableDescriptorRecord;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;

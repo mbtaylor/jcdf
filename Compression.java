@@ -1,5 +1,6 @@
-package cdf;
+package cdf.record;
 
+import cdf.CdfFormatException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;

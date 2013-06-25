@@ -1,4 +1,4 @@
-package cdf;
+package cdf.record;
 
 import java.io.EOFException;
 import java.io.File;

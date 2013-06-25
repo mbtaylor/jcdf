@@ -1,4 +1,4 @@
-package cdf;
+package cdf.record;
 
 /**
  * Keeps track of a file offset.

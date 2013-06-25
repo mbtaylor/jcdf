@@ -1,10 +1,10 @@
 package cdf.util;
 
-import cdf.Buf;
-import cdf.Bufs;
 import cdf.CdfContent;
 import cdf.CdfReader;
-import cdf.WrapperBuf;
+import cdf.record.Buf;
+import cdf.record.Bufs;
+import cdf.record.WrapperBuf;
 import java.awt.datatransfer.DataFlavor;
 import java.io.BufferedOutputStream;
 import java.io.File;

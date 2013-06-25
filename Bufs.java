@@ -1,4 +1,4 @@
-package cdf;
+package cdf.record;
 
 import java.io.BufferedInputStream;
 import java.io.File;

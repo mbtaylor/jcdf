@@ -1,4 +1,4 @@
-package cdf;
+package cdf.record;
 
 /**
  * Records basic information about the position, extent and type of

@@ -1,4 +1,4 @@
-package cdf;
+package cdf.record;
 
 /**
  * Field data for CDF record of type Variable Values Record.

@@ -1,5 +1,6 @@
-package cdf;
+package cdf.record;
 
+import cdf.DataType;
 import java.io.IOException;
 import java.lang.reflect.Array;
 
