@@ -1,4 +1,4 @@
-package cdf;
+package uk.ac.bristol.star.cdf;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;

@@ -1,12 +1,12 @@
-package cdf.record;
+package uk.ac.bristol.star.cdf.record;
 
-import cdf.CdfFormatException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import uk.ac.bristol.star.cdf.CdfFormatException;
 
 /**
  * Turns bytes in a buffer into typed and populated CDF records.

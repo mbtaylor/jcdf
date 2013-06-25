@@ -1,4 +1,4 @@
-package cdf.record;
+package uk.ac.bristol.star.cdf.record;
 
 /**
  * Keeps track of a file offset.

@@ -1,19 +1,19 @@
-package cdf;
+package uk.ac.bristol.star.cdf;
 
-import cdf.record.AttributeDescriptorRecord;
-import cdf.record.AttributeEntryDescriptorRecord;
-import cdf.record.Buf;
-import cdf.record.CdfDescriptorRecord;
-import cdf.record.DataReader;
-import cdf.record.GlobalDescriptorRecord;
-import cdf.record.Record;
-import cdf.record.RecordFactory;
-import cdf.record.VariableDescriptorRecord;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import uk.ac.bristol.star.cdf.record.AttributeDescriptorRecord;
+import uk.ac.bristol.star.cdf.record.AttributeEntryDescriptorRecord;
+import uk.ac.bristol.star.cdf.record.Buf;
+import uk.ac.bristol.star.cdf.record.CdfDescriptorRecord;
+import uk.ac.bristol.star.cdf.record.DataReader;
+import uk.ac.bristol.star.cdf.record.GlobalDescriptorRecord;
+import uk.ac.bristol.star.cdf.record.Record;
+import uk.ac.bristol.star.cdf.record.RecordFactory;
+import uk.ac.bristol.star.cdf.record.VariableDescriptorRecord;
 
 /**
  * Provides all the data and metadata in a CDF file in a high-level

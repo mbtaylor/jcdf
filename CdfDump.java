@@ -1,12 +1,5 @@
-package cdf.util;
+package uk.ac.bristol.star.cdf.util;
 
-import cdf.CdfReader;
-import cdf.record.Buf;
-import cdf.record.CdfDescriptorRecord;
-import cdf.record.CdfField;
-import cdf.record.GlobalDescriptorRecord;
-import cdf.record.Record;
-import cdf.record.RecordFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -17,6 +10,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import uk.ac.bristol.star.cdf.CdfReader;
+import uk.ac.bristol.star.cdf.record.Buf;
+import uk.ac.bristol.star.cdf.record.CdfDescriptorRecord;
+import uk.ac.bristol.star.cdf.record.CdfField;
+import uk.ac.bristol.star.cdf.record.GlobalDescriptorRecord;
+import uk.ac.bristol.star.cdf.record.Record;
+import uk.ac.bristol.star.cdf.record.RecordFactory;
 
 /**
  * Utility to dump the records of a CDF file, optionally with field values.

@@ -1,7 +1,7 @@
-package cdf.record;
+package uk.ac.bristol.star.cdf.record;
 
-import cdf.DataType;
 import java.io.IOException;
+import uk.ac.bristol.star.cdf.DataType;
 
 /**
  * Abstract superclass for CDF Variable Descriptor Records.

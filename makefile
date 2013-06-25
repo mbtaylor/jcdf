@@ -76,14 +76,16 @@ index.html: jcdf.xhtml
 	xmllint -html jcdf.xhtml >index.html
 
 cdflist.html: $(JARFILE)
-	./examples.sh "java -classpath $(JARFILE) cdf.util.CdfList" \
+	./examples.sh \
+            "java -classpath $(JARFILE) uk.ac.bristol.star.cdf.util.CdfList" \
             "-help" \
             "data/example1.cdf" \
             "-data data/example1.cdf" \
             >$@
 
 cdfdump.html: $(JARFILE)
-	./examples.sh "java -classpath $(JARFILE) cdf.util.CdfDump" \
+	./examples.sh \
+            "java -classpath $(JARFILE) uk.ac.bristol.star.cdf.util.CdfDump" \
             "-help" \
             "data/example1.cdf" \
             "-fields -html data/example1.cdf" \
@@ -101,7 +103,8 @@ convtest: $(JARFILE) $(TEST_CDFS)
 	for f in $(TEST_CDFS); \
         do \
            files=`./cdfvar.sh -outdir tmp -report $$f`; \
-           cmd="java -ea -classpath $(JARFILE) cdf.test.SameTest $$files"; \
+           cmd="java -ea -classpath $(JARFILE) \
+                     uk.ac.bristol.star.cdf.test.SameTest $$files"; \
            ./cdfvar.sh -outdir tmp -create $$f && \
            echo $$cmd && \
            $$cmd || \
@@ -110,7 +113,7 @@ convtest: $(JARFILE) $(TEST_CDFS)
         rm -rf tmp
 
 extest: $(JARFILE)
-	java -ea -classpath $(JARFILE) cdf.test.ExampleTest \
+	java -ea -classpath $(JARFILE) uk.ac.bristol.star.cdf.test.ExampleTest \
              data/example1.cdf data/example2.cdf
 
 clean:

@@ -1,10 +1,10 @@
-package cdf.record;
+package uk.ac.bristol.star.cdf.record;
 
-import cdf.CdfFormatException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import uk.ac.bristol.star.cdf.CdfFormatException;
 
 /**
  * Keeps track of where a variable's record data is stored.

@@ -1,9 +1,9 @@
-package cdf.record;
+package uk.ac.bristol.star.cdf.record;
 
-import cdf.CdfFormatException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
+import uk.ac.bristol.star.cdf.CdfFormatException;
 
 /**
  * Defines a data compression type supported for compressing CDF data.

@@ -1,11 +1,5 @@
-package cdf.util;
+package uk.ac.bristol.star.cdf.util;
 
-import cdf.CdfContent;
-import cdf.CdfReader;
-import cdf.DataType;
-import cdf.GlobalAttribute;
-import cdf.Variable;
-import cdf.VariableAttribute;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -14,6 +8,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import uk.ac.bristol.star.cdf.CdfContent;
+import uk.ac.bristol.star.cdf.CdfReader;
+import uk.ac.bristol.star.cdf.DataType;
+import uk.ac.bristol.star.cdf.GlobalAttribute;
+import uk.ac.bristol.star.cdf.Variable;
+import uk.ac.bristol.star.cdf.VariableAttribute;
 
 /**
  * Utility to describe a CDF file, optionally with record data.

@@ -1,10 +1,10 @@
-package cdf;
+package uk.ac.bristol.star.cdf;
 
-import cdf.record.Buf;
-import cdf.record.EpochFormatter;
-import cdf.record.Pointer;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import uk.ac.bristol.star.cdf.record.Buf;
+import uk.ac.bristol.star.cdf.record.EpochFormatter;
+import uk.ac.bristol.star.cdf.record.Pointer;
 
 /**
  * Enumerates the data types supported by the CDF format.

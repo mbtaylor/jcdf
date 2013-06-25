@@ -1,8 +1,8 @@
-package cdf.record;
+package uk.ac.bristol.star.cdf.record;
 
-import cdf.CdfFormatException;
 import java.io.IOException;
 import java.io.InputStream;
+import uk.ac.bristol.star.cdf.CdfFormatException;
 
 /**
  * Decompression stream for CDF's version of Run Length Encoding.

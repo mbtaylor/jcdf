@@ -2,10 +2,11 @@
  * Pure java library for read-only access to CDF (NASA Common Data Format)
  * files.
  *
- * <p>For low-level access to the record data of a CDF file,
- * use the {@link cdf.CdfReader} class.  For high-level access to the
- * variables and attributes that form the CDF data and metadata,
- * use the {@link cdf.CdfContent} class.
+ * <p>For low-level access to the record data of a CDF file, use the
+ * {@link uk.ac.bristol.star.cdf.CdfReader} class.
+ * For high-level access to the variables and attributes that form
+ * the CDF data and metadata, use the
+ * {@link uk.ac.bristol.star.cdf.CdfContent} class.
  *
  * <p>The package makes extensive use of NIO buffers for mapped read-on-demand
  * data access, so should be fairly efficient for reading scalar records
@@ -17,4 +18,4 @@
  * capabilities), but it is pure java (no native code required) and it's
  * also quite a bit less complicated to use.
  */
-package cdf;
+package uk.ac.bristol.star.cdf;

@@ -1,21 +1,21 @@
-package cdf;
+package uk.ac.bristol.star.cdf;
 
-import cdf.record.Buf;
-import cdf.record.Bufs;
-import cdf.record.CdfDescriptorRecord;
-import cdf.record.CompressedCdfRecord;
-import cdf.record.CompressedParametersRecord;
-import cdf.record.Compression;
-import cdf.record.NumericEncoding;
-import cdf.record.Pointer;
-import cdf.record.Record;
-import cdf.record.RecordFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.util.logging.Logger;
+import uk.ac.bristol.star.cdf.record.Buf;
+import uk.ac.bristol.star.cdf.record.Bufs;
+import uk.ac.bristol.star.cdf.record.CdfDescriptorRecord;
+import uk.ac.bristol.star.cdf.record.CompressedCdfRecord;
+import uk.ac.bristol.star.cdf.record.CompressedParametersRecord;
+import uk.ac.bristol.star.cdf.record.Compression;
+import uk.ac.bristol.star.cdf.record.NumericEncoding;
+import uk.ac.bristol.star.cdf.record.Pointer;
+import uk.ac.bristol.star.cdf.record.Record;
+import uk.ac.bristol.star.cdf.record.RecordFactory;
 
 /**
  * Examines a CDF file and provides methods to access its records.

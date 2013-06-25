@@ -1,8 +1,8 @@
-package cdf.record;
+package uk.ac.bristol.star.cdf.record;
 
-import cdf.DataType;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import uk.ac.bristol.star.cdf.DataType;
 
 /**
  * Reads items with a given data type from a buffer into an array.

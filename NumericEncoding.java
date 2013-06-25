@@ -1,6 +1,6 @@
-package cdf.record;
+package uk.ac.bristol.star.cdf.record;
 
-import cdf.CdfFormatException;
+import uk.ac.bristol.star.cdf.CdfFormatException;
 
 /**
  * Enumeration of numeric encoding values supported by CDF.

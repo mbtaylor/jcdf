@@ -1,4 +1,4 @@
-package cdf.record;
+package uk.ac.bristol.star.cdf.record;
 
 /**
  * Field data for CDF record of type Variable Values Record.

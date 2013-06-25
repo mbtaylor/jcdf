@@ -1,4 +1,4 @@
-package cdf;
+package uk.ac.bristol.star.cdf;
 
 /**
  * Encapsulates some global information about a CDF file.

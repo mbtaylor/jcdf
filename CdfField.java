@@ -1,4 +1,4 @@
-package cdf.record;
+package uk.ac.bristol.star.cdf.record;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

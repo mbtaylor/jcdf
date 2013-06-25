@@ -1,15 +1,15 @@
-package cdf.test;
+package uk.ac.bristol.star.cdf.test;
 
-import cdf.CdfContent;
-import cdf.CdfReader;
-import cdf.GlobalAttribute;
-import cdf.Variable;
-import cdf.VariableAttribute;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.bristol.star.cdf.CdfContent;
+import uk.ac.bristol.star.cdf.CdfReader;
+import uk.ac.bristol.star.cdf.GlobalAttribute;
+import uk.ac.bristol.star.cdf.Variable;
+import uk.ac.bristol.star.cdf.VariableAttribute;
 
 /**
  * Tests the contents of two of the example files
