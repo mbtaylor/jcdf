@@ -15,6 +15,7 @@ import java.util.List;
  */
 public class CdfContent {
 
+    private final CdfInfo cdfInfo_;
     private final GlobalAttribute[] globalAtts_;
     private final VariableAttribute[] variableAtts_;
     private final Variable[] variables_;
@@ -41,7 +42,7 @@ public class CdfContent {
         // Store global format information.
         boolean rowMajor = Record.hasBit( cdr.flags_, 0 );
         int[] rDimSizes = gdr.rDimSizes_;
-        CdfInfo cdfInfo = new CdfInfo( rowMajor, rDimSizes );
+        cdfInfo_ = new CdfInfo( rowMajor, rDimSizes );
 
         // Read the rVariable and zVariable records.
         VariableDescriptorRecord[] rvdrs =
@@ -55,7 +56,7 @@ public class CdfContent {
         VariableDescriptorRecord[] vdrs = arrayConcat( rvdrs, zvdrs );
         variables_ = new Variable[ vdrs.length ];
         for ( int iv = 0; iv < vdrs.length; iv++ ) {
-            variables_[ iv ] = new Variable( vdrs[ iv ], cdfInfo, recordFact );
+            variables_[ iv ] = new Variable( vdrs[ iv ], cdfInfo_, recordFact );
         }
 
         // Read the attributes records (global and variable attributes
@@ -73,11 +74,11 @@ public class CdfContent {
             Object[] grEntries =
                 walkEntryList( buf, recordFact,
                                adr.nGrEntries_, adr.maxGrEntry_,
-                               adr.agrEdrHead_, cdfInfo );
+                               adr.agrEdrHead_, cdfInfo_ );
             Object[] zEntries =
                 walkEntryList( buf, recordFact,
                                adr.nZEntries_, adr.maxZEntry_,
-                               adr.azEdrHead_, cdfInfo );
+                               adr.azEdrHead_, cdfInfo_ );
             boolean isGlobal = Record.hasBit( adr.scope_, 0 );
             if ( isGlobal ) {
                 // grEntries are gEntries
@@ -119,6 +120,15 @@ public class CdfContent {
      */
     public Variable[] getVariables() {
         return variables_;
+    }
+
+    /**
+     * Returns some global information about the CDF file.
+     *
+     * @return  CDF info
+     */
+    public CdfInfo getCdfInfo() {
+        return cdfInfo_;
     }
 
     /**
