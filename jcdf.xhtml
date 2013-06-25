@@ -1,0 +1,127 @@
+<html>
+<head>
+<title>JCDF</title>
+</head>
+<body>
+<h1>JCDF</h1>
+
+<h2>Overview</h2>
+
+<p>JCDF is a pure java library capable of reading files in the
+<a href="http://cdf.gsfc.nasa.gov/">Common Data Format</a> defined by NASA.
+It runs within the J2SE1.5 (or later), but other than that has no dependencies,
+neither the official CDF C library nor any other java class libraries.
+</p>
+
+<h2>Documentation</h2>
+
+<p>The classes are provided with comprehensive
+<a href="javadocs/index.html">javadocs</a>.
+Start reading at the
+<a href="javadocs/cdf/CdfContent.html"><code>CdfContent</code></a> class.
+</p>
+
+<h2>Comparison with the official CDF library</h2>
+
+<p>JCDF is a completely separate implementation from the Java interface to
+the official CDF library, which uses native code via JNI.
+It was written mainly with reference to the CDF Internal Format Description
+document (v3.4).
+</p>
+
+<p>The main benefit of using JCDF, and the reason for developing it, 
+is that it's pure java, so it can be deployed using only the JCDF jar file.  
+There is no need to install the system-dependent official CDF library.
+</p>
+
+<p>The API is very different from that of the official CDF library.
+JCDF gives you a simple view of the CDF file, in terms of its 
+global attributes, variable attributes and variables.
+This is fairly easy to use, but may or may not suit your purposes.
+It's also possible to get a low-level view of the CDF file as a 
+sequence of CDF records.
+</p>
+
+<p>JCDF offers no capabilities for writing or editing CDF files,
+it only reads them.
+</p>
+
+<p>JCDF is based on NIO mapped ByteBuffers, it's expected to be reasonably
+fast, but I haven't done any benchmarking.
+</p>
+
+<h2>Utilities</h2>
+
+<p>The library comes with a couple of simple utilities for examining
+CDF files:
+</p>
+<dl>
+<dt><strong><code>CdfList</code></strong>:</dt>
+<dd>displays the metadata and data from a CDF file,
+    along the lines of the <code>cdfdump</code> command in the official
+    CDF distribution.
+    If the <code>-data</code> flag is supplied, record data as well as
+    metadata is shown.
+    See <a href="cdflist.html">example</a>.
+    </dd>
+<dt><strong><code>CdfDump</code></strong>:</dt>
+<dd>displays a dump of the sequence of low-level
+    CDF records found in the CDF fil, along the lines of the
+    <code>cdfirsdump</code> command in the official CDF distribution.
+    If the <code>-fields</code> flag is supplied, field information from
+    each record is shown.  If the <code>-html</code> flag is supplied,
+    the output is in HTML with files offsets displayed as hyperlinks,
+    which is nice for chasing pointers.
+    See <a href="cdfdump.html">example</a>.
+    </dd>
+</dl>
+
+<h2>Downloads</h2>
+
+<p>The source code is hosted on
+<a href="https://github.com/mbtaylor/jcdf/">github</a>.
+It comes with a makefile that can be used to build the jar file and
+javadocs, and to run some tests.
+</p>
+
+<p>Pre-built copies of the jar file and documentation
+for the current version can be found here:
+</p>
+<ul>
+<li><a href="jcdf.jar">jcdf.jar</a></li>
+<li><a href="javadocs/index.html">javadocs</a></li>
+</ul>
+<p>Previous versions may be available at
+<a href="ftp://andromeda.star.bris.ac.uk/pub/star/jcdf/"
+        >ftp://andromeda.star.bris.ac.uk/pub/star/jcdf/</a>.
+</p>
+
+<h2>History</h2>
+
+<dl>
+<dt><strong>Version 1.0 (25 Jun 2013)</strong></dt>
+<dd>Initial release</dd>
+</dl>
+
+<h2>Context</h2>
+
+<p>This software was written by 
+<a href="http://www.star.bristol.ac.uk/~mbt/">Mark Taylor</a>
+at the University of Bristol at the request of, and funded by,
+the science archive group at ESA's European Space Astronomy Centre (ESAC).
+</p>
+
+<p>It is used within
+   <a href="http://www.starlink.ac.uk/topcat/">TOPCAT</a
+ >/<a href="http://www.starlink.ac.uk/stilts/">STILTS</a
+ >/<a href="http://www.starlink.ac.uk/stil/">STIL</a>
+to enable access to CDF tables alongside other tabular data formats
+by that software.
+</p>
+
+<p>It is licenced under the LGPL, though if you need a different licence
+I can probably fix it.
+</p>
+
+</body>
+</html>

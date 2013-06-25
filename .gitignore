@@ -1,6 +1,9 @@
 cdf.jar
+index.html
+cdflist.html
+cdfdump.html
 tmp/
-docs/
+javadocs/
 .*.swp
 stil.jar
 data/*.cdf

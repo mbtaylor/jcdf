@@ -7,6 +7,9 @@ JAVADOC = javadoc
 JARFILE = cdf.jar
 STILJAR = stil.jar
 
+WWW_FILES = cdf.jar javadocs index.html cdflist.html cdfdump.html
+WWW_DIR = /export/home/mbt/public_html/jcdf
+
 TEST_CDFS = data/*.cdf
 
 JSRC = \
@@ -68,15 +71,38 @@ JSRC = \
        CefTableBuilder.java \
        CefValueType.java \
 
+build: jar docs
+
 jar: $(JARFILE)
 
-docs: $(JSRC) package-info.java
-	rm -rf docs
-	mkdir docs
-	$(JAVADOC) -classpath $(STILJAR) -quiet -d docs \
+docs: $(WWW_FILES)
+
+javadocs: $(JSRC) package-info.java
+	rm -rf javadocs
+	mkdir javadocs
+	$(JAVADOC) -classpath $(STILJAR) -quiet -d javadocs \
                    $(JSRC) package-info.java
 
-build: jar docs
+index.html: jcdf.xhtml
+	xmllint -html jcdf.xhtml >index.html
+
+cdflist.html: $(JARFILE)
+	./examples.sh "java -classpath $(JARFILE) cdf.util.CdfList" \
+            "-help" \
+            "data/example1.cdf" \
+            "-data data/example1.cdf" \
+            >$@
+
+cdfdump.html: $(JARFILE)
+	./examples.sh "java -classpath $(JARFILE) cdf.util.CdfDump" \
+            "-help" \
+            "data/example1.cdf" \
+            "-fields -html data/example1.cdf" \
+            >$@
+
+installwww: $(WWW_DIR) $(WWW_FILES)
+	rm -rf $(WWW_DIR)/* && \
+	cp -r $(WWW_FILES) $(WWW_DIR)/
 
 test: extest convtest
 
@@ -99,7 +125,7 @@ extest: $(JARFILE)
              data/example1.cdf data/example2.cdf
 
 clean:
-	rm -rf $(JARFILE) tmp docs
+	rm -rf $(JARFILE) tmp index.html javadocs cdflist.html cdfdump.html
 
 $(JARFILE): $(JSRC) $(STILJAR)
 	rm -rf tmp

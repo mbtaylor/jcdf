@@ -16,6 +16,9 @@
 #   -verbose      - be verbose
 #   -outdir <dir> - directory for output files
 #   -help         - usage
+#
+# Dependencies:
+#   The cdfconvert command (from the CDF distribution) must be on the path.
 
 usage="Usage: $0 [-create] [-report] [-verbose] [-outdir <dir>] <cdf-file>"
 report=0
@@ -72,6 +75,8 @@ fi
 baseout=${outdir}`basename $basein`
 
 
+# Add more sets of cdfconvert flags here to do different manipulations
+# of the CDF file.
 count=0
 for cflags in \
   "-row -encoding network -compression cdf:gzip.5" \
