@@ -91,7 +91,6 @@ public class ExampleTest {
         assert vminVatt.getName().equals( "VALIDMIN" );
         assert vmaxVatt.getName().equals( "VALIDMAX" );
 
-
         Variable[] vars = content.getVariables();
         assert vars.length == 4;
         Variable timeVar = vars[ 0 ];
@@ -170,6 +169,12 @@ public class ExampleTest {
         return true;
     }
 
+    /**
+     * Main method.  Run with locations of files example1.cdf and example2.cdf
+     * as arguments.  Use -help for help.
+     * Tests are made using java assertions, so this test must be
+     * run with java assertions enabled.  If it's not, it will fail anyway.
+     */
     public static void main( String[] args ) throws IOException {
         assert checkAssertions();
         if ( ! assertionsOn_ ) {

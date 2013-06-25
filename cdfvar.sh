@@ -1,5 +1,22 @@
 #!/bin/sh
 
+# Command-line utility to generate various versions of a CDF file.
+# An input file is specified on the command line, and this script
+# rewrites different versions of it with varying endianness,
+# compression style, CDF format version etc.  These changes affect
+# the format, but not the content, of the file.
+# The resulting files can then be compared with the original to see
+# if the library finds the same content in them all, which is a good
+# test of the handling of different endiannesses, compression styles,
+# CDF format versions etc.
+#
+# Flags:
+#   -create       - actually writes the files
+#   -report       - just output the filenames that would be written on stdout
+#   -verbose      - be verbose
+#   -outdir <dir> - directory for output files
+#   -help         - usage
+
 usage="Usage: $0 [-create] [-report] [-verbose] [-outdir <dir>] <cdf-file>"
 report=0
 create=0

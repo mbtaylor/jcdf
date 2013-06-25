@@ -15,6 +15,16 @@ import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Tests that multiple specified CDF files identical CDF content.
+ * The second, third, fourth, ... -named files are compared with the
+ * first-named one.
+ * Any discrepancies are reported with context.
+ * The error count can be obtained.
+ *
+ * @author   Mark Taylor
+ * @since    25 Jun 2013
+ */
 public class SameTest {
 
     private final File[] files_;
@@ -22,12 +32,20 @@ public class SameTest {
     private int nerror_;
     private Stack<String> context_;
 
-    public SameTest( File[] files ) {
+    /**
+     * Constructor.
+     *
+     * @param   files  nominally similar files to assess
+     */
+    public SameTest( File[] files, PrintStream out ) {
         files_ = files;
-        out_ = System.out;
+        out_ = out;
         context_ = new Stack<String>();
     }
 
+    /**
+     * Runs the comparisons.
+     */
     public void run() throws IOException {
         CdfContent c0 = new CdfContent( new CdfReader( files_[ 0 ] ) );
         context_.clear();
@@ -41,10 +59,16 @@ public class SameTest {
         }
     }
 
+    /**
+     * Returns the number of errors found.
+     */
     public int getErrorCount() {
         return nerror_;
     }
 
+    /**
+     * Compares two CDFs for equivalence.
+     */
     private void compareCdf( CdfContent cdf0, CdfContent cdf1 )
             throws IOException {
         pushContext( "Global Attributes" );
@@ -82,6 +106,9 @@ public class SameTest {
         popContext();
     }
 
+    /**
+     * Compares two global attributes for equivalence.
+     */
     private void compareGlobalAttribute( GlobalAttribute gatt0,
                                          GlobalAttribute gatt1 ) {
         pushContext( gatt0.getName(), gatt1.getName() );
@@ -90,6 +117,9 @@ public class SameTest {
         popContext();
     }
 
+    /**
+     * Compares two variable attributes for equivalence.
+     */
     private void compareVariableAttribute( VariableAttribute vatt0,
                                            VariableAttribute vatt1,
                                            List<Pair<Variable>> varPairs ) {
@@ -104,6 +134,9 @@ public class SameTest {
         popContext();
     }
 
+    /**
+     * Compares two variables for equivalence.
+     */
     private void compareVariable( Variable var0, Variable var1 )
             throws IOException {
         pushContext( var0.getName(), var1.getName() );
@@ -131,10 +164,16 @@ public class SameTest {
         popContext();
     }
 
+    /**
+     * Compares two integers for equivalence.
+     */
     private void compareInt( int i0, int i1 ) {
         compareScalar( new Integer( i0 ), new Integer( i1 ) );
     }
 
+    /**
+     * Compares two scalar objects for equivalence.
+     */
     private void compareScalar( Object v0, Object v1 ) {
         boolean match = v0 == null ? v1 == null : v0.equals( v1 );
         if ( ! match ) {
@@ -142,11 +181,9 @@ public class SameTest {
         }
     }
 
-    private String quote( Object obj ) {
-        return obj instanceof String ? ( "\"" + obj + "\"" )
-                                     : String.valueOf( obj );
-    }
-
+    /**
+     * Compares to array values for equivalence.
+     */
     private void compareArray( Object arr0, Object arr1 ) {
         int narr0 = Array.getLength( arr0 );
         int narr1 = Array.getLength( arr1 );
@@ -161,6 +198,9 @@ public class SameTest {
         }
     }
 
+    /**
+     * Compares two miscellaneous objects for equivalence.
+     */
     private void compareValue( Object v0, Object v1 ) {
         Object vt = v0 == null ? v1 : v0;
         if ( vt == null ) {
@@ -173,24 +213,47 @@ public class SameTest {
         }
     }
 
+    /**
+     * Quotes an object string representation for output.
+     */
+    private String quote( Object obj ) {
+        return obj instanceof String ? ( "\"" + obj + "\"" )
+                                     : String.valueOf( obj );
+    }
+
+    /**
+     * Pushes a context frame labelled by two, possibly identical, strings.
+     */
     private void pushContext( String label0, String label1 ) {
         pushContext( label0.equals( label1 ) ? label0
                                              : ( label0 + "/" + label1 ) );
     }
 
+    /**
+     * Pushes a labelled context frame.
+     */
     private void pushContext( String label ) {
         context_.push( label );
     }
 
+    /**
+     * Pops a context frame from the stack.
+     */
     private void popContext() {
         context_.pop();
     }
 
+    /**
+     * Emits an message about equivalence failure with context.
+     */
     private void error( String msg ) {
         out_.println( context_.toString() + ": " + msg );
         nerror_++;
     }
                                             
+    /**
+     * Turns a pair of presumed corresponding arrays into a list of pairs.
+     */
     private <T> List<Pair<T>> getPairs( T[] arr0, T[] arr1 ) {
         if ( arr1.length != arr0.length ) {
             error( "Array length mismatch: "
@@ -204,6 +267,9 @@ public class SameTest {
         return list;
     }
 
+    /**
+     * Groups two objects.
+     */
     private static class Pair<T> {
         final T item0_;
         final T item1_;
@@ -213,12 +279,17 @@ public class SameTest {
         }
     }
 
+    /**
+     * Main method.  Supply filenames of any number of
+     * nominally similar CDF files as arguments.
+     * The run will exit with a non-zero status if any discrepancies are found.
+     */
     public static void main( String[] args ) throws IOException {
         File[] files = new File[ args.length ];
         for ( int i = 0; i < args.length; i++ ) {
             files[ i ] = new File( args[ i ] );
         }
-        SameTest test = new SameTest( files );
+        SameTest test = new SameTest( files, System.err );
         test.run();
         if ( test.getErrorCount() > 0 ) {
             System.exit( 1 );
