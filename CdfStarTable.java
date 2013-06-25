@@ -423,8 +423,9 @@ public class CdfStarTable extends AbstractStarTable {
         // null/NaN), so ignore the blank value.
         else {
             logger_.warning( "Magic value " + blankvalAtt.getName()
-                           + " ignored for CDF variable "
-                           + var.getName() + " " + var.getSummary() );
+                           + "=" + String.valueOf( blankval )
+                           + " ignored for non-float array CDF variable "
+                           + var.getName() );
             return new VariableReader( var, false );
         }
     }
