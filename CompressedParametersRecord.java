@@ -10,10 +10,10 @@ import java.io.IOException;
  */
 public class CompressedParametersRecord extends Record {
 
-    public final int cType;
-    public final int rfuA;
-    public final int pCount;
-    public final int[] cParms;
+    @CdfField public final int cType;
+    @CdfField public final int rfuA;
+    @CdfField public final int pCount;
+    @CdfField public final int[] cParms;
 
     /**
      * Constructor.

@@ -10,12 +10,12 @@ import java.io.IOException;
  */
 public class VariableIndexRecord extends Record {
 
-    public final long vxrNext;
-    public final int nEntries;
-    public final int nUsedEntries;
-    public final int[] first;
-    public final int[] last;
-    public final long[] offset;
+    @CdfField public final long vxrNext;
+    @CdfField public final int nEntries;
+    @CdfField public final int nUsedEntries;
+    @CdfField public final int[] first;
+    @CdfField public final int[] last;
+    @CdfField public final long[] offset;
 
     /** 
      * Constructor.

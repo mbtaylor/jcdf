@@ -10,8 +10,8 @@ import java.io.IOException;
  */
 public class CompressedVariableValuesRecord extends Record {
 
-    public final int rfuA;
-    public final long cSize;
+    @CdfField public final int rfuA;
+    @CdfField public final long cSize;
     private final long dataOffset_;
 
     /**

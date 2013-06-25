@@ -10,10 +10,10 @@ import java.io.IOException;
  */
 public class SparsenessParametersRecord extends Record {
 
-    public final int sArraysType;
-    public final int rfuA;
-    public final int pCount;
-    public final int[] sArraysParms;
+    @CdfField public final int sArraysType;
+    @CdfField public final int rfuA;
+    @CdfField public final int pCount;
+    @CdfField public final int[] sArraysParms;
 
     /**
      * Constructor.

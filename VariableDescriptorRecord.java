@@ -12,24 +12,24 @@ import java.io.IOException;
  */
 public abstract class VariableDescriptorRecord extends Record {
 
-    public final long vdrNext;
-    public final int dataType;
-    public final int maxRec;
-    public final long vxrHead;
-    public final long vxrTail;
-    public final int flags;
-    public final int sRecords;
-    public final int rfuB;
-    public final int rfuC;
-    public final int rfuF;
-    public final int numElems;
-    public final int num;
-    public final long cprOrSprOffset;
-    public final int blockingFactor;
-    public final String name;
-    public final int zNumDims;
-    public final int[] zDimSizes;
-    public final boolean[] dimVarys;
+    @CdfField public final long vdrNext;
+    @CdfField public final int dataType;
+    @CdfField public final int maxRec;
+    @CdfField public final long vxrHead;
+    @CdfField public final long vxrTail;
+    @CdfField public final int flags;
+    @CdfField public final int sRecords;
+    @CdfField public final int rfuB;
+    @CdfField public final int rfuC;
+    @CdfField public final int rfuF;
+    @CdfField public final int numElems;
+    @CdfField public final int num;
+    @CdfField public final long cprOrSprOffset;
+    @CdfField public final int blockingFactor;
+    @CdfField public final String name;
+    @CdfField public final int zNumDims;
+    @CdfField public final int[] zDimSizes;
+    @CdfField public final boolean[] dimVarys;
     private final long padOffset_;
     private final int padBytes_;
 

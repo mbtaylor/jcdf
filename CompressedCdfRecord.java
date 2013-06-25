@@ -10,9 +10,9 @@ import java.io.IOException;
  */
 public class CompressedCdfRecord extends Record {
 
-    public final long cprOffset;
-    public final long uSize;
-    public final int rfuA;
+    @CdfField public final long cprOffset;
+    @CdfField public final long uSize;
+    @CdfField public final int rfuA;
     private final long dataOffset_;
 
     /**

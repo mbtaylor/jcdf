@@ -32,6 +32,7 @@ JSRC = \
        VariableDescriptorRecord.java \
        VariableIndexRecord.java \
        VariableValuesRecord.java \
+       CdfField.java \
        \
        BitExpandInputStream.java \
        Compression.java \

@@ -10,16 +10,16 @@ import java.io.IOException;
  */
 public class CdfDescriptorRecord extends Record {
 
-    public final long gdrOffset;
-    public final int version;
-    public final int release;
-    public final int encoding;
-    public final int flags;
-    public final int rfuA;
-    public final int rfuB;
-    public final int increment;
-    public final int rfuD;
-    public final int rfuE;
+    @CdfField public final long gdrOffset;
+    @CdfField public final int version;
+    @CdfField public final int release;
+    @CdfField public final int encoding;
+    @CdfField public final int flags;
+    @CdfField public final int rfuA;
+    @CdfField public final int rfuB;
+    @CdfField public final int increment;
+    @CdfField public final int rfuD;
+    @CdfField public final int rfuE;
     public final String[] copyright;
 
     /**

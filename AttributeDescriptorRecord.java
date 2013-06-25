@@ -10,18 +10,18 @@ import java.io.IOException;
  */
 public class AttributeDescriptorRecord extends Record {
 
-    public final long adrNext;
-    public final long agrEdrHead;
-    public final int scope;
-    public final int num;
-    public final int nGrEntries;
-    public final int maxGrEntry;
-    public final int rfuA;
-    public final long azEdrHead;
-    public final int nZEntries;
-    public final int maxZEntry;
-    public final int rfuE;
-    public final String name;
+    @CdfField public final long adrNext;
+    @CdfField public final long agrEdrHead;
+    @CdfField public final int scope;
+    @CdfField public final int num;
+    @CdfField public final int nGrEntries;
+    @CdfField public final int maxGrEntry;
+    @CdfField public final int rfuA;
+    @CdfField public final long azEdrHead;
+    @CdfField public final int nZEntries;
+    @CdfField public final int maxZEntry;
+    @CdfField public final int rfuE;
+    @CdfField public final String name;
 
     /**
      * Constructor.

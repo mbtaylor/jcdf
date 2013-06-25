@@ -3,6 +3,7 @@ package cdf.util;
 import cdf.CdfReader;
 import cdf.record.Buf;
 import cdf.record.CdfDescriptorRecord;
+import cdf.record.CdfField;
 import cdf.record.GlobalDescriptorRecord;
 import cdf.record.Record;
 import cdf.record.RecordFactory;
@@ -143,19 +144,22 @@ public class CdfDump {
 
     /** 
      * Determines whether a given object field is a field of the CDF record.
-     * All the record subclasses are pretty simple (any cleverness is
-     * elsewhere), and the only public fields they have are CDF record fields.
-     * But probably the Right Way to do this would be to use an annotation.
      *
      * @param   field  field of java Record subclass
      * @return  true iff field represents a field of the corresponding CDF
      *          record type
      */
     private boolean isCdfRecordField( Field field ) {
-        int mods = field.getModifiers();
-        return Modifier.isFinal( mods )
-            && Modifier.isPublic( mods )
-            && ! Modifier.isStatic( mods );
+        if ( field.getAnnotation( CdfField.class ) != null ) {
+            int mods = field.getModifiers();
+            assert Modifier.isFinal( mods )
+                && Modifier.isPublic( mods )
+                && ! Modifier.isStatic( mods );
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
