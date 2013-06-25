@@ -5,7 +5,6 @@ JAR = jar
 JAVADOC = javadoc
 
 JARFILE = jcdf.jar
-STILJAR = stil.jar
 
 WWW_FILES = $(JARFILE) javadocs index.html cdflist.html cdfdump.html
 WWW_DIR = /export/home/mbt/public_html/jcdf
@@ -59,17 +58,8 @@ JSRC = \
        CdfList.java \
        LogUtil.java \
        \
-       CdfStarTable.java \
-       CdfTableBuilder.java \
-       CdfTableProfile.java \
-       \
        ExampleTest.java \
        SameTest.java \
-       \
-       CefFormatException.java \
-       CefReader.java \
-       CefTableBuilder.java \
-       CefValueType.java \
 
 build: jar docs
 
@@ -80,8 +70,7 @@ docs: $(WWW_FILES)
 javadocs: $(JSRC) package-info.java
 	rm -rf javadocs
 	mkdir javadocs
-	$(JAVADOC) -classpath $(STILJAR) -quiet -d javadocs \
-                   $(JSRC) package-info.java
+	$(JAVADOC) -quiet -d javadocs $(JSRC) package-info.java
 
 index.html: jcdf.xhtml
 	xmllint -html jcdf.xhtml >index.html
@@ -127,13 +116,10 @@ extest: $(JARFILE)
 clean:
 	rm -rf $(JARFILE) tmp index.html javadocs cdflist.html cdfdump.html
 
-$(JARFILE): $(JSRC) $(STILJAR)
+$(JARFILE): $(JSRC)
 	rm -rf tmp
 	mkdir -p tmp
-	$(JAVAC) -Xlint:unchecked -classpath $(STILJAR) -d tmp $(JSRC) \
+	$(JAVAC) -Xlint:unchecked -d tmp $(JSRC) \
             && $(JAR) cf $(JARFILE) -C tmp .
 	rm -rf tmp
-
-$(STILJAR):
-	curl -L http://www.starlink.ac.uk/stil/stil.jar >$@
 

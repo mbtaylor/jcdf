@@ -5,5 +5,4 @@ cdfdump.html
 tmp/
 javadocs/
 .*.swp
-stil.jar
 data/*.cdf
