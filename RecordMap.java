@@ -227,12 +227,12 @@ public class RecordMap {
 
         // Walk the entry linked list to assemble a list of entries.
         List<Entry> entryList = new ArrayList<Entry>();
-        for ( long vxrOffset = vdr.vxrHead_; vxrOffset != 0; ) {
+        for ( long vxrOffset = vdr.vxrHead; vxrOffset != 0; ) {
             VariableIndexRecord vxr =
                 recFact.createRecord( buf, vxrOffset,
                                       VariableIndexRecord.class );
             readEntries( vxr, buf, recFact, recSize, compress, entryList );
-            vxrOffset = vxr.vxrNext_;
+            vxrOffset = vxr.vxrNext;
         }
         Entry[] entries = entryList.toArray( new Entry[ 0 ] );
 
@@ -250,12 +250,12 @@ public class RecordMap {
     private static Compression getCompression( VariableDescriptorRecord vdr,
                                                RecordFactory recFact )
             throws IOException {
-        boolean hasCompress = Record.hasBit( vdr.flags_, 2 );
-        if ( hasCompress && vdr.cprOrSprOffset_ != -1 ) {
+        boolean hasCompress = Record.hasBit( vdr.flags, 2 );
+        if ( hasCompress && vdr.cprOrSprOffset != -1 ) {
             CompressedParametersRecord cpr =
-                recFact.createRecord( vdr.getBuf(), vdr.cprOrSprOffset_,
+                recFact.createRecord( vdr.getBuf(), vdr.cprOrSprOffset,
                                       CompressedParametersRecord.class );
-            return Compression.getCompression( cpr.cType_ );
+            return Compression.getCompression( cpr.cType );
         }
         else {
             return Compression.NONE;
@@ -285,11 +285,11 @@ public class RecordMap {
         // The only way to know which each entry is, is to examine
         // the record type value for each one (the RecordFactory takes
         // care of this by creating the right class).
-        int nent = vxr.nUsedEntries_;
+        int nent = vxr.nUsedEntries;
         for ( int ie = 0; ie < nent; ie++ ) {
-            int first = vxr.first_[ ie ];
-            int last = vxr.last_[ ie ];
-            Record rec = recFact.createRecord( buf, vxr.offset_[ ie ] );
+            int first = vxr.first[ ie ];
+            int last = vxr.last[ ie ];
+            Record rec = recFact.createRecord( buf, vxr.offset[ ie ] );
 
             // VVR: turn it directly into a new Entry and add to the list.
             if ( rec instanceof VariableValuesRecord ) {
@@ -320,13 +320,13 @@ public class RecordMap {
                 // (STEREO_STA_L1_MAG_20070708_V03.cdf).
                 VariableIndexRecord subVxr = (VariableIndexRecord) rec;
                 readEntries( subVxr, buf, recFact, recSize, compress, list );
-                for ( long nextVxrOff = subVxr.vxrNext_; nextVxrOff != 0; ) {
+                for ( long nextVxrOff = subVxr.vxrNext; nextVxrOff != 0; ) {
                     VariableIndexRecord nextVxr =
                         recFact.createRecord( buf, nextVxrOff,
                                               VariableIndexRecord.class );
                     readEntries( nextVxr, buf, recFact, recSize, compress,
                                  list );
-                    nextVxrOff = nextVxr.vxrNext_;
+                    nextVxrOff = nextVxr.vxrNext;
                 }
             }
 

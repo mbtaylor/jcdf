@@ -10,9 +10,9 @@ import java.io.IOException;
  */
 public class CompressedCdfRecord extends Record {
 
-    public final long cprOffset_;
-    public final long uSize_;
-    public final int rfuA_;
+    public final long cprOffset;
+    public final long uSize;
+    public final int rfuA;
     private final long dataOffset_;
 
     /**
@@ -24,9 +24,9 @@ public class CompressedCdfRecord extends Record {
         super( plan, "CCR", 10 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        cprOffset_ = buf.readOffset( ptr );
-        uSize_ = buf.readOffset( ptr );
-        rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
+        this.cprOffset = buf.readOffset( ptr );
+        this.uSize = buf.readOffset( ptr );
+        this.rfuA = checkIntValue( buf.readInt( ptr ), 0 );
         dataOffset_ = ptr.get();
     }
 

@@ -45,19 +45,19 @@ public class CdfContent {
 
         // Get global descriptor record.
         GlobalDescriptorRecord gdr =
-            recordFact.createRecord( buf, cdr.gdrOffset_,
+            recordFact.createRecord( buf, cdr.gdrOffset,
                                      GlobalDescriptorRecord.class );
 
         // Store global format information.
-        boolean rowMajor = Record.hasBit( cdr.flags_, 0 );
-        int[] rDimSizes = gdr.rDimSizes_;
+        boolean rowMajor = Record.hasBit( cdr.flags, 0 );
+        int[] rDimSizes = gdr.rDimSizes;
         cdfInfo_ = new CdfInfo( rowMajor, rDimSizes );
 
         // Read the rVariable and zVariable records.
         VariableDescriptorRecord[] rvdrs =
-            walkVariableList( buf, recordFact, gdr.nrVars_, gdr.rVdrHead_ );
+            walkVariableList( buf, recordFact, gdr.nrVars, gdr.rVdrHead );
         VariableDescriptorRecord[] zvdrs =
-            walkVariableList( buf, recordFact, gdr.nzVars_, gdr.zVdrHead_ );
+            walkVariableList( buf, recordFact, gdr.nzVars, gdr.zVdrHead );
 
         // Collect the rVariables and zVariables into a single list.
         // Turn the rVariable and zVariable records into a single list of
@@ -71,7 +71,7 @@ public class CdfContent {
         // Read the attributes records (global and variable attributes
         // are found in the same list).
         AttributeDescriptorRecord[] adrs =
-            walkAttributeList( buf, recordFact, gdr.numAttr_, gdr.adrHead_ );
+            walkAttributeList( buf, recordFact, gdr.numAttr, gdr.adrHead );
 
         // Read the entries for all the attributes, and turn the records
         // with their entries into two lists, one of global attributes and
@@ -82,21 +82,21 @@ public class CdfContent {
             AttributeDescriptorRecord adr = adrs[ ia ];
             Object[] grEntries =
                 walkEntryList( buf, recordFact,
-                               adr.nGrEntries_, adr.maxGrEntry_,
-                               adr.agrEdrHead_, cdfInfo_ );
+                               adr.nGrEntries, adr.maxGrEntry,
+                               adr.agrEdrHead, cdfInfo_ );
             Object[] zEntries =
                 walkEntryList( buf, recordFact,
-                               adr.nZEntries_, adr.maxZEntry_,
-                               adr.azEdrHead_, cdfInfo_ );
-            boolean isGlobal = Record.hasBit( adr.scope_, 0 );
+                               adr.nZEntries, adr.maxZEntry,
+                               adr.azEdrHead, cdfInfo_ );
+            boolean isGlobal = Record.hasBit( adr.scope, 0 );
             if ( isGlobal ) {
                 // grEntries are gEntries
                 Object[] gEntries = arrayConcat( grEntries, zEntries );
-                gAttList.add( new GlobalAttribute( adr.name_, gEntries ) );
+                gAttList.add( new GlobalAttribute( adr.name, gEntries ) );
             }
             else {
                 // grEntries are rEntries
-                vAttList.add( new VariableAttribute( adr.name_, grEntries,
+                vAttList.add( new VariableAttribute( adr.name, grEntries,
                                                      zEntries ) );
             }
         }
@@ -160,7 +160,7 @@ public class CdfContent {
                 recordFact.createRecord( buf, off,
                                          VariableDescriptorRecord.class );
             vdrs[ iv ] = vdr;
-            off = vdr.vdrNext_;
+            off = vdr.vdrNext;
         }
         return vdrs;
     }
@@ -186,7 +186,7 @@ public class CdfContent {
                 recordFact.createRecord( buf, off,
                                          AttributeDescriptorRecord.class );
             adrs[ ia ] = adr;
-            off = adr.adrNext_;
+            off = adr.adrNext;
         }
         return adrs;
     }
@@ -213,8 +213,8 @@ public class CdfContent {
             AttributeEntryDescriptorRecord aedr =
                 recordFact.createRecord( buf, off,
                                          AttributeEntryDescriptorRecord.class );
-            entries[ aedr.num_ ] = getEntryValue( aedr, info );
-            off = aedr.aedrNext_;
+            entries[ aedr.num ] = getEntryValue( aedr, info );
+            off = aedr.aedrNext;
         }
         return entries;
     }
@@ -228,8 +228,8 @@ public class CdfContent {
      */
     private static Object getEntryValue( AttributeEntryDescriptorRecord aedr,
                                          CdfInfo info ) throws IOException {
-        DataType dataType = DataType.getDataType( aedr.dataType_ );
-        int numElems = aedr.numElems_;
+        DataType dataType = DataType.getDataType( aedr.dataType );
+        int numElems = aedr.numElems;
         final DataReader dataReader = new DataReader( dataType, numElems, 1 );
         Object va = dataReader.createValueArray();
         dataReader.readValue( aedr.getBuf(), aedr.getValueOffset(), va );

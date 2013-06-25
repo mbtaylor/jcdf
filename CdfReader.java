@@ -99,10 +99,10 @@ public class CdfReader {
                 recordFactory_.createRecord( buf, offsetRec0,
                                              CompressedCdfRecord.class );
             CompressedParametersRecord cpr =
-                recordFactory_.createRecord( buf, ccr.cprOffset_,
+                recordFactory_.createRecord( buf, ccr.cprOffset,
                                              CompressedParametersRecord.class );
             final Compression compress =
-                Compression.getCompression( cpr.cType_ );
+                Compression.getCompression( cpr.cType );
 
             // Uncompress the compressed data into a new buffer.
             // The compressed data is the data record of the CCR.
@@ -129,18 +129,18 @@ public class CdfReader {
                 }
             };
             buf = Bufs.uncompress( padCompress, buf, ccr.getDataOffset(),
-                                   ccr.uSize_ + prepad );
+                                   ccr.uSize + prepad );
         }
         cdr_ = recordFactory_.createRecord( buf, offsetRec0,
                                             CdfDescriptorRecord.class );
 
         // Interrogate CDR for required information.
-        boolean isSingleFile = Record.hasBit( cdr_.flags_, 1 );
+        boolean isSingleFile = Record.hasBit( cdr_.flags, 1 );
         if ( ! isSingleFile ) {
             throw new CdfFormatException( "Multi-file CDFs not supported" );
         }
         NumericEncoding encoding =
-            NumericEncoding.getEncoding( cdr_.encoding_ );
+            NumericEncoding.getEncoding( cdr_.encoding );
         Boolean bigEndian = encoding.isBigendian();
         if ( bigEndian == null ) {
             throw new CdfFormatException( "Unsupported encoding " + encoding );

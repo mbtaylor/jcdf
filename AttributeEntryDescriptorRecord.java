@@ -11,16 +11,16 @@ import java.io.IOException;
  */
 public abstract class AttributeEntryDescriptorRecord extends Record {
 
-    public final long aedrNext_;
-    public final int attrNum_;
-    public final int dataType_;
-    public final int num_;
-    public final int numElems_;
-    public final int rfuA_;
-    public final int rfuB_;
-    public final int rfuC_;
-    public final int rfuD_;
-    public final int rfuE_;
+    public final long aedrNext;
+    public final int attrNum;
+    public final int dataType;
+    public final int num;
+    public final int numElems;
+    public final int rfuA;
+    public final int rfuB;
+    public final int rfuC;
+    public final int rfuD;
+    public final int rfuE;
     private final long valueOffset_;
 
     /**
@@ -36,16 +36,16 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
         super( plan, abbrev, recordType );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        aedrNext_ = buf.readOffset( ptr );
-        attrNum_ = buf.readInt( ptr );
-        dataType_ = buf.readInt( ptr );
-        num_ = buf.readInt( ptr );
-        numElems_ = buf.readInt( ptr );
-        rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
-        rfuB_ = checkIntValue( buf.readInt( ptr ), 0 );
-        rfuC_ = checkIntValue( buf.readInt( ptr ), 0 );
-        rfuD_ = checkIntValue( buf.readInt( ptr ), -1 );
-        rfuE_ = checkIntValue( buf.readInt( ptr ), -1 );
+        this.aedrNext = buf.readOffset( ptr );
+        this.attrNum = buf.readInt( ptr );
+        this.dataType = buf.readInt( ptr );
+        this.num = buf.readInt( ptr );
+        this.numElems = buf.readInt( ptr );
+        this.rfuA = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuB = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuC = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuD = checkIntValue( buf.readInt( ptr ), -1 );
+        this.rfuE = checkIntValue( buf.readInt( ptr ), -1 );
         valueOffset_ = ptr.get();
     }
 

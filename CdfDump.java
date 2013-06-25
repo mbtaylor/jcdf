@@ -74,11 +74,11 @@ public class CdfDump {
             dumpRecord( ix, rec, offset );
             if ( cdr == null && rec instanceof CdfDescriptorRecord ) {
                 cdr = (CdfDescriptorRecord) rec;
-                gdroff = cdr.gdrOffset_;
+                gdroff = cdr.gdrOffset;
             }
             if ( offset == gdroff && rec instanceof GlobalDescriptorRecord ) {
                 gdr = (GlobalDescriptorRecord) rec;
-                eof = gdr.eof_;
+                eof = gdr.eof;
             }
             offset += rec.getRecordSize();
         }
@@ -135,8 +135,7 @@ public class CdfDump {
                     catch ( IllegalAccessException e ) {
                         throw new RuntimeException( "Reflection error", e );
                     }
-                    out_.println( formatFieldValue( adjustFieldName( name ),
-                                                    value ) );
+                    out_.println( formatFieldValue( name, value ) );
                 }
             }
         }
@@ -235,20 +234,6 @@ public class CdfDump {
         return ( html_ && offset > 0L )
              ? "<a href='#" + txt + "'>" + txt + "</a>"
              : txt;
-    }
-
-    /**
-     * Massage Java object field names to become CDF record field names.
-     *
-     * @param  name  object member name
-     * @return  record field name
-     */
-    private String adjustFieldName( String name ) {
-
-        // Remove stylistic underscores.
-        return name.endsWith( "_" )
-             ? name.substring( 0, name.length() - 1 )
-             : name;
     }
 
     /**

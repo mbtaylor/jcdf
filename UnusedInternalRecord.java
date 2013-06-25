@@ -10,8 +10,8 @@ import java.io.IOException;
  */
 public class UnusedInternalRecord extends Record {
 
-    public final long nextUir_;
-    public final long prevUir_;
+    public final long nextUir;
+    public final long prevUir;
 
     /**
      * Constructor.
@@ -31,12 +31,12 @@ public class UnusedInternalRecord extends Record {
         int pointerSize = buf.isBit64() ? 8 : 4;
         int sociableUirSize = planHeaderSize + 2 * pointerSize;
         if ( plan.getRecordSize() >= sociableUirSize ) {
-            nextUir_ = buf.readOffset( ptr );
-            prevUir_ = buf.readOffset( ptr );
+            this.nextUir = buf.readOffset( ptr );
+            this.prevUir = buf.readOffset( ptr );
         }
         else {  // too small to be sociable
-            nextUir_ = -1L;
-            prevUir_ = -1L;
+            this.nextUir = -1L;
+            this.prevUir = -1L;
         }
     }
 }

@@ -10,10 +10,10 @@ import java.io.IOException;
  */
 public class CompressedParametersRecord extends Record {
 
-    public final int cType_;
-    public final int rfuA_;
-    public final int pCount_;
-    public final int[] cParms_;
+    public final int cType;
+    public final int rfuA;
+    public final int pCount;
+    public final int[] cParms;
 
     /**
      * Constructor.
@@ -24,10 +24,10 @@ public class CompressedParametersRecord extends Record {
         super( plan, "CPR", 11 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        cType_ = buf.readInt( ptr );
-        rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
-        pCount_ = buf.readInt( ptr );
-        cParms_ = readIntArray( buf, ptr, pCount_ );
+        this.cType = buf.readInt( ptr );
+        this.rfuA = checkIntValue( buf.readInt( ptr ), 0 );
+        this.pCount = buf.readInt( ptr );
+        this.cParms = readIntArray( buf, ptr, this.pCount );
         checkEndRecord( ptr );
     }
 }

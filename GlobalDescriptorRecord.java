@@ -10,20 +10,20 @@ import java.io.IOException;
  */
 public class GlobalDescriptorRecord extends Record {
 
-    public final long rVdrHead_;
-    public final long zVdrHead_;
-    public final long adrHead_;
-    public final long eof_;
-    public final int nrVars_;
-    public final int numAttr_;
-    public final int rMaxRec_;
-    public final int rNumDims_;
-    public final int nzVars_;
-    public final long uirHead_;
-    public final int rfuC_;
-    public final int rfuD_;
-    public final int rfuE_;
-    public final int[] rDimSizes_;
+    public final long rVdrHead;
+    public final long zVdrHead;
+    public final long adrHead;
+    public final long eof;
+    public final int nrVars;
+    public final int numAttr;
+    public final int rMaxRec;
+    public final int rNumDims;
+    public final int nzVars;
+    public final long uirHead;
+    public final int rfuC;
+    public final int rfuD;
+    public final int rfuE;
+    public final int[] rDimSizes;
 
     /**
      * Constructor.
@@ -34,20 +34,20 @@ public class GlobalDescriptorRecord extends Record {
         super( plan, "GDR", 2 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        rVdrHead_ = buf.readOffset( ptr );
-        zVdrHead_ = buf.readOffset( ptr );
-        adrHead_ = buf.readOffset( ptr );
-        eof_ = buf.readOffset( ptr );
-        nrVars_ = buf.readInt( ptr );
-        numAttr_ = buf.readInt( ptr );
-        rMaxRec_ = buf.readInt( ptr );
-        rNumDims_ = buf.readInt( ptr );
-        nzVars_ = buf.readInt( ptr );
-        uirHead_ = buf.readOffset( ptr );
-        rfuC_ = checkIntValue( buf.readInt( ptr ), 0 );
-        rfuD_ = checkIntValue( buf.readInt( ptr ), -1 );
-        rfuE_ = checkIntValue( buf.readInt( ptr ), -1 );
-        rDimSizes_ = readIntArray( buf , ptr, rNumDims_ );
+        this.rVdrHead = buf.readOffset( ptr );
+        this.zVdrHead = buf.readOffset( ptr );
+        this.adrHead = buf.readOffset( ptr );
+        this.eof = buf.readOffset( ptr );
+        this.nrVars = buf.readInt( ptr );
+        this.numAttr = buf.readInt( ptr );
+        this.rMaxRec = buf.readInt( ptr );
+        this.rNumDims = buf.readInt( ptr );
+        this.nzVars = buf.readInt( ptr );
+        this.uirHead = buf.readOffset( ptr );
+        this.rfuC = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuD = checkIntValue( buf.readInt( ptr ), -1 );
+        this.rfuE = checkIntValue( buf.readInt( ptr ), -1 );
+        this.rDimSizes = readIntArray( buf , ptr, this.rNumDims );
         checkEndRecord( ptr );
     }
 }

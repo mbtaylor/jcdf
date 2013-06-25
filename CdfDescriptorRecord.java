@@ -10,17 +10,17 @@ import java.io.IOException;
  */
 public class CdfDescriptorRecord extends Record {
 
-    public final long gdrOffset_;
-    public final int version_;
-    public final int release_;
-    public final int encoding_;
-    public final int flags_;
-    public final int rfuA_;
-    public final int rfuB_;
-    public final int increment_;
-    public final int rfuD_;
-    public final int rfuE_;
-    public final String[] copyright_;
+    public final long gdrOffset;
+    public final int version;
+    public final int release;
+    public final int encoding;
+    public final int flags;
+    public final int rfuA;
+    public final int rfuB;
+    public final int increment;
+    public final int rfuD;
+    public final int rfuE;
+    public final String[] copyright;
 
     /**
      * Constructor.
@@ -31,18 +31,18 @@ public class CdfDescriptorRecord extends Record {
         super( plan, "CDR", 1 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        gdrOffset_ = buf.readOffset( ptr );
-        version_ = buf.readInt( ptr );
-        release_ = buf.readInt( ptr );
-        encoding_ = buf.readInt( ptr );
-        flags_ = buf.readInt( ptr );
-        rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
-        rfuB_ = checkIntValue( buf.readInt( ptr ), 0 );
-        increment_ = buf.readInt( ptr );
-        rfuD_ = checkIntValue( buf.readInt( ptr ), -1 );
-        rfuE_ = checkIntValue( buf.readInt( ptr ), -1 );
+        this.gdrOffset = buf.readOffset( ptr );
+        this.version = buf.readInt( ptr );
+        this.release = buf.readInt( ptr );
+        this.encoding = buf.readInt( ptr );
+        this.flags = buf.readInt( ptr );
+        this.rfuA = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuB = checkIntValue( buf.readInt( ptr ), 0 );
+        this.increment = buf.readInt( ptr );
+        this.rfuD = checkIntValue( buf.readInt( ptr ), -1 );
+        this.rfuE = checkIntValue( buf.readInt( ptr ), -1 );
         int crLeng = versionAtLeast( 2, 5 ) ? 256 : 1945;
-        copyright_ = toLines( buf.readAsciiString( ptr, crLeng ) );
+        this.copyright = toLines( buf.readAsciiString( ptr, crLeng ) );
         checkEndRecord( ptr );
     }
 
@@ -55,7 +55,7 @@ public class CdfDescriptorRecord extends Record {
      * @return  true iff this version is at least targetVersion.targetRelease
      */
     private boolean versionAtLeast( int targetVersion, int targetRelease ) {
-        return version_ > targetVersion
-            || version_ == targetVersion && release_ >= targetRelease;
+        return this.version > targetVersion
+            || this.version == targetVersion && this.release >= targetRelease;
     }
 }

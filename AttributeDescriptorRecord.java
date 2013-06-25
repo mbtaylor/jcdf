@@ -10,18 +10,18 @@ import java.io.IOException;
  */
 public class AttributeDescriptorRecord extends Record {
 
-    public final long adrNext_;
-    public final long agrEdrHead_;
-    public final int scope_;
-    public final int num_;
-    public final int nGrEntries_;
-    public final int maxGrEntry_;
-    public final int rfuA_;
-    public final long azEdrHead_;
-    public final int nZEntries_;
-    public final int maxZEntry_;
-    public final int rfuE_;
-    public final String name_;
+    public final long adrNext;
+    public final long agrEdrHead;
+    public final int scope;
+    public final int num;
+    public final int nGrEntries;
+    public final int maxGrEntry;
+    public final int rfuA;
+    public final long azEdrHead;
+    public final int nZEntries;
+    public final int maxZEntry;
+    public final int rfuE;
+    public final String name;
 
     /**
      * Constructor.
@@ -34,18 +34,18 @@ public class AttributeDescriptorRecord extends Record {
         super( plan, "ADR", 4 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        adrNext_ = buf.readOffset( ptr );
-        agrEdrHead_ = buf.readOffset( ptr );
-        scope_ = buf.readInt( ptr );
-        num_ = buf.readInt( ptr );
-        nGrEntries_ = buf.readInt( ptr );
-        maxGrEntry_ = buf.readInt( ptr );
-        rfuA_ = checkIntValue( buf.readInt( ptr ), 0 );
-        azEdrHead_ = buf.readOffset( ptr );
-        nZEntries_ = buf.readInt( ptr );
-        maxZEntry_ = buf.readInt( ptr );
-        rfuE_ = checkIntValue( buf.readInt( ptr ), -1 );
-        name_ = buf.readAsciiString( ptr, nameLeng );
+        this.adrNext = buf.readOffset( ptr );
+        this.agrEdrHead = buf.readOffset( ptr );
+        this.scope = buf.readInt( ptr );
+        this.num = buf.readInt( ptr );
+        this.nGrEntries = buf.readInt( ptr );
+        this.maxGrEntry = buf.readInt( ptr );
+        this.rfuA = checkIntValue( buf.readInt( ptr ), 0 );
+        this.azEdrHead = buf.readOffset( ptr );
+        this.nZEntries = buf.readInt( ptr );
+        this.maxZEntry = buf.readInt( ptr );
+        this.rfuE = checkIntValue( buf.readInt( ptr ), -1 );
+        this.name = buf.readAsciiString( ptr, nameLeng );
         checkEndRecord( ptr );
     }
 }

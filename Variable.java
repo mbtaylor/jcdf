@@ -61,12 +61,12 @@ public class Variable {
         buf_ = vdr.getBuf();
         recFact_ = recFact;
         isZVariable_ = vdr.getRecordType() == 8;
-        dataType_ = DataType.getDataType( vdr.dataType_ );
-        recordVariance_ = Record.hasBit( vdr_.flags_, 0 );
-        int[] dimSizes = isZVariable_ ? vdr.zDimSizes_ : cdfInfo.getRDimSizes();
-        boolean[] dimVarys = vdr.dimVarys_;
+        dataType_ = DataType.getDataType( vdr.dataType );
+        recordVariance_ = Record.hasBit( vdr_.flags, 0 );
+        int[] dimSizes = isZVariable_ ? vdr.zDimSizes : cdfInfo.getRDimSizes();
+        boolean[] dimVarys = vdr.dimVarys;
         boolean rowMajor = cdfInfo.getRowMajor();
-        int numElems = vdr.numElems_;
+        int numElems = vdr.numElems;
         shaper_ =
             Shaper.createShaper( dataType_, dimSizes, dimVarys, rowMajor );
         int nraw = shaper_.getRawItemCount();
@@ -128,7 +128,7 @@ public class Variable {
      * @return   variable name
      */
     public String getName() {
-        return vdr_.name_;
+        return vdr_.name;
     }
 
     /**
@@ -137,7 +137,7 @@ public class Variable {
      * @return  variable num
      */
     public int getNum() {
-        return vdr_.num_;
+        return vdr_.num;
     }
 
     /**
@@ -156,7 +156,7 @@ public class Variable {
      * @return   maximum record count
      */
     public int getRecordCount() {
-        return vdr_.maxRec_ + 1;
+        return vdr_.maxRec + 1;
     }
 
     /**
@@ -304,7 +304,7 @@ public class Variable {
             //    #define NO_SPARSERECORDS                0L
             //    #define PAD_SPARSERECORDS               1L
             //    #define PREV_SPARSERECORDS              2L
-            int sRecords = vdr_.sRecords_;
+            int sRecords = vdr_.sRecords;
             return sRecords == 2 ? new PreviousRecordReader( recMap )
                                  : new PadRecordReader( recMap );
         }

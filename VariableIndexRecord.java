@@ -10,12 +10,12 @@ import java.io.IOException;
  */
 public class VariableIndexRecord extends Record {
 
-    public final long vxrNext_;
-    public final int nEntries_;
-    public final int nUsedEntries_;
-    public final int[] first_;
-    public final int[] last_;
-    public final long[] offset_;
+    public final long vxrNext;
+    public final int nEntries;
+    public final int nUsedEntries;
+    public final int[] first;
+    public final int[] last;
+    public final long[] offset;
 
     /** 
      * Constructor.
@@ -26,12 +26,12 @@ public class VariableIndexRecord extends Record {
         super( plan, "VXR", 6 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        vxrNext_ = buf.readOffset( ptr );
-        nEntries_ = buf.readInt( ptr );
-        nUsedEntries_ = buf.readInt( ptr );
-        first_ = readIntArray( buf, ptr, nEntries_ );
-        last_ = readIntArray( buf, ptr, nEntries_ );
-        offset_ = readOffsetArray( buf, ptr, nEntries_ );
+        this.vxrNext = buf.readOffset( ptr );
+        this.nEntries = buf.readInt( ptr );
+        this.nUsedEntries = buf.readInt( ptr );
+        this.first = readIntArray( buf, ptr, this.nEntries );
+        this.last = readIntArray( buf, ptr, this.nEntries );
+        this.offset = readOffsetArray( buf, ptr, this.nEntries );
         checkEndRecord( ptr );
     }
 }

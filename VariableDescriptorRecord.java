@@ -12,24 +12,24 @@ import java.io.IOException;
  */
 public abstract class VariableDescriptorRecord extends Record {
 
-    public final long vdrNext_;
-    public final int dataType_;
-    public final int maxRec_;
-    public final long vxrHead_;
-    public final long vxrTail_;
-    public final int flags_;
-    public final int sRecords_;
-    public final int rfuB_;
-    public final int rfuC_;
-    public final int rfuF_;
-    public final int numElems_;
-    public final int num_;
-    public final long cprOrSprOffset_;
-    public final int blockingFactor_;
-    public final String name_;
-    public final int zNumDims_;
-    public final int[] zDimSizes_;
-    public final boolean[] dimVarys_;
+    public final long vdrNext;
+    public final int dataType;
+    public final int maxRec;
+    public final long vxrHead;
+    public final long vxrTail;
+    public final int flags;
+    public final int sRecords;
+    public final int rfuB;
+    public final int rfuC;
+    public final int rfuF;
+    public final int numElems;
+    public final int num;
+    public final long cprOrSprOffset;
+    public final int blockingFactor;
+    public final String name;
+    public final int zNumDims;
+    public final int[] zDimSizes;
+    public final boolean[] dimVarys;
     private final long padOffset_;
     private final int padBytes_;
 
@@ -50,36 +50,36 @@ public abstract class VariableDescriptorRecord extends Record {
         super( plan, abbrev, recordType );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        vdrNext_ = buf.readOffset( ptr );
-        dataType_ = buf.readInt( ptr );
-        maxRec_ = buf.readInt( ptr );
-        vxrHead_ = buf.readOffset( ptr );
-        vxrTail_ = buf.readOffset( ptr );
-        flags_ = buf.readInt( ptr );
-        sRecords_ = buf.readInt( ptr );
-        rfuB_ = checkIntValue( buf.readInt( ptr ), 0 );
-        rfuC_ = checkIntValue( buf.readInt( ptr ), -1 );
-        rfuF_ = checkIntValue( buf.readInt( ptr ), -1 );
-        numElems_ = buf.readInt( ptr );
-        num_ = buf.readInt( ptr );
-        cprOrSprOffset_ = buf.readOffset( ptr );
-        blockingFactor_ = buf.readInt( ptr );
-        name_ = buf.readAsciiString( ptr, nameLeng );
+        this.vdrNext = buf.readOffset( ptr );
+        this.dataType = buf.readInt( ptr );
+        this.maxRec = buf.readInt( ptr );
+        this.vxrHead = buf.readOffset( ptr );
+        this.vxrTail = buf.readOffset( ptr );
+        this.flags = buf.readInt( ptr );
+        this.sRecords = buf.readInt( ptr );
+        this.rfuB = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuC = checkIntValue( buf.readInt( ptr ), -1 );
+        this.rfuF = checkIntValue( buf.readInt( ptr ), -1 );
+        this.numElems = buf.readInt( ptr );
+        this.num = buf.readInt( ptr );
+        this.cprOrSprOffset = buf.readOffset( ptr );
+        this.blockingFactor = buf.readInt( ptr );
+        this.name = buf.readAsciiString( ptr, nameLeng );
         if ( hasDims ) {
-            zNumDims_ = buf.readInt( ptr );
-            zDimSizes_ = readIntArray( buf, ptr, zNumDims_ );
+            this.zNumDims = buf.readInt( ptr );
+            this.zDimSizes = readIntArray( buf, ptr, this.zNumDims );
         }
         else {
-            zNumDims_ = 0;
-            zDimSizes_ = null;
+            this.zNumDims = 0;
+            this.zDimSizes = null;
         }
-        boolean hasPad = hasBit( flags_, 1 );
-        padBytes_ = hasPad ? DataType.getDataType( dataType_ ).getByteCount()
-                           * numElems_
+        boolean hasPad = hasBit( this.flags, 1 );
+        padBytes_ = hasPad ? DataType.getDataType( this.dataType )
+                                     .getByteCount() * this.numElems
                            : 0;
         final int ndim;
         if ( hasDims ) {
-            ndim = zNumDims_;
+            ndim = this.zNumDims;
         }
         else {
 
@@ -96,9 +96,9 @@ public abstract class VariableDescriptorRecord extends Record {
             ndim = ( (int) spareBytes ) / 4;
         }
         int[] iDimVarys = readIntArray( buf, ptr, ndim );
-        dimVarys_ = new boolean[ ndim ];
+        this.dimVarys = new boolean[ ndim ];
         for ( int i = 0; i < ndim; i++ ) {
-            dimVarys_[ i ] = iDimVarys[ i ] != 0;
+            this.dimVarys[ i ] = iDimVarys[ i ] != 0;
         }
         long padpos = ptr.getAndIncrement( padBytes_ );
         padOffset_ = hasPad ? padpos : -1L;
