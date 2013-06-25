@@ -51,6 +51,59 @@ it only reads them.
 fast, but I haven't done any benchmarking.
 </p>
 
+<h2>Implementation Status</h2>
+
+<p>Support for the CDF format is fairly, but not totally, complete.
+In particular:
+</p>
+<ul>
+<li><strong>Versions:</strong>
+    The code was written with reference to version 3.4 of
+    the CDF Internal Format Description document.
+    Following comments in that document, it is believed that 
+    versions 2.6, 2.7 and 3.* of the CDF format are supported.
+    Maybe others.
+    </li>
+<li><strong>Large files:</strong>
+    The library imposes no restriction on file size,
+    so &gt;2Gb files should be OK for v3 CDF files (CDF v2 did not
+    support 64-bit addressing) as long as a 64-bit JVM is in use.
+    However, I haven't tested on large files, because I haven't seen one yet.
+    Contributions welcome.
+    </li>
+<li><strong>Compression:</strong>
+    All formats supported (GZIP, HUFF, AHUFF, RLE).
+    </li>
+<li><strong>Numeric encodings:</strong>
+    Normal big- and little-endian encodings supported,
+    but VMS D_FLOAT and G_FLOAT encodings are not supported.
+    </li>
+<li><strong>Layout:</strong>
+    Single-file CDF files are supported, but multiple-file CDF files are not.
+    This could be added fairly easily if necessary.
+    </li>
+<li><strong>I/O:</strong>
+    Access is read-only, there is no attempt or intention
+    to support write access.
+    </li>
+<li><strong>Data types:</strong>
+    All CDF data types are supported, more or less.
+    Unsigned integer types are transformed to larger signed types on read,
+    because of the difficulty of handling unsigned integers in java,
+    so for instance a CDF_UINT1 is read as a java <code>short</code> (16-bit)
+    integer.
+    The time formats CDF_EPOCH, CDF_EPOCH16 and CDF_TIME_TT2000 are currently
+    treated as <code>double</code>, <code>double[2]</code> and <code>long</code>
+    respectively, i.e. are not obviously times.
+    </li>
+<li><strong>Record data access</strong>:
+    For array-valued variables you can currently only read a whole record
+    at a time, not just part of an array-valued record.
+    You can either get the raw elements or a shaped version.
+    This is considerably less flexible than a hyper-read.
+    </li>
+</ul>
+
 <h2>Utilities</h2>
 
 <p>The library comes with a couple of simple utilities for examining

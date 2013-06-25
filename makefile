@@ -73,6 +73,7 @@ javadocs: $(JSRC) package-info.java
 	$(JAVADOC) -quiet -d javadocs $(JSRC) package-info.java
 
 index.html: jcdf.xhtml
+	xmllint -noout jcdf.xhtml && \
 	xmllint -html jcdf.xhtml >index.html
 
 cdflist.html: $(JARFILE)
