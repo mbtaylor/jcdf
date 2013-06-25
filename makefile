@@ -4,10 +4,10 @@ JAVA = java
 JAR = jar
 JAVADOC = javadoc
 
-JARFILE = cdf.jar
+JARFILE = jcdf.jar
 STILJAR = stil.jar
 
-WWW_FILES = cdf.jar javadocs index.html cdflist.html cdfdump.html
+WWW_FILES = $(JARFILE) javadocs index.html cdflist.html cdfdump.html
 WWW_DIR = /export/home/mbt/public_html/jcdf
 
 TEST_CDFS = data/*.cdf
