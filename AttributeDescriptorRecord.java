@@ -10,14 +10,14 @@ import java.io.IOException;
  */
 public class AttributeDescriptorRecord extends Record {
 
-    @CdfField public final long adrNext;
-    @CdfField public final long agrEdrHead;
+    @CdfField @OffsetField public final long adrNext;
+    @CdfField @OffsetField public final long agrEdrHead;
     @CdfField public final int scope;
     @CdfField public final int num;
     @CdfField public final int nGrEntries;
     @CdfField public final int maxGrEntry;
     @CdfField public final int rfuA;
-    @CdfField public final long azEdrHead;
+    @CdfField @OffsetField public final long azEdrHead;
     @CdfField public final int nZEntries;
     @CdfField public final int maxZEntry;
     @CdfField public final int rfuE;

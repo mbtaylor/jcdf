@@ -12,11 +12,11 @@ import uk.ac.bristol.star.cdf.DataType;
  */
 public abstract class VariableDescriptorRecord extends Record {
 
-    @CdfField public final long vdrNext;
+    @CdfField @OffsetField public final long vdrNext;
     @CdfField public final int dataType;
     @CdfField public final int maxRec;
-    @CdfField public final long vxrHead;
-    @CdfField public final long vxrTail;
+    @CdfField @OffsetField public final long vxrHead;
+    @CdfField @OffsetField public final long vxrTail;
     @CdfField public final int flags;
     @CdfField public final int sRecords;
     @CdfField public final int rfuB;
@@ -24,7 +24,7 @@ public abstract class VariableDescriptorRecord extends Record {
     @CdfField public final int rfuF;
     @CdfField public final int numElems;
     @CdfField public final int num;
-    @CdfField public final long cprOrSprOffset;
+    @CdfField @OffsetField public final long cprOrSprOffset;
     @CdfField public final int blockingFactor;
     @CdfField public final String name;
     @CdfField public final int zNumDims;

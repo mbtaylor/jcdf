@@ -11,7 +11,7 @@ import java.io.IOException;
  */
 public abstract class AttributeEntryDescriptorRecord extends Record {
 
-    @CdfField public final long aedrNext;
+    @CdfField @OffsetField public final long aedrNext;
     @CdfField public final int attrNum;
     @CdfField public final int dataType;
     @CdfField public final int num;

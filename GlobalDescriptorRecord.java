@@ -10,16 +10,16 @@ import java.io.IOException;
  */
 public class GlobalDescriptorRecord extends Record {
 
-    @CdfField public final long rVdrHead;
-    @CdfField public final long zVdrHead;
-    @CdfField public final long adrHead;
+    @CdfField @OffsetField public final long rVdrHead;
+    @CdfField @OffsetField public final long zVdrHead;
+    @CdfField @OffsetField public final long adrHead;
     @CdfField public final long eof;
     @CdfField public final int nrVars;
     @CdfField public final int numAttr;
     @CdfField public final int rMaxRec;
     @CdfField public final int rNumDims;
     @CdfField public final int nzVars;
-    @CdfField public final long uirHead;
+    @CdfField @OffsetField public final long uirHead;
     @CdfField public final int rfuC;
     @CdfField public final int rfuD;
     @CdfField public final int rfuE;

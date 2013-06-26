@@ -10,7 +10,7 @@ import java.io.IOException;
  */
 public class CdfDescriptorRecord extends Record {
 
-    @CdfField public final long gdrOffset;
+    @CdfField @OffsetField public final long gdrOffset;
     @CdfField public final int version;
     @CdfField public final int release;
     @CdfField public final int encoding;

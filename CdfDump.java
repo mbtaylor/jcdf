@@ -15,6 +15,7 @@ import uk.ac.bristol.star.cdf.record.Buf;
 import uk.ac.bristol.star.cdf.record.CdfDescriptorRecord;
 import uk.ac.bristol.star.cdf.record.CdfField;
 import uk.ac.bristol.star.cdf.record.GlobalDescriptorRecord;
+import uk.ac.bristol.star.cdf.record.OffsetField;
 import uk.ac.bristol.star.cdf.record.Record;
 import uk.ac.bristol.star.cdf.record.RecordFactory;
 
@@ -136,7 +137,8 @@ public class CdfDump {
                     catch ( IllegalAccessException e ) {
                         throw new RuntimeException( "Reflection error", e );
                     }
-                    out_.println( formatFieldValue( name, value ) );
+                    out_.println( formatFieldValue( name, value,
+                                                    isOffsetField( field ) ) );
                 }
             }
         }
@@ -163,12 +165,23 @@ public class CdfDump {
     }
 
     /**
+     * Determines whetehr a given object field represents a file offset.
+     *
+     * @param  field  field of java Record subclass
+     * @return  true iff field represents a scalar or array file offset value
+     */
+    private boolean isOffsetField( Field field ) {
+        return field.getAnnotation( OffsetField.class ) != null;
+    }
+
+    /**
      * Formats a field name/value pair for output.
      *
      * @param   name  field name
      * @param  value  field value
      */
-    private String formatFieldValue( String name, Object value ) {
+    private String formatFieldValue( String name, Object value,
+                                     boolean isOffset ) {
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( spaces( 4 ) );
         sbuf.append( name )
@@ -178,7 +191,8 @@ public class CdfDump {
         }
         else if ( value.getClass().isArray() ) {
             int len = Array.getLength( value );
-            if ( value instanceof long[] ) {
+            if ( isOffset ) {
+                assert value instanceof long[];
                 long[] larray = (long[]) value;
                 for ( int i = 0; i < len; i++ ) {
                     if ( i > 0 ) {
@@ -196,14 +210,12 @@ public class CdfDump {
                 }
             }
         }
-
-        // If it's a long it is probably a pointer to another record,
-        // and can be formatted as such.  It could be a size though.
-        // Fortunately, those ones have "Size" in their name.
+        else if ( isOffset ) {
+            assert value instanceof Long;
+            sbuf.append( formatOffsetRef( ((Long) value).longValue() ) );
+        }
         else {
-            sbuf.append( value instanceof Long && ! name.endsWith( "Size" )
-                             ? formatOffsetRef( ((Long) value).longValue() )
-                             : value.toString() );
+            sbuf.append( value.toString() );
         }
         return sbuf.toString();
     }

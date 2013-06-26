@@ -10,8 +10,8 @@ import java.io.IOException;
  */
 public class UnusedInternalRecord extends Record {
 
-    @CdfField public final long nextUir;
-    @CdfField public final long prevUir;
+    @CdfField @OffsetField public final long nextUir;
+    @CdfField @OffsetField public final long prevUir;
 
     /**
      * Constructor.
