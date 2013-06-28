@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.bristol.star.cdf.AttributeEntry;
 import uk.ac.bristol.star.cdf.CdfContent;
 import uk.ac.bristol.star.cdf.CdfReader;
 import uk.ac.bristol.star.cdf.GlobalAttribute;
@@ -113,7 +114,11 @@ public class SameTest {
                                          GlobalAttribute gatt1 ) {
         pushContext( gatt0.getName(), gatt1.getName() );
         compareScalar( gatt0.getName(), gatt1.getName() );
-        compareArray( gatt0.getEntries(), gatt1.getEntries() );
+        List<Pair<AttributeEntry>> entryPairs =
+            getPairs( gatt0.getEntries(), gatt1.getEntries() );
+        for ( Pair<AttributeEntry> entryPair : entryPairs ) {
+            compareEntry( entryPair.item0_, entryPair.item1_ );
+        }
         popContext();
     }
 
@@ -127,8 +132,8 @@ public class SameTest {
         compareScalar( vatt0.getName(), vatt1.getName() );
         for ( Pair<Variable> varPair : varPairs ) {
             pushContext( varPair.item0_.getName(), varPair.item1_.getName() );
-            compareScalar( vatt0.getEntry( varPair.item0_ ),
-                           vatt1.getEntry( varPair.item1_ ) );
+            compareEntry( vatt0.getEntry( varPair.item0_ ),
+                          vatt1.getEntry( varPair.item1_ ) );
             popContext();
         }
         popContext();
@@ -169,6 +174,32 @@ public class SameTest {
      */
     private void compareInt( int i0, int i1 ) {
         compareScalar( new Integer( i0 ), new Integer( i1 ) );
+    }
+
+    /**
+     * Compares two attribute entries for equivalence.
+     */
+    private void compareEntry( AttributeEntry ent0, AttributeEntry ent1 ) {
+        boolean nul0 = ent0 == null;
+        boolean nul1 = ent1 == null;
+        if ( nul0 && nul1 ) {
+            return;
+        }
+        else if ( nul0 || nul1 ) {
+            error( "Entry nullness mismatch" );
+        }
+        else {
+            compareScalar( ent0.getDataType(), ent1.getDataType() );
+            compareScalar( ent0.getItemCount(), ent1.getItemCount() );
+            Object va0 = ent0.getRawValue();
+            Object va1 = ent1.getRawValue();
+            for ( int i = 0; i < ent0.getItemCount(); i++ ) {
+                pushContext( "#" + i );
+                compareScalar( ent0.getDataType().getScalar( va0, i ),
+                               ent1.getDataType().getScalar( va1, i ) );
+                popContext();
+            }
+        }
     }
 
     /**

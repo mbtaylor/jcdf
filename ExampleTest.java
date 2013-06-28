@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.bristol.star.cdf.AttributeEntry;
 import uk.ac.bristol.star.cdf.CdfContent;
 import uk.ac.bristol.star.cdf.CdfReader;
 import uk.ac.bristol.star.cdf.GlobalAttribute;
@@ -29,7 +30,7 @@ public class ExampleTest {
         GlobalAttribute gatt0 = gatts[ 0 ];
         assert "TITLE".equals( gatt0.getName() );
         assert Arrays.equals( new String[] { "CDF title", "Author: CDF" },
-                              gatt0.getEntries() );
+                              getEntryShapedValues( gatt0.getEntries() ) );
 
         VariableAttribute[] vatts = content.getVariableAttributes();
         assert vatts.length == 2;
@@ -45,7 +46,8 @@ public class ExampleTest {
         assert vars[ 1 ].getSummary().matches( "INT2 .* 1:\\[181\\] T/T" );
         assert vars[ 2 ].getSummary().matches( "INT4 .* 2:\\[10,20\\] T/TT" );
 
-        assert vatts[ 1 ].getEntry( vars[ 0 ] ).equals( "Hour/Minute" );
+        assert vatts[ 1 ].getEntry( vars[ 0 ] ).getShapedValue()
+                                               .equals( "Hour/Minute" );
         assert vatts[ 1 ].getEntry( vars[ 1 ] ) == null;
 
         assert readShapedRecord( vars[ 0 ], 0, true )
@@ -80,7 +82,8 @@ public class ExampleTest {
         GlobalAttribute gatt0 = gatts[ 0 ];
         assert "TITLE".equals( gatt0.getName() );
         assert "An example CDF (2)."
-              .equals( ((String) gatt0.getEntries()[ 0 ]).trim() );
+              .equals( ((String) gatt0.getEntries()[ 0 ].getShapedValue())
+                      .trim() );
 
         VariableAttribute[] vatts = content.getVariableAttributes();
         assert vatts.length == 9;
@@ -111,12 +114,16 @@ public class ExampleTest {
         assert lonVar.getRecordCount() == 1;
         assert latVar.getRecordCount() == 1;
 
-        assert ((String) fnVatt.getEntry( timeVar )).trim()
+        assert ((String) fnVatt.getEntry( timeVar ).getShapedValue()).trim()
                      .equals( "Time of observation" );
-        assert vminVatt.getEntry( timeVar ).equals( new Integer( 0 ) );
-        assert vmaxVatt.getEntry( timeVar ).equals( new Integer( 2359 ) );
-        assert vminVatt.getEntry( lonVar ).equals( new Float( -180f ) );
-        assert vmaxVatt.getEntry( lonVar ).equals( new Float( 180f ) );
+        assert vminVatt.getEntry( timeVar ).getShapedValue()
+                                           .equals( new Integer( 0 ) );
+        assert vmaxVatt.getEntry( timeVar ).getShapedValue()
+                                           .equals( new Integer( 2359 ) );
+        assert vminVatt.getEntry( lonVar ).getShapedValue()
+                                          .equals( new Float( -180f ) );
+        assert vmaxVatt.getEntry( lonVar ).getShapedValue()
+                                          .equals( new Float( 180f ) );
 
         assert readShapedRecord( timeVar, 0, true )
               .equals( new Integer( 0 ) );
@@ -164,10 +171,20 @@ public class ExampleTest {
         return array;
     }
 
+    private static Object[] getEntryShapedValues( AttributeEntry[] entries ) {
+        int nent = entries.length;
+        Object[] vals = new Object[ nent ];
+        for ( int ie = 0; ie < nent; ie++ ) {
+            vals[ ie ] = entries[ ie ].getShapedValue();
+        }
+        return vals;
+    }
+
     private static boolean checkAssertions() {
         assertionsOn_ = true;
         return true;
     }
+
 
     /**
      * Main method.  Run with locations of files example1.cdf and example2.cdf

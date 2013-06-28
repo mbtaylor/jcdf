@@ -46,6 +46,7 @@ JSRC = \
        DataReader.java \
        EpochFormatter.java \
        \
+       AttributeEntry.java \
        CdfContent.java \
        GlobalAttribute.java \
        VariableAttribute.java \

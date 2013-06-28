@@ -19,6 +19,7 @@ public abstract class DataType {
     private final int groupSize_;
     private final Class<?> arrayElementClass_;
     private final Class<?> scalarClass_;
+    private boolean hasMultipleElementsPerItem_;
 
     public static final DataType INT1 = new Int1DataType( "INT1" );
     public static final DataType INT2 = new Int2DataType( "INT2" );
@@ -46,14 +47,37 @@ public abstract class DataType {
      * @param  groupSize  number of elements of type
      *                    <code>arrayElementClass</code> that are read
      *                    into the value array for a single item read
+     * @param  arrayElementClass  component class of the value array
+     * @param  scalarClass   object type returned by <code>getScalar</code>
+     * @param  hasMultipleElementsPerItem  true iff a variable number of
+     *             array elements may correspond to a single item
      */
     private DataType( String name, int byteCount, int groupSize,
-                      Class<?> arrayElementClass, Class<?> scalarClass ) {
+                      Class<?> arrayElementClass, Class<?> scalarClass,
+                      boolean hasMultipleElementsPerItem ) {
         name_ = name;
         byteCount_ = byteCount;
         groupSize_ = groupSize;
         arrayElementClass_ = arrayElementClass;
         scalarClass_ = scalarClass;
+        hasMultipleElementsPerItem_ = hasMultipleElementsPerItem;
+    }
+
+    /**
+     * Constructor for single-element-per-item types.
+     *
+     * @param  name  type name
+     * @param  byteCount  number of bytes to store one item
+     * @param  groupSize  number of elements of type
+     *                    <code>arrayElementClass</code> that are read
+     *                    into the value array for a single item read
+     * @param  arrayElementClass  component class of the value array
+     * @param  scalarClass   object type returned by <code>getScalar</code>
+     */
+    private DataType( String name, int byteCount, int groupSize,
+                      Class<?> arrayElementClass, Class<?> scalarClass ) {
+        this( name, byteCount, groupSize, arrayElementClass, scalarClass,
+              false );
     }
 
     /**
@@ -118,17 +142,28 @@ public abstract class DataType {
     }
 
     /**
+     * True if this type may turn a variable number of elements from the
+     * value array into a single read item.  This is usually false,
+     * but true for character types, which turn into strings.
+     *
+     * @return  true  iff type may have multiple elements per read item
+     */
+    public boolean hasMultipleElementsPerItem() {
+        return hasMultipleElementsPerItem_;
+    }
+
+    /**
      * Reads data of this data type from a buffer into an appropriately
      * typed value array.
      *
      * @param   buf  data buffer
      * @param   offset  byte offset into buffer at which data starts
-     * @param   numElems  number of elements per item;
-     *                    usually 1, but may not be for strings
+     * @param   nelPerItem  number of elements per item;
+     *                      usually 1, but may not be for strings
      * @param   valueArray  array to receive result data
      * @param   count  number of items to read
      */
-    public abstract void readValues( Buf buf, long offset, int numElems,
+    public abstract void readValues( Buf buf, long offset, int nelPerItem,
                                      Object valueArray, int count )
             throws IOException;
 
@@ -218,7 +253,7 @@ public abstract class DataType {
         Int1DataType( String name ) {
             super( name, 1, 1, byte.class, Byte.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
             buf.readDataBytes( offset, n, (byte[]) array );
         }
@@ -234,7 +269,7 @@ public abstract class DataType {
         Int2DataType( String name ) {
             super( name, 2, 1, short.class, Short.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
             buf.readDataShorts( offset, n, (short[]) array );
         }
@@ -250,7 +285,7 @@ public abstract class DataType {
         Int4DataType( String name ) {
             super( name, 4, 1, int.class, Integer.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
             buf.readDataInts( offset, n, (int[]) array );
         }
@@ -266,7 +301,7 @@ public abstract class DataType {
         Int8DataType( String name ) {
             super( name, 8, 1, long.class, Long.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
             buf.readDataLongs( offset, n, (long[]) array );
         }
@@ -284,7 +319,7 @@ public abstract class DataType {
         UInt1DataType( String name ) {
             super( name, 1, 1, short.class, Short.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
             Pointer ptr = new Pointer( offset );
             short[] sarray = (short[]) array;
@@ -306,7 +341,7 @@ public abstract class DataType {
         UInt2DataType( String name ) {
             super( name, 2, 1, int.class, Integer.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
             Pointer ptr = new Pointer( offset );
             int[] iarray = (int[]) array;
@@ -332,7 +367,7 @@ public abstract class DataType {
         UInt4DataType( String name ) {
             super( name, 4, 1, long.class, Long.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
             Pointer ptr = new Pointer( offset );
             long[] larray = (long[]) array;
@@ -359,7 +394,7 @@ public abstract class DataType {
         Real4DataType( String name ) {
             super( name, 4, 1, float.class, Float.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
             buf.readDataFloats( offset, n, (float[]) array );
         }
@@ -375,7 +410,7 @@ public abstract class DataType {
         Real8DataType( String name ) {
             super( name, 8, 1, double.class, Double.class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
             buf.readDataDoubles( offset, n, (double[]) array );
         }
@@ -414,16 +449,16 @@ public abstract class DataType {
      */
     private static class CharDataType extends DataType {
         CharDataType( String name ) {
-            super( name, 1, 1, String.class, String.class );
+            super( name, 1, 1, String.class, String.class, true );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
             String[] sarray = (String[]) array;
-            byte[] cbuf = new byte[ numElems * n ];
-            buf.readDataBytes( offset, numElems * n, cbuf );
+            byte[] cbuf = new byte[ nelPerItem * n ];
+            buf.readDataBytes( offset, nelPerItem * n, cbuf );
             for ( int i = 0; i < n; i++ ) {
                 @SuppressWarnings("deprecation")
-                String s = new String( cbuf, i * numElems, numElems );
+                String s = new String( cbuf, i * nelPerItem, nelPerItem );
                 sarray[ i ] = s;
             }
         }
@@ -463,7 +498,7 @@ public abstract class DataType {
         Epoch16DataType( String name ) {
             super( name, 8, 2, double.class, double[].class );
         }
-        public void readValues( Buf buf, long offset, int numElems,
+        public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
             buf.readDataDoubles( offset, n * 2, (double[]) array );
         }

@@ -80,18 +80,18 @@ public class CdfContent {
         List<VariableAttribute> vAttList = new ArrayList<VariableAttribute>();
         for ( int ia = 0; ia < adrs.length; ia++ ) {
             AttributeDescriptorRecord adr = adrs[ ia ];
-            Object[] grEntries =
+            AttributeEntry[] grEntries =
                 walkEntryList( buf, recordFact,
                                adr.nGrEntries, adr.maxGrEntry,
                                adr.agrEdrHead, cdfInfo_ );
-            Object[] zEntries =
+            AttributeEntry[] zEntries =
                 walkEntryList( buf, recordFact,
                                adr.nZEntries, adr.maxZEntry,
                                adr.azEdrHead, cdfInfo_ );
             boolean isGlobal = Record.hasBit( adr.scope, 0 );
             if ( isGlobal ) {
                 // grEntries are gEntries
-                Object[] gEntries = arrayConcat( grEntries, zEntries );
+                AttributeEntry[] gEntries = arrayConcat( grEntries, zEntries );
                 gAttList.add( new GlobalAttribute( adr.name, gEntries ) );
             }
             else {
@@ -203,17 +203,18 @@ public class CdfContent {
      * @param   info   global information about the CDF file
      * @return  entry values
      */
-    private static Object[] walkEntryList( Buf buf, RecordFactory recordFact,
-                                           int nent, int maxient,
-                                           long head, CdfInfo info )
+    private static AttributeEntry[] walkEntryList( Buf buf,
+                                                   RecordFactory recordFact,
+                                                   int nent, int maxient,
+                                                   long head, CdfInfo info )
             throws IOException {
-        Object[] entries = new Object[ maxient + 1 ];
+        AttributeEntry[] entries = new AttributeEntry[ maxient + 1 ];
         long off = head;
         for ( int ie = 0; ie < nent; ie++ ) {
             AttributeEntryDescriptorRecord aedr =
                 recordFact.createRecord( buf, off,
                                          AttributeEntryDescriptorRecord.class );
-            entries[ aedr.num ] = getEntryValue( aedr, info );
+            entries[ aedr.num ] = readEntry( aedr, info );
             off = aedr.aedrNext;
         }
         return entries;
@@ -226,20 +227,30 @@ public class CdfContent {
      * @param  info  global information about the CDF file
      * @return   entry value
      */
-    private static Object getEntryValue( AttributeEntryDescriptorRecord aedr,
-                                         CdfInfo info ) throws IOException {
+    private static AttributeEntry
+            readEntry( AttributeEntryDescriptorRecord aedr,
+                       CdfInfo info ) throws IOException {
         DataType dataType = DataType.getDataType( aedr.dataType );
-        int numElems = aedr.numElems;
-        final DataReader dataReader = new DataReader( dataType, numElems, 1 );
+        final int nitem;
+        final int nelPerItem;
+        final int[] dimSizes;
+        final boolean[] dimVarys;
+        if ( dataType.hasMultipleElementsPerItem() ) {
+            nitem = 1;
+            nelPerItem = aedr.numElems;
+            dimSizes = new int[ 0 ];
+            dimVarys = new boolean[ 0 ];
+        }
+        else {
+            nitem = aedr.numElems;
+            nelPerItem = 1;
+            dimSizes = new int[] { nitem };
+            dimVarys = new boolean[] { true };
+        }
+        DataReader dataReader = new DataReader( dataType, nelPerItem, nitem );
         Object va = dataReader.createValueArray();
         dataReader.readValue( aedr.getBuf(), aedr.getValueOffset(), va );
-
-        // Majority is not important since this is a scalar value.
-        // The purpose of using the shaper is just to turn the array
-        // element into a (probably Number or String) Object.
-        Shaper shaper = Shaper.createShaper( dataType, new int[ 0 ],
-                                             new boolean[ 0 ], true );
-        return shaper.shape( va, true );
+        return new AttributeEntry( dataType, va, nitem );
     }
 
     /**

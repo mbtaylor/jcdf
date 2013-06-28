@@ -67,6 +67,10 @@ public class Variable {
         boolean[] dimVarys = vdr.dimVarys;
         boolean rowMajor = cdfInfo.getRowMajor();
         int numElems = vdr.numElems;
+
+        // As far as I understand the internal formats document, only
+        // character data types can have numElems>1 here.
+        assert dataType_.hasMultipleElementsPerItem() || numElems == 1;
         shaper_ =
             Shaper.createShaper( dataType_, dimSizes, dimVarys, rowMajor );
         int nraw = shaper_.getRawItemCount();

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import uk.ac.bristol.star.cdf.AttributeEntry;
 import uk.ac.bristol.star.cdf.CdfContent;
 import uk.ac.bristol.star.cdf.CdfReader;
 import uk.ac.bristol.star.cdf.DataType;
@@ -59,7 +60,7 @@ public class CdfList {
         for ( int iga = 0; iga < gAtts.length; iga++ ) {
             GlobalAttribute gAtt = gAtts[ iga ];
             out_.println( "    " + gAtt.getName() );
-            Object[] entries = gAtt.getEntries();
+            AttributeEntry[] entries = gAtt.getEntries();
             for ( int ie = 0; ie < entries.length; ie++ ) {
                 out_.println( "        " + entries[ ie ] );
             }
@@ -73,7 +74,7 @@ public class CdfList {
                   + "  ---  " + var.getSummary() );
             for ( int ia = 0; ia < vAtts.length; ia++ ) {
                 VariableAttribute vAtt = vAtts[ ia ];
-                Object entry = vAtt.getEntry( var );
+                AttributeEntry entry = vAtt.getEntry( var );
                 if ( entry != null ) {
                     out_.println( "    " + vAtt.getName() + ":\t" + entry );
                 }

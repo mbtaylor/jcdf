@@ -2,6 +2,7 @@ package uk.ac.bristol.star.cdf.record;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import uk.ac.bristol.star.cdf.CdfFormatException;
 import uk.ac.bristol.star.cdf.DataType;
 
 /**
@@ -13,21 +14,21 @@ import uk.ac.bristol.star.cdf.DataType;
 public class DataReader {
 
     private final DataType dataType_;
-    private final int numElems_;
+    private final int nelPerItem_;
     private final int nItem_;
 
     /**
      * Constructor.
      *
      * @param   dataType  data type
-     * @param   numElems  number of elements per item;
-     *                    usually 1 except for character data
+     * @param   nelPerItem  number of dataType elements per read item;
+     *                      usually 1 except for character data
      * @param   nItem   number of items of given data type in the array,
      *                  for scalar records it will be 1
      */
-    public DataReader( DataType dataType, int numElems, int nItem ) {
+    public DataReader( DataType dataType, int nelPerItem, int nItem ) {
         dataType_ = dataType;
-        numElems_ = numElems;
+        nelPerItem_ = nelPerItem;
         nItem_ = nItem;
     }
 
@@ -52,7 +53,7 @@ public class DataReader {
      */
     public void readValue( Buf buf, long offset, Object valueArray )
             throws IOException {
-        dataType_.readValues( buf, offset, numElems_, valueArray, nItem_ );
+        dataType_.readValues( buf, offset, nelPerItem_, valueArray, nItem_ );
     }
 
     /**
@@ -61,6 +62,6 @@ public class DataReader {
      * @return   record size in bytes
      */
     public int getRecordSize() {
-        return dataType_.getByteCount() * numElems_ * nItem_;
+        return dataType_.getByteCount() * nelPerItem_ * nItem_;
     }
 }

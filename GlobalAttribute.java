@@ -14,7 +14,7 @@ package uk.ac.bristol.star.cdf;
 public class GlobalAttribute {
 
     private final String name_;
-    private final Object[] entries_;
+    private final AttributeEntry[] entries_;
 
     /**
      * Constructor.
@@ -22,7 +22,7 @@ public class GlobalAttribute {
      * @param   name   attribute name
      * @param   entries  attribute entries
      */
-    public GlobalAttribute( String name, Object[] entries ) {
+    public GlobalAttribute( String name, AttributeEntry[] entries ) {
         name_ = name;
         entries_ = entries;
     }
@@ -41,7 +41,7 @@ public class GlobalAttribute {
      *
      * @return  entry values for this attribute
      */
-    public Object[] getEntries() {
+    public AttributeEntry[] getEntries() {
         return entries_;
     }
 }

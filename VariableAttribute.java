@@ -10,8 +10,8 @@ package uk.ac.bristol.star.cdf;
 public class VariableAttribute {
 
     private final String name_;
-    private final Object[] rEntries_;
-    private final Object[] zEntries_;
+    private final AttributeEntry[] rEntries_;
+    private final AttributeEntry[] zEntries_;
 
     /**
      * Constructor.
@@ -20,8 +20,8 @@ public class VariableAttribute {
      * @param  rEntries  rEntry values for this attribute
      * @param  zEntries  zEntry values for this attribute
      */
-    public VariableAttribute( String name, Object[] rEntries,
-                              Object[] zEntries ) {
+    public VariableAttribute( String name, AttributeEntry[] rEntries,
+                              AttributeEntry[] zEntries ) {
         name_ = name;
         rEntries_ = rEntries;
         zEntries_ = zEntries;
@@ -43,9 +43,9 @@ public class VariableAttribute {
      * @param  variable  CDF variable from the same CDF as this attribute
      * @return   this attribute's value for <code>variable</code>
      */
-    public Object getEntry( Variable variable ) {
-        Object[] entries = variable.isZVariable() ? zEntries_
-                                                  : rEntries_;
+    public AttributeEntry getEntry( Variable variable ) {
+        AttributeEntry[] entries = variable.isZVariable() ? zEntries_
+                                                          : rEntries_;
         int ix = variable.getNum();
         return ix < entries.length ? entries[ ix ] : null;
     }
