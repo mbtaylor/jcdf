@@ -9,6 +9,7 @@ JARFILE = jcdf.jar
 WWW_FILES = $(JARFILE) javadocs index.html cdflist.html cdfdump.html
 WWW_DIR = /export/home/mbt/public_html/jcdf
 
+TEST_JARFILE = jcdf_test.jar
 TEST_CDFS = data/*.cdf
 
 JSRC = \
@@ -58,7 +59,8 @@ JSRC = \
        CdfDump.java \
        CdfList.java \
        LogUtil.java \
-       \
+
+TEST_JSRC = \
        ExampleTest.java \
        SameTest.java \
 
@@ -99,32 +101,40 @@ installwww: $(WWW_DIR) $(WWW_FILES)
 
 test: extest convtest
 
-convtest: $(JARFILE) $(TEST_CDFS)
+convtest: $(JARFILE) $(TEST_JARFILE) $(TEST_CDFS)
 	rm -rf tmp; \
 	mkdir tmp; \
 	for f in $(TEST_CDFS); \
         do \
            files=`./cdfvar.sh -outdir tmp -report $$f`; \
-           cmd="java -ea -classpath $(JARFILE) \
+           cmd="java -ea -classpath $(JARFILE):$(TEST_JARFILE) \
                      uk.ac.bristol.star.cdf.test.SameTest $$files"; \
            ./cdfvar.sh -outdir tmp -create $$f && \
            echo $$cmd && \
            $$cmd || \
            break; \
-        done && \
-        rm -rf tmp
+        done
 
-extest: $(JARFILE)
-	java -ea -classpath $(JARFILE) uk.ac.bristol.star.cdf.test.ExampleTest \
+extest: $(JARFILE) $(TEST_JARFILE)
+	java -ea -classpath $(JARFILE):$(TEST_JARFILE) \
+             uk.ac.bristol.star.cdf.test.ExampleTest \
              data/example1.cdf data/example2.cdf
 
 clean:
-	rm -rf $(JARFILE) tmp index.html javadocs cdflist.html cdfdump.html
+	rm -rf $(JARFILE) $(TEST_JARFILE) tmp \
+               index.html javadocs cdflist.html cdfdump.html
 
 $(JARFILE): $(JSRC)
 	rm -rf tmp
 	mkdir -p tmp
 	$(JAVAC) -Xlint:unchecked -d tmp $(JSRC) \
-            && $(JAR) cf $(JARFILE) -C tmp .
+            && $(JAR) cf $@ -C tmp .
+	rm -rf tmp
+
+$(TEST_JARFILE): $(JARFILE) $(TEST_JSRC)
+	rm -rf tmp
+	mkdir -p tmp
+	$(JAVAC) -Xlint:unchecked -d tmp -classpath $(JARFILE) $(TEST_JSRC) \
+            && $(JAR) cf $@ -C tmp .
 	rm -rf tmp
 
