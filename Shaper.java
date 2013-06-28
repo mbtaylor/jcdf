@@ -34,7 +34,6 @@ public abstract class Shaper {
      */
     public abstract int getRawItemCount();
 
-
     /**
      * Returns the number of array elements in the shaped value array.
      *
