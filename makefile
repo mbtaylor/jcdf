@@ -100,6 +100,11 @@ installwww: $(WWW_DIR) $(WWW_FILES)
 	rm -rf $(WWW_DIR)/* && \
 	cp -r $(WWW_FILES) $(WWW_DIR)/
 
+updatewww: $(WWW_DIR)/index.html
+
+$(WWW_DIR)/index.html: index.html
+	cp index.html $@
+
 test: extest convtest
 
 convtest: $(JARFILE) $(TEST_JARFILE) $(TEST_CDFS)
