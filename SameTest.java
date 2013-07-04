@@ -195,8 +195,8 @@ public class SameTest {
             Object va1 = ent1.getRawValue();
             for ( int i = 0; i < ent0.getItemCount(); i++ ) {
                 pushContext( "#" + i );
-                compareScalar( ent0.getDataType().getScalar( va0, i ),
-                               ent1.getDataType().getScalar( va1, i ) );
+                compareValue( ent0.getDataType().getScalar( va0, i ),
+                              ent1.getDataType().getScalar( va1, i ) );
                 popContext();
             }
         }

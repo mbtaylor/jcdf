@@ -74,6 +74,18 @@ then
 fi
 baseout=${outdir}`basename $basein`
 
+# Some CDFs contain data types which cannot be converted to CDF V2.6 format.
+# Attempting a conversion with the "-backward" backward compatibility flag
+# on these will cause a partial file conversion which is not easy to detect,
+# resulting in CDFs with different content.  Add a filename-based hack
+# to ensure that no attempt is made to force backward-compatibility
+# checks for some files that are known to cause trouble.
+if echo $cdf | egrep -q 'rbsp-|tha_'
+then
+   back_compat=""
+else
+   back_compat=-backward
+fi
 
 # Add more sets of cdfconvert flags here to do different manipulations
 # of the CDF file.
@@ -81,7 +93,7 @@ count=0
 for cflags in \
   "-row -encoding network -compression cdf:gzip.5" \
   "-column -encoding ibmpc -compression vars:huff.0" \
-  "-backward -compression vars:rle.0" \
+  "$back_compat -compression vars:rle.0" \
   "-sparseness vars:srecords.no -compression cdf:ahuff.0 -checksum md5"
 do
    count=`echo $count+1 | bc`
