@@ -309,8 +309,19 @@ public class Variable {
             //    #define PAD_SPARSERECORDS               1L
             //    #define PREV_SPARSERECORDS              2L
             int sRecords = vdr_.sRecords;
-            return sRecords == 2 ? new PreviousRecordReader( recMap )
-                                 : new PadRecordReader( recMap );
+            if ( sRecords == 0 ) {
+                return new UnsparseRecordReader( recMap );
+            }
+            else if ( sRecords == 1 ) {
+                return new PadRecordReader( recMap );
+            }
+            else if ( sRecords == 2 ) {
+                return new PreviousRecordReader( recMap );
+            }
+            else {
+                throw new CdfFormatException( "Unknown sparse record type "
+                                            + sRecords );
+            }
         }
     }
 
@@ -368,10 +379,10 @@ public class Variable {
         NoVaryRecordReader( RecordMap recMap ) throws IOException {
 
             // When record variance is false, the fixed value appears
-            // to be located where you woul otherwise expect to find record #0.
+            // to be located where you would otherwise expect to find record #0.
             // Read it once and store it in raw, row-major and column-major
             // versions for later use.
-            RecordReader rt = new PadRecordReader( recMap );
+            RecordReader rt = new UnsparseRecordReader( recMap );
             rawValue_ = createRawValueArray();
             rt.readRawRecord( 0, rawValue_ );
             rowMajorValue_ = shaper_.shape( rawValue_, true );
@@ -386,6 +397,55 @@ public class Variable {
         public Object readShapedRecord( int irec, boolean rowMajor,
                                         Object work ) {
             return rowMajor ? rowMajorValue_ : colMajorValue_;
+        }
+    }
+
+    /**
+     * RecordReader implementation for non-sparse variables.
+     */
+    private class UnsparseRecordReader implements RecordReader {
+        private final RecordMap recMap_;
+        private final int nrec_;
+        private final Object zeros_;
+
+        /**
+         * Constructor.
+         *
+         * @param  recMap  record map
+         */
+        UnsparseRecordReader( RecordMap recMap ) {
+            recMap_ = recMap;
+            nrec_ = vdr_.maxRec + 1;
+            zeros_ = createRawValueArray();
+        }
+        public boolean hasRecord( int irec ) {
+            return irec < nrec_;
+        }
+        public void readRawRecord( int irec, Object rawValueArray )
+                throws IOException {
+            if ( hasRecord( irec ) ) {
+                int ient = recMap_.getEntryIndex( irec );
+                dataReader_.readValue( recMap_.getBuf( ient ),
+                                       recMap_.getOffset( ient, irec ),
+                                       rawValueArray );
+            }
+            else {
+                System.arraycopy( zeros_, 0, rawValueArray, 0, rvaleng_ );
+            }
+        }
+        public Object readShapedRecord( int irec, boolean rowMajor,
+                                        Object work )
+                throws IOException {
+            if ( hasRecord( irec ) ) {
+                int ient = recMap_.getEntryIndex( irec );
+                dataReader_.readValue( recMap_.getBuf( ient ),
+                                       recMap_.getOffset( ient, irec ),
+                                       work );
+                return shaper_.shape( work, rowMajor );
+            }
+            else {
+                return null;
+            }
         }
     }
 

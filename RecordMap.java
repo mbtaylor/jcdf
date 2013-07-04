@@ -61,7 +61,8 @@ public class RecordMap {
         }
 
         // Initialise the most recently used block value
-        lastBlock_ = calculateBlock( 0 );
+        lastBlock_ = nent_ > 0 ? calculateBlock( 0 )
+                               : new Block( -1, -1, -1 );
     }
 
     /**
