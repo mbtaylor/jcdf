@@ -18,6 +18,8 @@ public class EpochFormatter {
 
     private final DateFormat epochFormat_ =
         createDateFormat( "yyyy-MM-dd' 'HH:mm:ss.SSS" );
+    private final DateFormat tepochFormat_ =
+        createDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
     private static final TimeZone UTC = TimeZone.getTimeZone( "UTC" );
     private static final long AD0_UNIX_MILLIS = getAd0UnixMillis();
     private static final long J2000_UNIX_MILLIS = getJ2000UnixMillis();
@@ -55,19 +57,20 @@ public class EpochFormatter {
      * @return  date string
      */
     public String formatTimeTt2000( long timeTt2k ) {
-        long j2kMillis = timeTt2k / 1000;
-        int plusPicos = (int) ( timeTt2k % 1000 );
-        if ( plusPicos < 0 ) {
+        long j2kMillis = timeTt2k / 1000000;
+        int plusNanos = (int) ( timeTt2k % 1000000 );
+        if ( plusNanos < 0 ) {
             j2kMillis--;
-            plusPicos += 1000;
+            plusNanos += 1000000;
         }
         long unixMillis = j2kMillis + J2000_UNIX_MILLIS;
         Date date = new Date( unixMillis );
-        String txt = epochFormat_.format( date );
-        StringBuffer pbuf = new StringBuffer( Integer.toString( plusPicos ) );
-        while ( pbuf.length() < 3 ) {
+        String txt = tepochFormat_.format( date );
+        StringBuffer pbuf = new StringBuffer( Integer.toString( plusNanos ) );
+        while ( pbuf.length() < 6 ) {
             pbuf.insert( 0, '0' );
         }
+        assert pbuf.length() == 6;
         return txt + pbuf;
     }
 
