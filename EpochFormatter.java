@@ -57,6 +57,13 @@ public class EpochFormatter {
      * @return  date string
      */
     public String formatTimeTt2000( long timeTt2k ) {
+
+        // Special case - see "Variable Pad Values" section
+        // (sec 2.3.20 at v3.4, and footnote) of CDF Users Guide.
+        if ( timeTt2k == Long.MIN_VALUE + 1 ) {
+            return "0000-01-01T00:00:00.000000000";
+        }
+
         long j2kMillis = timeTt2k / 1000000;
         int plusNanos = (int) ( timeTt2k % 1000000 );
         if ( plusNanos < 0 ) {
