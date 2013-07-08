@@ -80,7 +80,7 @@ baseout=${outdir}`basename $basein`
 # resulting in CDFs with different content.  Add a filename-based hack
 # to ensure that no attempt is made to force backward-compatibility
 # checks for some files that are known to cause trouble.
-if echo $cdf | egrep -q 'rbsp-|tha_'
+if echo $cdf | egrep -q 'rbsp-|tha_|test.cdf'
 then
    back_compat=""
 else
