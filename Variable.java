@@ -85,13 +85,25 @@ public class Variable {
             Object padValueArray = padReader.createValueArray();
             padReader.readValue( buf_, padOffset, padValueArray );
             Object rva = dataReader_.createValueArray();
+            int ngrp = dataType_.getGroupSize();
             for ( int i = 0; i < nraw; i++ ) {
-                System.arraycopy( padValueArray, 0, rva, i, 1 );
+                System.arraycopy( padValueArray, 0, rva, i * ngrp, ngrp );
             }
             padRawValueArray_ = rva;
             shapedPadValueRowMajor_ = shaper_.shape( padRawValueArray_, true );
             shapedPadValueColumnMajor_ =
                 shaper_.shape( padRawValueArray_, false );
+        }
+        else if ( vdr_.sRecords != 0 ) {
+            Object padValueArray = dataType_.getDefaultPadValueArray();
+            Object rva = dataReader_.createValueArray();
+            int ngrp = dataType_.getGroupSize();
+            for ( int i = 0; i < nraw; i++ ) {
+                System.arraycopy( padValueArray, 0, rva, i * ngrp, ngrp );
+            }
+            padRawValueArray_ = rva;
+            shapedPadValueRowMajor_ = shaper_.shape( padRawValueArray_, true );
+            shapedPadValueColumnMajor_ = shapedPadValueRowMajor_;
         }
         else {
             padRawValueArray_ = null;
@@ -313,9 +325,11 @@ public class Variable {
                 return new UnsparseRecordReader( recMap );
             }
             else if ( sRecords == 1 ) {
+                assert padRawValueArray_ != null;
                 return new PadRecordReader( recMap );
             }
             else if ( sRecords == 2 ) {
+                assert padRawValueArray_ != null;
                 return new PreviousRecordReader( recMap );
             }
             else {

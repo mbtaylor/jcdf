@@ -19,6 +19,7 @@ public abstract class DataType {
     private final int groupSize_;
     private final Class<?> arrayElementClass_;
     private final Class<?> scalarClass_;
+    private final Object dfltPadValueArray_;
     private boolean hasMultipleElementsPerItem_;
 
     public static final DataType INT1 = new Int1DataType( "INT1" );
@@ -49,22 +50,27 @@ public abstract class DataType {
      *                    into the value array for a single item read
      * @param  arrayElementClass  component class of the value array
      * @param  scalarClass   object type returned by <code>getScalar</code>
+     * @param  dfltPadValueArray  1-item array of arrayElementClass values
+     *                            containing the default pad value for this type
      * @param  hasMultipleElementsPerItem  true iff a variable number of
      *             array elements may correspond to a single item
      */
     private DataType( String name, int byteCount, int groupSize,
                       Class<?> arrayElementClass, Class<?> scalarClass,
+                      Object dfltPadValueArray,
                       boolean hasMultipleElementsPerItem ) {
         name_ = name;
         byteCount_ = byteCount;
         groupSize_ = groupSize;
         arrayElementClass_ = arrayElementClass;
         scalarClass_ = scalarClass;
+        dfltPadValueArray_ = dfltPadValueArray;
         hasMultipleElementsPerItem_ = hasMultipleElementsPerItem;
     }
 
     /**
-     * Constructor for single-element-per-item types.
+     * Constructor for a single-element-per-item type with a zero-like
+     * pad value.
      *
      * @param  name  type name
      * @param  byteCount  number of bytes to store one item
@@ -77,7 +83,7 @@ public abstract class DataType {
     private DataType( String name, int byteCount, int groupSize,
                       Class<?> arrayElementClass, Class<?> scalarClass ) {
         this( name, byteCount, groupSize, arrayElementClass, scalarClass,
-              false );
+              Array.newInstance( arrayElementClass, groupSize ), false );
     }
 
     /**
@@ -150,6 +156,17 @@ public abstract class DataType {
      */
     public boolean hasMultipleElementsPerItem() {
         return hasMultipleElementsPerItem_;
+    }
+
+    /**
+     * Returns an array of array-class values containing a single item
+     * with the default pad value for this type.
+     *
+     * @return  default raw pad value array
+     * @see  "Section 2.3.20 of CDF User's Guide"
+     */
+    public Object getDefaultPadValueArray() {
+        return dfltPadValueArray_;
     }
 
     /**
@@ -424,8 +441,13 @@ public abstract class DataType {
      */
     private static class Tt2kDataType extends Int8DataType {
         final EpochFormatter formatter_ = new EpochFormatter();
+        final long[] dfltPad_ = new long[] { Long.MIN_VALUE + 1 };
         Tt2kDataType( String name ) {
             super( name );
+        }
+        @Override
+        public Object getDefaultPadValueArray() {
+            return dfltPad_;
         }
         @Override
         public String formatScalarValue( Object value ) {
@@ -449,7 +471,8 @@ public abstract class DataType {
      */
     private static class CharDataType extends DataType {
         CharDataType( String name ) {
-            super( name, 1, 1, String.class, String.class, true );
+            super( name, 1, 1, String.class, String.class,
+                   new String[] { null }, true );
         }
         public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
