@@ -519,7 +519,7 @@ public abstract class DataType {
     private static class Epoch16DataType extends DataType {
         private final EpochFormatter formatter_ = new EpochFormatter();
         Epoch16DataType( String name ) {
-            super( name, 8, 2, double.class, double[].class );
+            super( name, 16, 2, double.class, double[].class );
         }
         public void readValues( Buf buf, long offset, int nelPerItem,
                                 Object array, int n ) throws IOException {
