@@ -124,7 +124,7 @@ convtest: $(JARFILE) $(TEST_JARFILE) $(TEST_CDFS)
 extest: $(JARFILE) $(TEST_JARFILE)
 	java -ea -classpath $(JARFILE):$(TEST_JARFILE) \
              uk.ac.bristol.star.cdf.test.ExampleTest \
-             data/example1.cdf data/example2.cdf
+             data/example1.cdf data/example2.cdf data/test.cdf
 
 clean:
 	rm -rf $(JARFILE) $(TEST_JARFILE) tmp \

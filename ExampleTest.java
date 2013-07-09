@@ -11,6 +11,7 @@ import uk.ac.bristol.star.cdf.CdfReader;
 import uk.ac.bristol.star.cdf.GlobalAttribute;
 import uk.ac.bristol.star.cdf.Variable;
 import uk.ac.bristol.star.cdf.VariableAttribute;
+import uk.ac.bristol.star.cdf.record.EpochFormatter;
 
 /**
  * Tests the contents of two of the example files
@@ -149,6 +150,110 @@ public class ExampleTest {
 
     }
 
+    public void testTest( File testFile ) throws IOException {
+        CdfContent content = new CdfContent( new CdfReader( testFile ) );
+
+        GlobalAttribute[] gatts = content.getGlobalAttributes();
+        assert gatts.length == 5;
+        assert "Project".equals( gatts[ 0 ].getName() );
+        GlobalAttribute gatt1 = gatts[ 1 ];
+        assert "PI".equals( gatt1.getName() );
+        assert Arrays.equals( new String[] { null, null, null, "Ernie Els" },
+                              getEntryShapedValues( gatt1.getEntries() ) );
+        GlobalAttribute gatt2 = gatts[ 2 ];
+        assert "Test".equals( gatt2.getName() );
+        AttributeEntry[] tents = gatt2.getEntries();
+        assert tents[ 0 ].getShapedValue().equals( new Double( 5.3432 ) );
+        assert tents[ 1 ] == null;
+        assert tents[ 2 ].getShapedValue().equals( new Float( 5.5f ) );
+        assert Arrays.equals( (float[]) tents[ 3 ].getShapedValue(),
+                              new float[] { 5.5f, 10.2f } );
+        assert Arrays.equals( (float[]) tents[ 3 ].getRawValue(),
+                              new float[] { 5.5f, 10.2f } );
+        assert ((Byte) tents[ 4 ].getShapedValue()).byteValue() == 1;
+        assert Arrays.equals( (byte[]) tents[ 5 ].getShapedValue(),
+                              new byte[] { (byte) 1, (byte) 2, (byte) 3 } );
+        assert ((Short) tents[ 6 ].getShapedValue()).shortValue() == -32768;
+        assert Arrays.equals( (short[]) tents[ 7 ].getShapedValue(),
+                              new short[] { (short) 1, (short) 2 } );
+        assert ((Integer) tents[ 8 ].getShapedValue()).intValue() == 3;
+        assert Arrays.equals( (int[]) tents[ 9 ].getShapedValue(),
+                              new int[] { 4, 5 } );
+        assert "This is a string".equals( tents[ 10 ].getShapedValue() );
+        assert ((Long) tents[ 11 ].getShapedValue()).longValue() == 4294967295L;
+        assert Arrays.equals( (long[]) tents[ 12 ].getShapedValue(),
+                              new long[] { 4294967295L, 2147483648L } );
+        assert ((Integer) tents[ 13 ].getShapedValue()).intValue() == 65535;
+        assert Arrays.equals( (int[]) tents[ 14 ].getShapedValue(),
+                              new int[] { 65535, 65534 } );
+        assert ((Short) tents[ 15 ].getShapedValue()).shortValue() == 255;
+        assert Arrays.equals( (short[]) tents[ 16 ].getShapedValue(),
+                              new short[] { 255, 254 } );
+
+        GlobalAttribute gatt3 = gatts[ 3 ];
+        assert "TestDate".equals( gatt3.getName() );
+        assert "2002-04-25T00:00:00.000"
+              .equals( new EpochFormatter()
+                      .formatEpoch( ((Double)
+                                     gatt3.getEntries()[ 1 ].getShapedValue())
+                                    .doubleValue() ) );
+        double[] epDate = (double[])
+                          gatts[ 4 ].getEntries()[ 0 ].getShapedValue();
+        assert "2004-05-13T15:08:11.022033044055"
+              .equals( new EpochFormatter()
+                      .formatEpoch16( epDate[ 0 ], epDate[ 1 ] ) );
+
+        Variable[] vars = content.getVariables();
+        Variable latVar = vars[ 0 ];
+        assert "Latitude".equals( latVar.getName() );
+        assert Arrays.equals( new byte[] { (byte) 1, (byte) 2, (byte) 3 },
+                              (byte[]) readShapedRecord( latVar, 0, true ) );
+        assert Arrays.equals( new byte[] { (byte) 1, (byte) 2, (byte) 3 },
+                              (byte[]) readShapedRecord( latVar, 100, true ) );
+
+        Variable lat1Var = vars[ 1 ];
+        assert "Latitude1".equals( lat1Var.getName() );
+        assert Arrays.equals( new short[] { (short) 100, (short) 128,
+                                            (short) 255 },
+                              (short[]) readShapedRecord( lat1Var, 2, true ) );
+
+        Variable longVar = vars[ 2 ];
+        assert "Longitude".equals( longVar.getName() );
+        assert Arrays.equals( new short[] { (short) 100, (short) 200,
+                                            (short) 300 },
+                              (short[]) readShapedRecord( longVar, 0, true ) );
+        assert Arrays.equals( new short[] { (short) -99, (short) -99,
+                                            (short) -99 },
+                              (short[]) readShapedRecord( longVar, 1, true ) );
+
+        Variable nameVar = vars[ 8 ];
+        assert "Name".equals( nameVar.getName() );
+        assert Arrays.equals( new String[] { "123456789 ", "13579     " },
+                              (String[]) readShapedRecord( nameVar, 0, true ) );
+
+        Variable tempVar = vars[ 9 ];
+        assert "Temp".equals( tempVar.getName() );
+        assert Arrays.equals( new float[] { 55.5f, 0f, 66.6f },
+                              (float[]) readShapedRecord( tempVar, 0, true ) );
+        assert Arrays.equals( new float[] { 0f, 0f, 0f },
+                              (float[]) readShapedRecord( tempVar, 1, true ) );
+
+        Variable epVar = vars[ 15 ];
+        assert "ep".equals( epVar.getName() );
+        assert "1999-03-05T05:06:07.100"
+              .equals( new EpochFormatter()
+                      .formatEpoch( ((Double)
+                                     readShapedRecord( epVar, 0, true ))
+                                   .doubleValue() ) );
+
+        Variable ep16Var = vars[ 16 ];
+        assert "ep16".equals( ep16Var.getName() );
+        double[] ep2 = (double[]) readShapedRecord( ep16Var, 1, true );
+        assert "2004-12-29T16:56:24.031411522634"
+              .equals( new EpochFormatter()
+                      .formatEpoch16( ep2[ 0 ], ep2[ 1 ] ) );
+    }
+
     private Object readShapedRecord( Variable var, int irec, boolean rowMajor )
             throws IOException {
         return var.readShapedRecord( irec, rowMajor,
@@ -175,7 +280,8 @@ public class ExampleTest {
         int nent = entries.length;
         Object[] vals = new Object[ nent ];
         for ( int ie = 0; ie < nent; ie++ ) {
-            vals[ ie ] = entries[ ie ].getShapedValue();
+            AttributeEntry entry = entries[ ie ];
+            vals[ ie ] = entry == null ? null : entry.getShapedValue();
         }
         return vals;
     }
@@ -187,7 +293,10 @@ public class ExampleTest {
 
 
     /**
-     * Main method.  Run with locations of files example1.cdf and example2.cdf
+     * Main method.  Run with locations of the following files as arguments:
+     *    cdf34_1-dist/samples/example1.cdf
+     *    cdf34_1-dist/samples/example2.cdf
+     *    cdf34_1-dist/cdfjava/examples/test.cdf
      * as arguments.  Use -help for help.
      * Tests are made using java assertions, so this test must be
      * run with java assertions enabled.  If it's not, it will fail anyway.
@@ -199,18 +308,20 @@ public class ExampleTest {
         }
         String usage = "Usage: " + ExampleTest.class.getName()
                      + " example1.cdf example2.cdf";
-        if ( args.length != 2 ) {
+        if ( args.length != 3 ) {
             System.err.println( usage );
             System.exit( 1 );
         }
         File ex1 = new File( args[ 0 ] );
         File ex2 = new File( args[ 1 ] );
-        if ( ! ex1.canRead() || ! ex2.canRead() ) {
+        File test = new File( args[ 2 ] );
+        if ( ! ex1.canRead() || ! ex2.canRead() || ! test.canRead() ) {
             System.err.println( usage );
             System.exit( 1 );
         }
         ExampleTest extest = new ExampleTest();
         extest.testExample1( ex1 );
         extest.testExample2( ex2 );
+        extest.testTest( test );
     }
 }
