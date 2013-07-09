@@ -16,10 +16,10 @@ import java.util.TimeZone;
  */
 public class EpochFormatter {
 
-    private final DateFormat epochFormat_ =
-        createDateFormat( "yyyy-MM-dd' 'HH:mm:ss.SSS" );
-    private final DateFormat tepochFormat_ =
+    private final DateFormat epochMilliFormat_ =
         createDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
+    private final DateFormat epochSecFormat_ =
+        createDateFormat( "yyyy-MM-dd'T'HH:mm:ss" );
     private static final TimeZone UTC = TimeZone.getTimeZone( "UTC" );
     private static final long AD0_UNIX_MILLIS = getAd0UnixMillis();
     private static final long J2000_UNIX_MILLIS = getJ2000UnixMillis();
@@ -33,18 +33,30 @@ public class EpochFormatter {
     public String formatEpoch( double epoch ) {
         long unixMillis = (long) ( epoch + AD0_UNIX_MILLIS );
         Date date = new Date( unixMillis );
-        return epochFormat_.format( date );
+        return epochMilliFormat_.format( date );
     }
 
     /**
      * Formats a CDF EPOCH16 value as an ISO-8601 date.
      *
-     * @param   epoch1  first element of EPOCH16 pair
-     * @param   epoch2  second element of EPOCH16 pair
+     * @param   epoch1  first element of EPOCH16 pair (seconds since 0AD)
+     * @param   epoch2  second element of EPOCH16 pair (additional picoseconds)
      * @return  date string
      */
     public String formatEpoch16( double epoch1, double epoch2 ) {
-        return Double.toString( epoch1 ) + ", " + Double.toString( epoch2 );
+        long unixMillis = (long) ( epoch1 * 1000 ) + AD0_UNIX_MILLIS;
+        Date date = new Date( unixMillis );
+        long plusPicos = (long) epoch2;
+        if ( plusPicos < 0 || plusPicos >= 1e12 ) {
+            return "??";
+        }
+        String result = new StringBuffer( 32 )
+            .append( epochSecFormat_.format( date ) )
+            .append( '.' )
+            .append( prePadWithZeros( plusPicos, 12 ) )
+            .toString();
+        assert result.length() == 32;
+        return result;
     }
 
     /**
@@ -72,13 +84,8 @@ public class EpochFormatter {
         }
         long unixMillis = j2kMillis + J2000_UNIX_MILLIS;
         Date date = new Date( unixMillis );
-        String txt = tepochFormat_.format( date );
-        StringBuffer pbuf = new StringBuffer( Integer.toString( plusNanos ) );
-        while ( pbuf.length() < 6 ) {
-            pbuf.insert( 0, '0' );
-        }
-        assert pbuf.length() == 6;
-        return txt + pbuf;
+        String txt = epochMilliFormat_.format( date );
+        return txt + prePadWithZeros( plusNanos, 6 );
     }
 
     /**
@@ -128,5 +135,33 @@ public class EpochFormatter {
         cal.set( 2000, 0, 1, 12, 0, 0 );
         long j2000 = cal.getTimeInMillis();
         return j2000;
+    }
+
+    /**
+     * Pads a numeric value with zeros to return a fixed length string
+     * representing a given numeric value.
+     *
+     * @param  value  number
+     * @param  leng   number of characters in result
+     * @return   leng-character string containing value
+     *           padded at start with zeros
+     */
+    private static String prePadWithZeros( long value, int leng ) {
+        String txt = Long.toString( value );
+        int nz = leng - txt.length();
+        if ( nz == 0 ) {
+            return txt;
+        }
+        else if ( nz < 0 ) {
+            throw new IllegalArgumentException();
+        }
+        else {
+            StringBuffer sbuf = new StringBuffer( leng );
+            for ( int i = 0; i < nz; i++ ) {
+                sbuf.append( '0' );
+            }
+            sbuf.append( txt );
+            return sbuf.toString();
+        }
     }
 }
