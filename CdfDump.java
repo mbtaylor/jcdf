@@ -258,7 +258,7 @@ public class CdfDump {
      * @param   count   number of spaces
      * @return  string composed only of <code>count</code> spaces
      */
-    private static String spaces( int count ) {
+    static String spaces( int count ) {
         StringBuffer sbuf = new StringBuffer( count );
         for ( int i = 0; i < count; i++ ) {
             sbuf.append( ' ' );

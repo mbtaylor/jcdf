@@ -30,6 +30,9 @@ public class CdfList {
     private final CdfContent cdf_;
     private final PrintStream out_;
     private final boolean writeData_;
+    private static final String[] NOVARY_MARKS = { "{ ", " }" };
+    private static final String[] VIRTUAL_MARKS = { "[ ", " ]" };
+    private static final String[] REAL_MARKS = { "  ", "" };
 
     /**
      * Constructor.
@@ -84,21 +87,30 @@ public class CdfList {
             if ( writeData_ ) {
                 DataType dataType = var.getDataType();
                 Object abuf = var.createRawValueArray();
+                boolean isVar = var.getRecordVariance();
                 int nrec = var.getRecordCount();
+                int nrdigit = Integer.toString( nrec ).length();
                 for ( int ir = 0; ir < nrec; ir++ ) {
                     var.readRawRecord( ir, abuf );
-                    StringBuffer sbuf = new StringBuffer();
-                    boolean hasRec = var.hasRecord( ir );
-                    if ( ! hasRec ) {
-                        sbuf.append( '[' );
+                    final String[] marks;
+                    if ( ! isVar ) {
+                        marks = NOVARY_MARKS;
                     }
-                    sbuf.append( Integer.toString( ir ) );
-                    if ( ! hasRec ) {
-                        sbuf.append( ']' );
+                    else if ( ! var.hasRecord( ir ) ) {
+                        marks = VIRTUAL_MARKS;
                     }
-                    sbuf.append( ':' );
-                    sbuf.append( '\t' );
-                    sbuf.append( formatValues( abuf, dataType ) );
+                    else {
+                        marks = REAL_MARKS;
+                    }
+                    String sir = Integer.toString( ir );
+                    StringBuffer sbuf = new StringBuffer()
+                        .append( marks[ 0 ] )
+                        .append( CdfDump.spaces( nrdigit - sir.length() ) )
+                        .append( sir )
+                        .append( ':' )
+                        .append( '\t' )
+                        .append( formatValues( abuf, dataType ) )
+                        .append( marks[ 1 ] );
                     out_.println( sbuf.toString() );
                 }
             }
