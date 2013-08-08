@@ -197,6 +197,11 @@ public class ExampleTest {
                       .formatEpoch( ((Double)
                                      gatt3.getEntries()[ 1 ].getShapedValue())
                                     .doubleValue() ) );
+        assert "2008-02-04T06:08:10.012014016"
+              .equals( new EpochFormatter()
+                      .formatTimeTt2000( ((Long) gatt3.getEntries()[ 2 ]
+                                                      .getShapedValue())
+                                         .longValue() ) );
         double[] epDate = (double[])
                           gatts[ 4 ].getEntries()[ 0 ].getShapedValue();
         assert "2004-05-13T15:08:11.022033044055"
@@ -252,6 +257,19 @@ public class ExampleTest {
         assert "2004-12-29T16:56:24.031411522634"
               .equals( new EpochFormatter()
                       .formatEpoch16( ep2[ 0 ], ep2[ 1 ] ) );
+
+        Variable ttVar = vars[ 18 ];
+        assert "tt2000".equals( ttVar.getName() );
+        assert "2008-12-31T23:59:58.123456789"
+              .equals( new EpochFormatter()
+                      .formatTimeTt2000( ((Long)
+                                          readShapedRecord( ttVar, 0, true ))
+                                        .longValue() ) );
+        assert "2009-01-01T00:00:00.123456789"
+              .equals( new EpochFormatter()
+                      .formatTimeTt2000( ((Long)
+                                          readShapedRecord( ttVar, 3, true ))
+                                        .longValue() ) );
     }
 
     private Object readShapedRecord( Variable var, int irec, boolean rowMajor )

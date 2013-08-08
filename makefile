@@ -40,11 +40,12 @@ JSRC = \
        \
        BitExpandInputStream.java \
        Compression.java \
+       DataReader.java \
+       EpochFormatter.java \
        NumericEncoding.java \
        RunLengthInputStream.java \
        RecordMap.java \
-       DataReader.java \
-       EpochFormatter.java \
+       TtScaler.java \
        \
        AttributeEntry.java \
        CdfContent.java \

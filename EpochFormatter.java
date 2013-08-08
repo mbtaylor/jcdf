@@ -20,9 +20,11 @@ public class EpochFormatter {
         createDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
     private final DateFormat epochSecFormat_ =
         createDateFormat( "yyyy-MM-dd'T'HH:mm:ss" );
+    private int iLastTtScaler_ = -1;
+
     private static final TimeZone UTC = TimeZone.getTimeZone( "UTC" );
     private static final long AD0_UNIX_MILLIS = getAd0UnixMillis();
-    private static final long J2000_UNIX_MILLIS = getJ2000UnixMillis();
+    private static final TtScaler[] TT_SCALERS = TtScaler.getTtScalers();
 
     /**
      * Formats a CDF EPOCH value as an ISO-8601 date.
@@ -62,9 +64,6 @@ public class EpochFormatter {
     /**
      * Formats a CDF TIME_TT2000 value as an ISO-8601 date.
      *
-     * <strong>Note:</strong> this does not currently cope with leap
-     * seconds, which it should do.
-     *
      * @param  timeTt2k  TIME_TT2000 value
      * @return  date string
      */
@@ -82,10 +81,27 @@ public class EpochFormatter {
             j2kMillis--;
             plusNanos += 1000000;
         }
-        long unixMillis = j2kMillis + J2000_UNIX_MILLIS;
-        Date date = new Date( unixMillis );
+        double unixMillis = getTtScaler( j2kMillis )
+                           .tt2kToUnixMillis( j2kMillis );
+        Date date = new Date( (long) unixMillis );
         String txt = epochMilliFormat_.format( date );
         return txt + prePadWithZeros( plusNanos, 6 );
+    }
+
+    /**
+     * Returns the TtScaler instance that is valid for a given time.
+     *
+     * @param  tt2kMillis  TT time since J2000 in milliseconds
+     * @return  scaler
+     */
+    private TtScaler getTtScaler( long tt2kMillis ) {
+
+        // Use the most recently used value as the best guess.
+        // There's a good chance it's the right one.
+        int index = TtScaler
+                   .getScalerIndex( tt2kMillis, TT_SCALERS, iLastTtScaler_ );
+        iLastTtScaler_ = index;
+        return TT_SCALERS[ index ];
     }
 
     /**
@@ -121,20 +137,6 @@ public class EpochFormatter {
         // and signs around AD0/BC0.
         long fudge = 1000 * 60 * 60 * 24 * 2;  // 2 days
         return ad0 + fudge;
-    }
-
-    /**
-     * Returns the J2000/TT_TIME2000 epoch (2000-01-01T12:00:00)
-     * in milliseconds since the Unix epoch (1920-01-01T00:00:00).
-     *
-     * @return  +946,684,800,000
-     */
-    private static long getJ2000UnixMillis() {
-        GregorianCalendar cal = new GregorianCalendar( UTC, Locale.UK );
-        cal.clear();
-        cal.set( 2000, 0, 1, 12, 0, 0 );
-        long j2000 = cal.getTimeInMillis();
-        return j2000;
     }
 
     /**

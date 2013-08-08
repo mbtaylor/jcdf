@@ -66,7 +66,6 @@ In particular:
     the CDF Internal Format Description document.
     Following comments in that document, it is believed that 
     versions 2.6, 2.7 and 3.* of the CDF format are supported.
-    Maybe others.
     </li>
 <li><strong>Large files:</strong>
     The library imposes no restriction on file size,
@@ -96,9 +95,6 @@ In particular:
     because of the difficulty of handling unsigned integers in java,
     so for instance a CDF_UINT1 is read as a java <code>short</code> (16-bit)
     integer.
-    The time formats CDF_EPOCH, CDF_EPOCH16 and CDF_TIME_TT2000 are currently
-    treated as <code>double</code>, <code>double[2]</code> and <code>long</code>
-    respectively, i.e. are not obviously times.
     </li>
 <li><strong>Record data access</strong>:
     For array-valued variables you can currently only read a whole record
@@ -124,7 +120,7 @@ CDF files:
     </dd>
 <dt><strong><code>CdfDump</code></strong>:</dt>
 <dd>displays a dump of the sequence of low-level
-    CDF records found in the CDF fil, along the lines of the
+    CDF records found in the CDF file, along the lines of the
     <code>cdfirsdump</code> command in the official CDF distribution.
     If the <code>-fields</code> flag is supplied, field information from
     each record is shown.  If the <code>-html</code> flag is supplied,
@@ -177,6 +173,9 @@ for the current version (v0.1) can be found here:
     <li>Add EPOCH16 formatting.</li>
     <li>Modify CdfList data output: better formatting, and distinguish
         NOVARY values from virtual ones.</li>
+    <li>TIME_TT2000 values now handled very nearly properly,
+        including leap seconds.  However, formatting for times that fall
+        during a leap second is not yet correct.</li>
     </ul>
     </dd>
 </dl>
@@ -199,6 +198,10 @@ by that software.
 
 <p>It is licenced under the LGPL, though if you need a different licence
 I can probably fix it.
+</p>
+
+<p>My thanks to Michael Liu and Robert Candey at the NASA CDF office
+for encouragement and help with some of the testing and implementation.
 </p>
 
 <p>Bugs, questions, feedback welcome to
