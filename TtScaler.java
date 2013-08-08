@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  * @author   Mark Taylor
  * @since    8 Aug 2013
  */
-public class TtScaler {
+public abstract class TtScaler {
 
     private final double fixOffset_;
     private final double scaleBase_;
@@ -143,13 +143,24 @@ public class TtScaler {
         if ( tt2kMillis < fromTt2kMillis_ ) {
             return -1;
         }
-        else if ( tt2kMillis > toTt2kMillis_ ) {
+        else if ( tt2kMillis >= toTt2kMillis_ ) {
             return +1;
         }
         else {
             return 0;
         }
     }
+
+    /**
+     * Indicates whether and how far a given time is into the duration of
+     * a leap second.  If the supplied time falls during a leap second,
+     * the number of milliseconds elapsed since the leap second's start
+     * is returned.  Otherwise (i.e. nearly always) -1 is returned.
+     *
+     * @param   tt2kMillis  TT time in milliseconds since J2000
+     * @return  a value in the range 0...1000 if in a leap second, otherwise -1
+     */
+    public abstract int millisIntoLeapSecond( long tt2kMillis );
 
     /**
      * Searches an ordered array of scaler instances for one that is
@@ -267,44 +278,157 @@ public class TtScaler {
      * @return  ordered list of time scaler instances
      */
     private static TtScaler[] createTtScalers() {
-        int np = LTS.length;
+        int nent = LTS.length;
         List<TtScaler> list = new ArrayList<TtScaler>();
-        list.add( new TtScaler( 0, 0, 0, Long.MIN_VALUE,
-                                ltCoeffsToTt2kMillis( LTS[ 0 ] ) ) );
-        for ( int ip = 0; ip < np; ip++ ) {
-            double[] coeffs = LTS[ ip ];
-            double fixOffset = coeffs[ 3 ];
-            double scaleBase = coeffs[ 4 ];
-            double scaleFactor = coeffs[ 5 ];
-            long fromValid = ltCoeffsToTt2kMillis( coeffs );
-            long toValid = ip + 1 < np ? ltCoeffsToTt2kMillis( LTS[ ip + 1 ] )
-                                       : Long.MAX_VALUE;
-            list.add( new TtScaler( fixOffset, scaleBase, scaleFactor,
-                                   fromValid, toValid ) );
+
+        // Add a scaler valid from the start of time till the first LTS entry.
+        // I'm not certain this has the correct formula, but using TT
+        // prior to 1960 is a bit questionable in any case.
+        LtEntry firstEnt = new LtEntry( LTS[ 0 ] );
+        list.add( new NoLeapTtScaler( firstEnt, Long.MIN_VALUE,
+                                      firstEnt.getDateTt2kMillis() ) );
+
+        // Add scalers corresponding to each entry in the LTS array except
+        // the final one.
+        for ( int ie = 0; ie < nent - 1; ie++ ) {
+            LtEntry ent0 = new LtEntry( LTS[ ie ] );
+            LtEntry ent1 = new LtEntry( LTS[ ie + 1 ] );
+            long fromValid = ent0.getDateTt2kMillis();
+            long toValid = ent1.getDateTt2kMillis();
+
+            // In case of a leap second, add two: one to cover just the leap
+            // second, and another to cover the rest of the range till the
+            // next entry starts.
+            if ( ent1.hasPrecedingLeapSecond() ) {
+                list.add( new NoLeapTtScaler( ent0, fromValid,
+                                              toValid - 1000 ) );
+                list.add( new LeapDurationTtScaler( ent0, toValid - 1000 ) );
+            }
+
+            // In case of no leap second, add a single scaler covering
+            // the whole period.
+            else {
+                list.add( new NoLeapTtScaler( ent0, fromValid, toValid ) );
+            }
         }
+
+        // Add a scaler covering the period from the start of the last
+        // entry till the end of time.
+        LtEntry lastEnt = new LtEntry( LTS[ nent - 1 ] );
+        list.add( new NoLeapTtScaler( lastEnt, lastEnt.getDateTt2kMillis(),
+                                      Long.MAX_VALUE ) );
+
+        // Return as array.
         return list.toArray( new TtScaler[ 0 ] );
     }
 
     /**
-     * Returns the number of milliseconds in TT since J2000 corresponding
-     * to one entry in the LTS array.
-     *
-     * @param  6-element LTS entry (year, month, dom, fixoff, base, factor)
-     * @return   TT millis since J2000
+     * TtScaler implementation which does not contain any leap seconds.
      */
-    private static long ltCoeffsToTt2kMillis( double[] ltCoeffs ) {
-        int year = (int) ltCoeffs[ 0 ];
-        int month = (int) ltCoeffs[ 1 ];
-        int dom = (int) ltCoeffs[ 2 ];
-        double fixOffset = ltCoeffs[ 3 ];
-        double scaleBase = ltCoeffs[ 4 ];
-        double scaleFactor = ltCoeffs[ 5 ];
-        assert year == ltCoeffs[ 0 ];
-        assert month == ltCoeffs[ 1 ];
-        assert dom == ltCoeffs[ 2 ];
-        long unixMillis = new GregorianCalendar( year, month - 1, dom )
-                         .getTimeInMillis();
-        return (long) TtScaler.unixToTt2kMillis( unixMillis, fixOffset,
-                                                 scaleBase, scaleFactor );
+    private static class NoLeapTtScaler extends TtScaler {
+
+        /**
+         * Constructor.
+         *
+         * @param  ltEnt   LTS table entry object
+         * @param   fromTt2kMillis  start of validity range
+         *                          in TT milliseconds since J2000
+         * @param   toTt2kMillis    end of validity range
+         *                          in TT milliseconds since J2000
+         */
+        NoLeapTtScaler( LtEntry ltEnt, long fromTt2kMillis,
+                        long toTt2kMillis ) {
+            super( ltEnt.fixOffset_, ltEnt.scaleBase_, ltEnt.scaleFactor_,
+                   fromTt2kMillis, toTt2kMillis );
+        }
+
+        public int millisIntoLeapSecond( long tt2kMillis ) {
+            return -1;
+        }
+    }
+
+    /**
+     * TtScaler implementation whose whole duration represents a single
+     * positive leap second.
+     */
+    private static class LeapDurationTtScaler extends TtScaler {
+        private final long leapStartTt2kMillis_;
+
+        /**
+         * Constructor.
+         *
+         * @param  ltEnt   LTS table entry object
+         * @param  leapStartTt2kMillis  start of leap second (hence validity
+         *                              range) in TT milliseconds since J2000
+         */
+        LeapDurationTtScaler( LtEntry ltEnt, long leapStartTt2kMillis ) {
+            super( ltEnt.fixOffset_, ltEnt.scaleBase_, ltEnt.scaleFactor_,
+                   leapStartTt2kMillis, leapStartTt2kMillis + 1000 );
+            leapStartTt2kMillis_ = leapStartTt2kMillis;
+        }
+
+        public int millisIntoLeapSecond( long tt2kMillis ) {
+            long posdiff = tt2kMillis - leapStartTt2kMillis_;
+            return posdiff >= 0 && posdiff <= 1000 ? (int) posdiff : -1;
+        }
+    }
+
+    /**
+     * Represents one entry in the LTS array corresponding to leap second
+     * ranges.
+     */
+    private static class LtEntry {
+        final int year_;
+        final int month_;
+        final int dom_;
+        final double fixOffset_;
+        final double scaleBase_;
+        final double scaleFactor_;
+
+        /**
+         * Constructor.
+         *
+         * @param   ltCoeffs  6-element array of coefficients from LTS array:
+         *                    year, month, dom, offset, base, factor
+         */
+        public LtEntry( double[] ltCoeffs ) {
+             year_ = (int) ltCoeffs[ 0 ];
+             month_ = (int) ltCoeffs[ 1 ];
+             dom_ = (int) ltCoeffs[ 2 ];
+             fixOffset_ = ltCoeffs[ 3 ];
+             scaleBase_ = ltCoeffs[ 4 ];
+             scaleFactor_ = ltCoeffs[ 5 ];
+             assert year_ == ltCoeffs[ 0 ];
+             assert month_ == ltCoeffs[ 1 ];
+             assert dom_ == ltCoeffs[ 2 ];
+        }
+
+        /**
+         * Returns the number of milliseconds in TT since J2000 corresponding
+         * to the date associated with this entry.
+         *
+         * @return   TT millis since J2000
+         */
+        public long getDateTt2kMillis() {
+             long unixMillis = new GregorianCalendar( year_, month_ - 1, dom_)
+                              .getTimeInMillis();
+             return (long) unixToTt2kMillis( unixMillis, fixOffset_,
+                                             scaleBase_, scaleFactor_ );
+        }
+
+        /**
+         * Indicates whether there is a single positive leap second
+         * immediately preceding the date associated with this entry.
+         *
+         * @return  true iff there is an immediately preceding leap second
+         */
+        public boolean hasPrecedingLeapSecond() {
+
+            // This implementation is not particularly intuitive or robust,
+            // but it's correct for the LTS hard-coded at time of writing,
+            // and that array is not likely to undergo changes which would
+            // invalidate this algorithm.
+            return scaleFactor_ == 0;
+        }
     }
 }

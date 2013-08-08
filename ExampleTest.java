@@ -190,23 +190,23 @@ public class ExampleTest {
         assert Arrays.equals( (short[]) tents[ 16 ].getShapedValue(),
                               new short[] { 255, 254 } );
 
+        EpochFormatter epf = new EpochFormatter();
         GlobalAttribute gatt3 = gatts[ 3 ];
         assert "TestDate".equals( gatt3.getName() );
         assert "2002-04-25T00:00:00.000"
-              .equals( new EpochFormatter()
+              .equals( epf
                       .formatEpoch( ((Double)
                                      gatt3.getEntries()[ 1 ].getShapedValue())
                                     .doubleValue() ) );
         assert "2008-02-04T06:08:10.012014016"
-              .equals( new EpochFormatter()
+              .equals( epf
                       .formatTimeTt2000( ((Long) gatt3.getEntries()[ 2 ]
                                                       .getShapedValue())
                                          .longValue() ) );
         double[] epDate = (double[])
                           gatts[ 4 ].getEntries()[ 0 ].getShapedValue();
         assert "2004-05-13T15:08:11.022033044055"
-              .equals( new EpochFormatter()
-                      .formatEpoch16( epDate[ 0 ], epDate[ 1 ] ) );
+              .equals( epf.formatEpoch16( epDate[ 0 ], epDate[ 1 ] ) );
 
         Variable[] vars = content.getVariables();
         Variable latVar = vars[ 0 ];
@@ -246,36 +246,37 @@ public class ExampleTest {
         Variable epVar = vars[ 15 ];
         assert "ep".equals( epVar.getName() );
         assert "1999-03-05T05:06:07.100"
-              .equals( new EpochFormatter()
-                      .formatEpoch( ((Double)
-                                     readShapedRecord( epVar, 0, true ))
-                                   .doubleValue() ) );
+              .equals( epf
+                      .formatEpoch( (Double) readShapedRecord( epVar, 0 ) ) );
 
         Variable ep16Var = vars[ 16 ];
         assert "ep16".equals( ep16Var.getName() );
         double[] ep2 = (double[]) readShapedRecord( ep16Var, 1, true );
         assert "2004-12-29T16:56:24.031411522634"
-              .equals( new EpochFormatter()
-                      .formatEpoch16( ep2[ 0 ], ep2[ 1 ] ) );
+              .equals( epf.formatEpoch16( ep2[ 0 ], ep2[ 1 ] ) );
 
         Variable ttVar = vars[ 18 ];
         assert "tt2000".equals( ttVar.getName() );
         assert "2008-12-31T23:59:58.123456789"
-              .equals( new EpochFormatter()
-                      .formatTimeTt2000( ((Long)
-                                          readShapedRecord( ttVar, 0, true ))
-                                        .longValue() ) );
+              .equals( epf.formatTimeTt2000( (Long)
+                                             readShapedRecord( ttVar, 0 ) ) );
+        assert "2008-12-31T23:59:60.123456789"
+              .equals( epf.formatTimeTt2000( (Long)
+                                             readShapedRecord( ttVar, 2 ) ) );
         assert "2009-01-01T00:00:00.123456789"
-              .equals( new EpochFormatter()
-                      .formatTimeTt2000( ((Long)
-                                          readShapedRecord( ttVar, 3, true ))
-                                        .longValue() ) );
+              .equals( epf.formatTimeTt2000( (Long)
+                                             readShapedRecord( ttVar, 3 ) ) );
     }
 
     private Object readShapedRecord( Variable var, int irec, boolean rowMajor )
             throws IOException {
         return var.readShapedRecord( irec, rowMajor,
                                      var.createRawValueArray() );
+    }
+
+    private Object readShapedRecord( Variable var, int irec )
+            throws IOException {
+        return readShapedRecord( var, irec, true );
     }
 
     private short[] shortSequence( int start, int step, int count ) {

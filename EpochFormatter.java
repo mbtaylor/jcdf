@@ -75,16 +75,42 @@ public class EpochFormatter {
             return "0000-01-01T00:00:00.000000000";
         }
 
-        long j2kMillis = timeTt2k / 1000000;
+        // Split the raw long value into a millisecond base and
+        // nanosecond adjustment.
+        long tt2kMillis = timeTt2k / 1000000;
         int plusNanos = (int) ( timeTt2k % 1000000 );
         if ( plusNanos < 0 ) {
-            j2kMillis--;
+            tt2kMillis--;
             plusNanos += 1000000;
         }
-        double unixMillis = getTtScaler( j2kMillis )
-                           .tt2kToUnixMillis( j2kMillis );
-        Date date = new Date( (long) unixMillis );
-        String txt = epochMilliFormat_.format( date );
+
+        // Get the appropriate TT scaler object for this epoch.
+        TtScaler scaler = getTtScaler( tt2kMillis );
+
+        // Use it to convert to Unix time, which is UTC.
+        long unixMillis = (long) scaler.tt2kToUnixMillis( tt2kMillis );
+        int leapMillis = scaler.millisIntoLeapSecond( tt2kMillis );
+
+        // Format the unix time as an ISO-8601 date.
+        // In most (99.999998%) cases this is straightforward.
+        final String txt;
+        if ( leapMillis < 0 ) {
+            Date date = new Date( unixMillis );
+            txt = epochMilliFormat_.format( date );
+        }
+
+        // However if we happen to fall during a leap second, we have to
+        // do some special (and not particularly elegant) handling to
+        // produce the right string, since the java DateFormat
+        // implementation can't(?) be persuaded to cope with 61 seconds
+        // in a minute.
+        else {
+            Date date = new Date( unixMillis - 1000 );
+            txt = epochMilliFormat_.format( date )
+                 .replaceFirst( ":59\\.", ":60." );
+        }
+
+        // Append the nanoseconds part and return.
         return txt + prePadWithZeros( plusNanos, 6 );
     }
 
