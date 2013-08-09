@@ -77,7 +77,10 @@ public class OtherTest {
         checkWithNasa( Long.MIN_VALUE / 2 );
         checkWithNasa( Long.MAX_VALUE / 2 );
 
-        checkWithNasa( 9223370000000000000L );
+        // The NASA library (v3.4) appears to be wrong here: it reports
+        // a date of 1707-09-22T11:37:39.106448384 for values larger
+        // than about 9223370000000000000L.  So don't run this test.
+        // checkWithNasa( 9223370000000000000L );
     }
 
     private void checkWithNasa( long tt2kNanos ) {
