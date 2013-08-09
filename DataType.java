@@ -3,7 +3,6 @@ package uk.ac.bristol.star.cdf;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import uk.ac.bristol.star.cdf.record.Buf;
-import uk.ac.bristol.star.cdf.record.EpochFormatter;
 import uk.ac.bristol.star.cdf.record.Pointer;
 
 /**

@@ -1,4 +1,4 @@
-package uk.ac.bristol.star.cdf.record;
+package uk.ac.bristol.star.cdf;
 
 import java.util.ArrayList;
 import java.util.GregorianCalendar;

@@ -11,7 +11,7 @@ import uk.ac.bristol.star.cdf.CdfReader;
 import uk.ac.bristol.star.cdf.GlobalAttribute;
 import uk.ac.bristol.star.cdf.Variable;
 import uk.ac.bristol.star.cdf.VariableAttribute;
-import uk.ac.bristol.star.cdf.record.EpochFormatter;
+import uk.ac.bristol.star.cdf.EpochFormatter;
 
 /**
  * Tests the contents of two of the example files

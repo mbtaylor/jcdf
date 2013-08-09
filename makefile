@@ -41,11 +41,9 @@ JSRC = \
        BitExpandInputStream.java \
        Compression.java \
        DataReader.java \
-       EpochFormatter.java \
        NumericEncoding.java \
        RunLengthInputStream.java \
        RecordMap.java \
-       TtScaler.java \
        \
        AttributeEntry.java \
        CdfContent.java \
@@ -57,6 +55,8 @@ JSRC = \
        DataType.java \
        Shaper.java \
        CdfFormatException.java \
+       EpochFormatter.java \
+       TtScaler.java \
        \
        CdfDump.java \
        CdfList.java \
