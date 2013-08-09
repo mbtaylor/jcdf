@@ -131,6 +131,26 @@ public abstract class TtScaler {
     }
 
     /**
+     * Returns the start of the validity range of this scaler
+     * in TT milliseconds since J2000.
+     *
+     * @return   validity range start
+     */
+    public long getFromTt2kMillis() {
+        return fromTt2kMillis_;
+    }
+
+    /**
+     * Returns the end of the validity range of this scaler
+     * in TT milliseconds since J2000.
+     *
+     * @return   validity range end
+     */
+    public long getToTt2kMillis() {
+        return toTt2kMillis_;
+    }
+
+    /**
      * Assesses validity of this scaler for a given time.
      * The result will be zero if this scaler is valid,
      * negative if the given time is earlier than this scaler's range, and
@@ -285,7 +305,7 @@ public abstract class TtScaler {
         // I'm not certain this has the correct formula, but using TT
         // prior to 1960 is a bit questionable in any case.
         LtEntry firstEnt = new LtEntry( LTS[ 0 ] );
-        list.add( new NoLeapTtScaler( firstEnt, Long.MIN_VALUE,
+        list.add( new NoLeapTtScaler( 0, 0, 0, Long.MIN_VALUE,
                                       firstEnt.getDateTt2kMillis() ) );
 
         // Add scalers corresponding to each entry in the LTS array except
@@ -328,7 +348,24 @@ public abstract class TtScaler {
     private static class NoLeapTtScaler extends TtScaler {
 
         /**
-         * Constructor.
+         * Constructs a NoLeapScaler from coefficients.
+         *
+         * @param   fixOffset  fixed offset of UTC in seconds from TAI
+         * @param   scaleBase  MJD base for scaling
+         * @param   scaleFactor   factor for scaling
+         * @param   fromTt2kMillis  start of validity range
+         *                          in TT milliseconds since J2000
+         * @param   toTt2kMillis    end of validity range
+         *                          in TT milliseconds since J2000
+         */
+        NoLeapTtScaler( double fixOffset, double scaleBase, double scaleFactor,
+                        long fromTt2kMillis, long toTt2kMillis ) {
+            super( fixOffset, scaleBase, scaleFactor,
+                   fromTt2kMillis, toTt2kMillis );
+        }
+
+        /**
+         * Constructs a NoLeapTtScaler from an LtEntry.
          *
          * @param  ltEnt   LTS table entry object
          * @param   fromTt2kMillis  start of validity range
@@ -336,10 +373,10 @@ public abstract class TtScaler {
          * @param   toTt2kMillis    end of validity range
          *                          in TT milliseconds since J2000
          */
-        NoLeapTtScaler( LtEntry ltEnt, long fromTt2kMillis,
-                        long toTt2kMillis ) {
-            super( ltEnt.fixOffset_, ltEnt.scaleBase_, ltEnt.scaleFactor_,
-                   fromTt2kMillis, toTt2kMillis );
+        NoLeapTtScaler( LtEntry ltEnt,
+                        long fromTt2kMillis, long toTt2kMillis ) {
+            this( ltEnt.fixOffset_, ltEnt.scaleBase_, ltEnt.scaleFactor_,
+                  fromTt2kMillis, toTt2kMillis );
         }
 
         public int millisIntoLeapSecond( long tt2kMillis ) {

@@ -71,8 +71,8 @@ public class EpochFormatter {
 
         // Special case - see "Variable Pad Values" section
         // (sec 2.3.20 at v3.4, and footnote) of CDF Users Guide.
-        if ( timeTt2k == Long.MIN_VALUE + 1 ) {
-            return "0000-01-01T00:00:00.000000000";
+        if ( timeTt2k == Long.MIN_VALUE ) {
+            return "9999-12-31T23:59:59.999999999";
         }
 
         // Split the raw long value into a millisecond base and
