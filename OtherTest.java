@@ -101,6 +101,21 @@ public class OtherTest {
                     ttClazz.getMethod( "toUTCstring", long.class );
             }
             catch ( Throwable e ) {
+                System.err.println( "No NASA implementation available:" );
+                e.printStackTrace( System.err );
+                nasaConvMethod_ = null;
+            }
+
+            // Call this method once.  If the native library is not present
+            // it fails in the static initialisation, then subsequent calls
+            // seem to be OK, but give the wrong result.  So make sure
+            // it doesn't run at all in case of initialisation failure.
+            try {
+                nasaConvMethod_.invoke( null, 0L );
+            }
+            catch ( Throwable e ) {
+                System.err.println( "No NASA implementation available:" );
+                e.printStackTrace( System.err );
                 nasaConvMethod_ = null;
             }
             triedNasa_ = true;
