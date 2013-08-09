@@ -11,6 +11,8 @@ WWW_DIR = /export/home/mbt/public_html/jcdf
 
 TEST_JARFILE = jcdf_test.jar
 TEST_CDFS = data/*.cdf
+CDFLIBDIR = /mbt/local/lib
+CDFJARDIR = /mbt/local/jars
 
 JSRC = \
        BankBuf.java \
@@ -65,6 +67,7 @@ JSRC = \
 TEST_JSRC = \
        ExampleTest.java \
        SameTest.java \
+       OtherTest.java \
 
 build: jar docs
 
@@ -106,7 +109,7 @@ updatewww: $(WWW_DIR)/index.html
 $(WWW_DIR)/index.html: index.html
 	cp index.html $@
 
-test: extest convtest
+test: extest othertest convtest
 
 convtest: $(JARFILE) $(TEST_JARFILE) $(TEST_CDFS)
 	rm -rf tmp; \
@@ -126,6 +129,12 @@ extest: $(JARFILE) $(TEST_JARFILE)
 	java -ea -classpath $(JARFILE):$(TEST_JARFILE) \
              uk.ac.bristol.star.cdf.test.ExampleTest \
              data/example1.cdf data/example2.cdf data/test.cdf
+
+othertest: $(JARFILE) $(TEST_JARFILE)
+	env LD_LIBRARY_PATH=$(CDFLIBDIR) \
+	java -ea \
+             -classpath $(JARFILE):$(TEST_JARFILE):$(CDFJARDIR)/cdfjava.jar \
+             uk.ac.bristol.star.cdf.test.OtherTest
 
 clean:
 	rm -rf $(JARFILE) $(TEST_JARFILE) tmp \
