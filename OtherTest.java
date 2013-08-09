@@ -44,7 +44,6 @@ public class OtherTest {
             assert TtScaler.getScalerIndex( tt2kMillis, scalers, i ) == iResult;
         }
     }
-    
 
     public void testTtFormatter() {
 
@@ -84,12 +83,9 @@ public class OtherTest {
     }
 
     private void checkWithNasa( long tt2kNanos ) {
-        String jcdfTxt = epf_.formatTimeTt2000( tt2kNanos );
-        String nasaTxt = nasaFormatTimeTt2000( tt2kNanos );
-        assert jcdfTxt.equals( nasaTxt)
-             : "tt2kNanos: " + tt2kNanos +
-               "\n\tNASA: " + nasaTxt +
-               "\n\tJCDF: " + jcdfTxt;
+        assert epf_.formatTimeTt2000( tt2kNanos )
+              .equals( nasaFormatTimeTt2000( tt2kNanos ) )
+            : reportFormats( tt2kNanos );
     }
 
     private void assertTt( long tt2kNanos, String text ) {
