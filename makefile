@@ -3,6 +3,7 @@ JAVAC = javac
 JAVA = java
 JAR = jar
 JAVADOC = javadoc
+VERSION = 1.0
 
 JARFILE = jcdf.jar
 
@@ -144,6 +145,7 @@ $(JARFILE): $(JSRC)
 	rm -rf tmp
 	mkdir -p tmp
 	$(JAVAC) -Xlint:unchecked -d tmp $(JSRC) \
+            && echo "$(VERSION)" >tmp/uk/ac/bristol/star/cdf/jcdf.version \
             && $(JAR) cf $@ -C tmp .
 	rm -rf tmp
 

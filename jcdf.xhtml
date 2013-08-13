@@ -57,7 +57,7 @@ fast, but I haven't done any benchmarking.
 
 <h2>Implementation Status</h2>
 
-<p>Support for the CDF format is fairly, but not totally, complete.
+<p>Support for the CDF format is almost, but not totally, complete.
 In particular:
 </p>
 <ul>
@@ -139,7 +139,7 @@ javadocs, and this documentation, and to run some tests.
 </p>
 
 <p>Pre-built copies of the jar file and documentation
-for the current version (v0.1) can be found here:
+for the current version (v1.0) can be found here:
 </p>
 <ul>
 <li><a href="jcdf.jar">jcdf.jar</a></li>
@@ -157,23 +157,23 @@ for the current version (v0.1) can be found here:
 <dd>Initial release.
     Tested, documented and believed working, though could use some
     more testing and perhaps functionality related to time-related DataTypes.
+    Support for some time types not complete.
     </dd>
-<dt><strong>next version</strong></dt>
+<dt><strong>Version 1.0 (13 Aug 2013)</strong></dt>
 <dd><ul>
+    <li>More extensive tests added.</li>
     <li>Fix failure when reading non-sparse variables with zero records.</li>
-    <li>Fix big error in TIME_TT2000 data type formatting.
-        There still seems to be an error of about a minute, something to
-        do with leap seconds (not treated) at least, possibly something
-        else too, but it's in the right ball park.</li>
-    <li>TIME_TT2000 default pad value now reported as special case value
-        0AD rather than 1707AD.</li>
     <li>Fix bug: pad values not explicitly defined are given default values
         rather than causing an error.</li>
     <li>Fix EPOCH16 bug.</li>
     <li>Add EPOCH16 formatting.</li>
     <li>Modify CdfList data output: better formatting, and distinguish
         NOVARY values from virtual ones.</li>
-    <li>TIME_TT2000 values now handled correctly, including leap seconds.</li>
+    <li>TIME_TT2000 values now handled correctly, including leap seconds,
+        and optional leap seconds table referenced by
+        <code>CDF_LEAPSECONDSTABLE</code> environment variable as for
+        NASA library.  Internal leap seconds table is updated until
+        2012-07-01.</li>
     </ul>
     </dd>
 </dl>
@@ -202,7 +202,7 @@ I can probably fix it.
 for encouragement and help with some of the testing and implementation.
 </p>
 
-<p>Bugs, questions, feedback welcome to
+<p>Bugs, questions, feedback, enhancement requests welcome to
 <a href="mailto:m.b.taylor@bristol.ac.uk">m.b.taylor@bristol.ac.uk</a>.
 </p>
 
