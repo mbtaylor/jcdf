@@ -23,8 +23,10 @@ public class EpochFormatter {
     private int iLastTtScaler_ = -1;
 
     private static final TimeZone UTC = TimeZone.getTimeZone( "UTC" );
-    private static final long AD0_UNIX_MILLIS = getAd0UnixMillis();
     private static final TtScaler[] TT_SCALERS = TtScaler.getTtScalers();
+
+    /** 0 A.D. in Unix milliseconds as used by EPOCH/EPOCH16 data types. */
+    public static final long AD0_UNIX_MILLIS = getAd0UnixMillis();
 
     /**
      * Formats a CDF EPOCH value as an ISO-8601 date.
@@ -73,6 +75,12 @@ public class EpochFormatter {
         // (sec 2.3.20 at v3.4, and footnote) of CDF Users Guide.
         if ( timeTt2k == Long.MIN_VALUE ) {
             return "9999-12-31T23:59:59.999999999";
+        }
+
+        // Second special case - not sure if this is documented, but
+        // advised by Michael Liu in email to MBT 12 Aug 2013.
+        else if ( timeTt2k == Long.MIN_VALUE + 1 ) {
+            return "0000-01-01T00:00:00.000000000";
         }
 
         // Split the raw long value into a millisecond base and

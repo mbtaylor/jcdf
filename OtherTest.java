@@ -55,6 +55,10 @@ public class OtherTest {
         assertTt( 284040066184000000L, "2009-01-01T00:00:00.000000000" );
         assertTt( 284040066185000000L, "2009-01-01T00:00:00.001000000" );
 
+        // Special values.
+        assertTt( Long.MIN_VALUE, "9999-12-31T23:59:59.999999999" );
+        assertTt( Long.MIN_VALUE + 1, "0000-01-01T00:00:00.000000000" );
+
         // Systematic tests for all scaler ranges except the last.
         TtScaler[] scalers = TtScaler.getTtScalers();
         int ns = scalers.length;
@@ -79,6 +83,8 @@ public class OtherTest {
         // The NASA library (v3.4) appears to be wrong here: it reports
         // a date of 1707-09-22T11:37:39.106448384 for values larger
         // than about 9223370000000000000L.  So don't run this test.
+        // Michael Liu says he's made a fix which will presumably
+        // show up in future versions.
         // checkWithNasa( 9223370000000000000L );
     }
 
