@@ -1,8 +1,13 @@
 package uk.ac.bristol.star.cdf;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -13,6 +18,11 @@ import java.util.logging.Logger;
  * To convert between TT_TIME2000 and Unix time, first acquire the
  * right instance of this class for the given time, and then use it
  * for the conversion.
+ *
+ * <p>An external leap seconds table can be referenced with the
+ * {@value #LEAP_FILE_ENV} environment variable in exactly the same way
+ * as for the NASA library.  Otherwise an internal leap seconds table
+ * will be used.
  *
  * @author   Mark Taylor
  * @since    8 Aug 2013
@@ -39,6 +49,16 @@ public abstract class TtScaler {
 
     /** TT is ahead of TAI by approximately 32.184 seconds. */
     private static final double TT_TAI_MILLIS = 32184;
+
+    /**
+     * Environment variable to locate external leap seconds file ({@value}).
+     * The environment variable name and file format are just the same
+     * as for the NASA CDF library.
+     */
+    public static final String LEAP_FILE_ENV = "CDF_LEAPSECONDSTABLE";
+
+    private static final Logger logger_ =
+        Logger.getLogger( TtScaler.class.getName() );
 
     /**
      * TT2000 coefficients:
@@ -93,10 +113,7 @@ public abstract class TtScaler {
         { 2009,  1,  1, 34.0,           0.0, 0.0       },
         { 2012,  7,  1, 35.0,           0.0, 0.0       }
     };
-    private static TtScaler[] ORDERED_INSTANCES = createTtScalers();
-
-    private static final Logger logger_ =
-        Logger.getLogger( TtScaler.class.getName() );
+    private static TtScaler[] ORDERED_INSTANCES;
 
     /**
      * Constructor.
@@ -288,7 +305,10 @@ public abstract class TtScaler {
      *
      * @return  ordered list of time scalers
      */
-    public static TtScaler[] getTtScalers() {
+    public static synchronized TtScaler[] getTtScalers() {
+        if ( ORDERED_INSTANCES == null ) {
+            ORDERED_INSTANCES = createTtScalers();
+        }
         return ORDERED_INSTANCES.clone();
     }
 
@@ -298,21 +318,26 @@ public abstract class TtScaler {
      * @return  ordered list of time scaler instances
      */
     private static TtScaler[] createTtScalers() {
-        int nent = LTS.length;
+
+        // Acquire leap seconds table.
+        LtEntry[] ents = readLtEntries();
+        int nent = ents.length;
+        logger_.config( "CDF Leap second table: " + ents.length + " entries, "
+                      + "last is " + ents[ nent - 1 ] );
         List<TtScaler> list = new ArrayList<TtScaler>();
 
         // Add a scaler valid from the start of time till the first LTS entry.
         // I'm not certain this has the correct formula, but using TT
         // prior to 1960 is a bit questionable in any case.
-        LtEntry firstEnt = new LtEntry( LTS[ 0 ] );
+        LtEntry firstEnt = ents[ 0 ];
         list.add( new NoLeapTtScaler( 0, 0, 0, Long.MIN_VALUE,
                                       firstEnt.getDateTt2kMillis() ) );
 
         // Add scalers corresponding to each entry in the LTS array except
         // the final one.
         for ( int ie = 0; ie < nent - 1; ie++ ) {
-            LtEntry ent0 = new LtEntry( LTS[ ie ] );
-            LtEntry ent1 = new LtEntry( LTS[ ie + 1 ] );
+            LtEntry ent0 = ents[ ie ];
+            LtEntry ent1 = ents[ ie + 1 ];
             long fromValid = ent0.getDateTt2kMillis();
             long toValid = ent1.getDateTt2kMillis();
 
@@ -334,12 +359,99 @@ public abstract class TtScaler {
 
         // Add a scaler covering the period from the start of the last
         // entry till the end of time.
-        LtEntry lastEnt = new LtEntry( LTS[ nent - 1 ] );
+        LtEntry lastEnt = ents[ nent - 1 ];
         list.add( new NoLeapTtScaler( lastEnt, lastEnt.getDateTt2kMillis(),
                                       Long.MAX_VALUE ) );
 
         // Return as array.
         return list.toArray( new TtScaler[ 0 ] );
+    }
+
+    /**
+     * Acquires the table of leap seconds from an internal array or external
+     * file as appropriate.
+     *
+     * @return   leap second entry file
+     */
+    private static LtEntry[] readLtEntries() {
+
+        // Attempt to read the leap seconds from an external file.
+        LtEntry[] fentries = null;
+        try {
+            fentries = readLtEntriesFile();
+        }
+        catch ( IOException e ) {
+            logger_.log( Level.WARNING,
+                         "Failed to read external leap seconds file: " + e, e );
+        }
+        catch ( RuntimeException e ) {
+            logger_.log( Level.WARNING,
+                         "Failed to read external leap seconds file: " + e, e );
+        }
+        if ( fentries != null ) {
+            return fentries;
+        }
+
+        // If that doesn't work, use the internal hard-coded table.
+        else {
+            logger_.config( "Using internal leap seconds table" );
+            int nent = LTS.length;
+            LtEntry[] entries = new LtEntry[ nent ];
+            for ( int i = 0; i < nent; i++ ) {
+                entries[ i ] = new LtEntry( LTS[ i ] );
+            }
+            return entries;
+        }
+    }
+
+    /**
+     * Attempts to read the leap seconds table from an external file.
+     * As per the NASA library, this is pointed at by an environment variable.
+     *
+     * @return  leap seconds table, or null if not found
+     */
+    private static LtEntry[] readLtEntriesFile() throws IOException {
+        String ltLoc;
+        try {
+            ltLoc = System.getenv( LEAP_FILE_ENV );
+        }
+        catch ( SecurityException e ) {
+            logger_.config( "Can't access external leap seconds file: " + e );
+            return null;
+        }
+        if ( ltLoc == null ) {
+            return null;
+        }
+        logger_.config( "Reading leap seconds from file " + ltLoc );
+        File file = new File( ltLoc );
+        BufferedReader in = new BufferedReader( new FileReader( file ) );
+        List<LtEntry> list = new ArrayList<LtEntry>();
+        for ( String line; ( line = in.readLine() ) != null; ) {
+            if ( ! line.startsWith( ";" ) ) {
+                String[] fields = line.trim().split( "\\s+" );
+                if ( fields.length != 6 ) {
+                    throw new IOException( "Bad leap second file format - got "
+                                         + fields.length + " fields not 6"
+                                         + " at line \"" + line + "\"" );
+                }
+                try {
+                    int year = Integer.parseInt( fields[ 0 ] );
+                    int month = Integer.parseInt( fields[ 1 ] );
+                    int dom = Integer.parseInt( fields[ 2 ] );
+                    double fixOffset = Double.parseDouble( fields[ 3 ] );
+                    double scaleBase = Double.parseDouble( fields[ 4 ] );
+                    double scaleFactor = Double.parseDouble( fields[ 5 ] );
+                    list.add( new LtEntry( year, month, dom, fixOffset,
+                                           scaleBase, scaleFactor ) );
+                }
+                catch ( NumberFormatException e ) {
+                    throw (IOException)
+                          new IOException( "Bad entry in leap seconds file" )
+                         .initCause( e );
+                }
+            }
+        }
+        return list.toArray( new LtEntry[ 0 ] );
     }
 
     /**
@@ -423,18 +535,38 @@ public abstract class TtScaler {
         final double scaleFactor_;
 
         /**
-         * Constructor.
+         * Constructs entry from enumerated coefficients.
+         *
+         * @param   year   leap second year AD
+         * @param   month  leap second month (1-based)
+         * @param   dom    leap second day of month (1-based)
+         * @param   fixOffset  fixed offset of UTC in seconds from TAI
+         * @param   scaleBase  MJD base for scaling
+         * @param   scaleFactor   factor for scaling
+         */
+        public LtEntry( int year, int month, int dom, double fixOffset,
+                        double scaleBase, double scaleFactor ) {
+            year_ = year;
+            month_ = month;
+            dom_ = dom;
+            fixOffset_ = fixOffset;
+            scaleBase_ = scaleBase;
+            scaleFactor_ = scaleFactor;
+        }
+
+        /**
+         * Constructs entry from array of 6 doubles.
          *
          * @param   ltCoeffs  6-element array of coefficients from LTS array:
          *                    year, month, dom, offset, base, factor
          */
         public LtEntry( double[] ltCoeffs ) {
-             year_ = (int) ltCoeffs[ 0 ];
-             month_ = (int) ltCoeffs[ 1 ];
-             dom_ = (int) ltCoeffs[ 2 ];
-             fixOffset_ = ltCoeffs[ 3 ];
-             scaleBase_ = ltCoeffs[ 4 ];
-             scaleFactor_ = ltCoeffs[ 5 ];
+             this( (int) ltCoeffs[ 0 ],
+                   (int) ltCoeffs[ 1 ],
+                   (int) ltCoeffs[ 2 ],
+                   ltCoeffs[ 3 ],
+                   ltCoeffs[ 4 ],
+                   ltCoeffs[ 5 ] );
              assert year_ == ltCoeffs[ 0 ];
              assert month_ == ltCoeffs[ 1 ];
              assert dom_ == ltCoeffs[ 2 ];
@@ -466,6 +598,12 @@ public abstract class TtScaler {
             // and that array is not likely to undergo changes which would
             // invalidate this algorithm.
             return scaleFactor_ == 0;
+        }
+
+        @Override
+        public String toString() {
+            return year_ + "-" + month_ + "-" + dom_ + ": "
+                 + fixOffset_ + ", " + scaleBase_ + ", " + scaleFactor_;
         }
     }
 }
