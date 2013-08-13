@@ -1,8 +1,13 @@
 package uk.ac.bristol.star.cdf.test;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import uk.ac.bristol.star.cdf.TtScaler;
 import uk.ac.bristol.star.cdf.EpochFormatter;
+import uk.ac.bristol.star.cdf.util.LogUtil;
 
 public class OtherTest {
 
@@ -178,12 +183,26 @@ public class OtherTest {
      */
     public static void main( String[] args ) {
 
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
+        int verb = 0;
+        for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
+            String arg = it.next();
+            if ( arg.startsWith( "-v" ) ) {
+                it.remove();
+                verb++;
+            }
+            else if ( arg.startsWith( "+v" ) ) {
+                it.remove();
+                verb--;
+            }
+        }
+        LogUtil.setVerbosity( verb );
+
         // Special case - utility function to report TIME_TT2000 values
         // from the command line.
-        if ( args.length > 0 ) {
-            for ( int i = 0; i < args.length; i++ ) {
-                System.out.println( reportFormats( Long
-                                                  .parseLong( args[ i ] ) ) );
+        if ( argList.size() > 0 ) {
+            for ( String arg : argList ) {
+                System.out.println( reportFormats( Long.parseLong( arg ) ) );
                 System.out.println();
             }
         }
