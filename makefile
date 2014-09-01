@@ -8,7 +8,7 @@ VERSION = 1.0
 JARFILE = jcdf.jar
 
 WWW_FILES = $(JARFILE) javadocs index.html cdflist.html cdfdump.html
-WWW_DIR = /export/home/mbt/public_html/jcdf
+WWW_DIR = /homeb/mbt/public_html/jcdf
 
 TEST_JARFILE = jcdf_test.jar
 TEST_CDFS = data/*.cdf
