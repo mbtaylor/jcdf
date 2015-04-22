@@ -1,11 +1,14 @@
 package uk.ac.bristol.star.cdf;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Does string formatting of epoch values in various representations.
@@ -20,13 +23,77 @@ public class EpochFormatter {
         createDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
     private final DateFormat epochSecFormat_ =
         createDateFormat( "yyyy-MM-dd'T'HH:mm:ss" );
+    private final int iMaxValidTtScaler_;
     private int iLastTtScaler_ = -1;
 
     private static final TimeZone UTC = TimeZone.getTimeZone( "UTC" );
+    private static final long HALF_DAY = 1000 * 60 * 60 * 12;
     private static final TtScaler[] TT_SCALERS = TtScaler.getTtScalers();
+    private static final long LAST_KNOWN_LEAP_UNIX_MILLIS =
+        getLastKnownLeapUnixMillis( TT_SCALERS );
+    private static final Logger logger_ =
+        Logger.getLogger( EpochFormatter.class.getName() );
+
+    /**
+     * Configures behaviour when a date is encountered which is known to
+     * have incorrectly applied leap seconds.
+     * If true, a RuntimeException is thrown, if false a log message is written.
+     */
+    public static boolean FAIL_ON_LEAP_ERROR = true;
 
     /** 0 A.D. in Unix milliseconds as used by EPOCH/EPOCH16 data types. */
     public static final long AD0_UNIX_MILLIS = getAd0UnixMillis();
+
+    /**
+     * Constructs a formatter without leap second awareness.
+     */
+    public EpochFormatter() {
+        this( 0 );
+    }
+
+    /**
+     * Constructs a formatter aware of the latest known leap second.
+     *
+     * @param  leapSecondLastUpdated  value of GDR LeapSecondLastUpdated
+     *         field (YYYYMMDD, or -1 for unused, or 0 for no leap seconds)
+     */
+    public EpochFormatter( int leapSecondLastUpdated ) {
+        long lastDataLeapUnixMillis =
+            getLastDataLeapUnixMillis( leapSecondLastUpdated );
+
+        /* If we know about leap seconds later than the last known one
+         * supplied (presumably acquired from a data file),
+         * issue a warning that an update might be a good idea. */
+        if ( lastDataLeapUnixMillis > LAST_KNOWN_LEAP_UNIX_MILLIS &&
+             lastDataLeapUnixMillis - LAST_KNOWN_LEAP_UNIX_MILLIS > HALF_DAY ) {
+            DateFormat fmt = createDateFormat( "yyyy-MM-dd" );
+            String msg = new StringBuffer()
+               .append( "Data knows more leap seconds than library" )
+               .append( " (" )
+               .append( fmt.format( new Date( lastDataLeapUnixMillis
+                                            + HALF_DAY ) ) )
+               .append( " > " )
+               .append( fmt.format( new Date( LAST_KNOWN_LEAP_UNIX_MILLIS
+                                            + HALF_DAY ) ) )
+               .append( ")" )
+               .toString();
+            logger_.warning( msg );
+        }
+
+        /* If the supplied last known leap second is known to be out of date
+         * (because we know of a later one), then prepare to complain if
+         * this formatter is called upon to perform a conversion of
+         * a date that would be affected by leap seconds we know about,
+         * but the data file didn't. */
+        if ( lastDataLeapUnixMillis > 0 ) {
+            long lastDataLeapTt2kMillis =
+                lastDataLeapUnixMillis - (long) TtScaler.J2000_UNIXMILLIS;
+            iMaxValidTtScaler_ = getScalerIndex( lastDataLeapTt2kMillis );
+        }
+        else {
+            iMaxValidTtScaler_ = TT_SCALERS.length - 1;
+        }
+    }
 
     /**
      * Formats a CDF EPOCH value as an ISO-8601 date.
@@ -93,7 +160,25 @@ public class EpochFormatter {
         }
 
         // Get the appropriate TT scaler object for this epoch.
-        TtScaler scaler = getTtScaler( tt2kMillis );
+        int scalerIndex = getScalerIndex( tt2kMillis );
+        if ( scalerIndex > iMaxValidTtScaler_ ) {
+            String msg = new StringBuffer()
+               .append( "CDF TIME_TT2000 date formatting failed" )
+               .append( " - library leap second table known to be out of date" )
+               .append( " with respect to data." )
+               .append( " Update " )
+               .append( TtScaler.LEAP_FILE_ENV )
+               .append( " environment variable to point at file" )
+               .append( " http://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt" )
+               .toString();
+            if ( FAIL_ON_LEAP_ERROR ) {
+                throw new RuntimeException( msg );
+            }
+            else {
+                logger_.log( Level.SEVERE, msg );
+            }
+        }
+        TtScaler scaler = TT_SCALERS[ scalerIndex ];
 
         // Use it to convert to Unix time, which is UTC.
         long unixMillis = (long) scaler.tt2kToUnixMillis( tt2kMillis );
@@ -123,19 +208,20 @@ public class EpochFormatter {
     }
 
     /**
-     * Returns the TtScaler instance that is valid for a given time.
+     * Returns the index into the TT_SCALERS array of the TtScaler
+     * instance that is valid for a given time.
      *
      * @param  tt2kMillis  TT time since J2000 in milliseconds
-     * @return  scaler
+     * @return  index into TT_SCALERS
      */
-    private TtScaler getTtScaler( long tt2kMillis ) {
+    private int getScalerIndex( long tt2kMillis ) {
 
         // Use the most recently used value as the best guess.
         // There's a good chance it's the right one.
         int index = TtScaler
                    .getScalerIndex( tt2kMillis, TT_SCALERS, iLastTtScaler_ );
         iLastTtScaler_ = index;
-        return TT_SCALERS[ index ];
+        return index;
     }
 
     /**
@@ -198,6 +284,52 @@ public class EpochFormatter {
             }
             sbuf.append( txt );
             return sbuf.toString();
+        }
+    }
+
+    /**
+     * Returns the date, in milliseconds since the Unix epoch,
+     * of the last leap second known by the library.
+     *
+     * @param  scalers  ordered array of all scalers
+     * @return   last leap second epoch in unix milliseconds
+     */
+    private static long getLastKnownLeapUnixMillis( TtScaler[] scalers ) {
+        TtScaler lastScaler = scalers[ scalers.length - 1 ];
+        return (long)
+               lastScaler.tt2kToUnixMillis( lastScaler.getFromTt2kMillis() );
+    }
+
+    /**
+     * Returns the date, in milliseconds since the Unix epoch,
+     * of the last leap second indicated by an integer in the form
+     * used by the GDR LeapSecondLastUpdated field.
+     * If no definite value is indicated, Long.MIN_VALUE is returned.
+     *
+     * @param  leapSecondLastUpdated  value of GDR LeapSecondLastUpdated
+     *         field (YYYYMMDD, or -1 for unused, or 0 for no leap seconds)
+     * @return   last leap second epoch in unix milliseconds,
+     *           or very negative value
+     */
+    private static long getLastDataLeapUnixMillis( int leapSecondLastUpdated ) {
+        if ( leapSecondLastUpdated == 0 ) {
+            return Long.MIN_VALUE;
+        }
+        else if ( leapSecondLastUpdated == -1 ) {
+            return Long.MIN_VALUE;
+        }
+        else {
+            DateFormat fmt = createDateFormat( "yyyyMMdd" );
+            try {
+                return fmt.parse( Integer.toString( leapSecondLastUpdated ) )
+                          .getTime();
+            }
+            catch ( ParseException e ) {
+                logger_.warning( "leapSecondLastUpdated="
+                               + leapSecondLastUpdated
+                               + "; not YYYYMMDD" );
+                return Long.MIN_VALUE;
+            }
         }
     }
 }

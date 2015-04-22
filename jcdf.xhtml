@@ -179,10 +179,16 @@ for the current version (v1.1) can be found here:
     </dd>
 <dt><strong>Version 1.1 (23 Apr 2015)</strong></dt>
 <dd><ul>
+    <li>2015-07-01 leap second added to internal leap second table.</li>
     <li>Updated to match v3.6 of the CDF library/format.
         The GDR field <code>rfuD</code> is now renamed as
-        <code>leapSecondLastUpdated</code>.</li>
-    <li>2015-07-01 leap second added to internal leap second table.</li>
+        <code>leapSecondLastUpdated</code>.
+        It is also used when formatting TIME_TT2000 data values for output;
+        if the library leap second table is out of date with respect to
+        the data a warning is issued for information, and if the
+        time values are known to have leap seconds applied invalidly,
+        an error is thrown or a severe log message is issued.
+        This behaviour follows that of the official CDF library.</li>
     </ul></dd>
 </dl>
 

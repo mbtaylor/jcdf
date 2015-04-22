@@ -9,16 +9,21 @@ package uk.ac.bristol.star.cdf;
 public class CdfInfo {
     private final boolean rowMajor_;
     private final int[] rDimSizes_;
+    private final int leapSecondLastUpdated_;
 
     /**
      * Constructor.
      *
      * @param  rowMajor  true for row majority, false for column majority
      * @param  rDimSizes   array of dimension sizes for rVariables
+     * @param  leapSecondLastUpdated  value of the GDR LeapSecondLastUpdated
+     *         field
      */
-    public CdfInfo( boolean rowMajor, int[] rDimSizes ) {
+    public CdfInfo( boolean rowMajor, int[] rDimSizes,
+                    int leapSecondLastUpdated ) {
         rowMajor_ = rowMajor;
         rDimSizes_ = rDimSizes;
+        leapSecondLastUpdated_ = leapSecondLastUpdated;
     }
 
     /**
@@ -37,5 +42,18 @@ public class CdfInfo {
      */
     public int[] getRDimSizes() {
         return rDimSizes_;
+    }
+
+    /**
+     * Returns the date of the last leap second the CDF file knows about.
+     * This is the value of the LeapSecondLastUpdated field from the GDR
+     * (introduced at CDF v3.6).  The value is an integer whose
+     * decimal representation is of the form YYYYMMDD.
+     * Values 0 and -1 have special meaning (no last leap second).
+     *
+     * @return   last known leap second indicator
+     */
+    public int getLeapSecondLastUpdated() {
+        return leapSecondLastUpdated_;
     }
 }

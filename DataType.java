@@ -36,7 +36,8 @@ public abstract class DataType {
     public static final DataType FLOAT = new Real4DataType( "FLOAT" );
     public static final DataType DOUBLE = new Real8DataType( "DOUBLE" );
     public static final DataType EPOCH = new EpochDataType( "EPOCH" );
-    public static final DataType TIME_TT2000 = new Tt2kDataType( "TIME_TT2000");
+    public static final DataType TIME_TT2000 =
+                                     new Tt2kDataType( "TIME_TT2000", -1 );
     public static final DataType UCHAR = new CharDataType( "UCHAR" );
     
     /**
@@ -229,6 +230,27 @@ public abstract class DataType {
     @Override
     public String toString() {
         return name_;
+    }
+
+    /**
+     * Returns a DataType corresponding to a CDF data type code,
+     * possibly customised for a particular CDF file.
+     *
+     * <p>Currently, this returns the same as <code>getDataType(int)</code>,
+     * except for TIME_TT2000 columns, in which case the last known leap
+     * second may be taken into account.
+     *
+     * @param  dataType  dataType field of AEDR or VDR
+     * @param  cdfInfo   specifics of CDF file
+     * @return   data type object
+     */
+    public static DataType getDataType( int dataType, CdfInfo cdfInfo )
+            throws CdfFormatException {
+        DataType type = getDataType( dataType );
+        return type == TIME_TT2000
+             ? new Tt2kDataType( type.getName(),
+                                 cdfInfo.getLeapSecondLastUpdated() )
+             : type;
     }
 
     /**
@@ -436,13 +458,16 @@ public abstract class DataType {
     }
 
     /**
-     * DataType for TIME_TT2000.
+     * DataType for TIME_TT2000.  May be qualified by last known leap second.
      */
     private static class Tt2kDataType extends Int8DataType {
-        final EpochFormatter formatter_ = new EpochFormatter();
+        final int leapSecondLastUpdated_;
+        final EpochFormatter formatter_;
         final long[] dfltPad_ = new long[] { Long.MIN_VALUE + 1 };
-        Tt2kDataType( String name ) {
+        Tt2kDataType( String name, int leapSecondLastUpdated ) {
             super( name );
+            leapSecondLastUpdated_ = leapSecondLastUpdated;
+            formatter_ = new EpochFormatter( leapSecondLastUpdated );
         }
         @Override
         public Object getDefaultPadValueArray() {
@@ -460,6 +485,23 @@ public abstract class DataType {
             synchronized ( formatter_ ) {
                 return formatter_
                       .formatTimeTt2000( ((long[]) array)[ index ] );
+            }
+        }
+        @Override
+        public int hashCode() {
+            int code = 392552;
+            code = 23 * code + leapSecondLastUpdated_;
+            return code;
+        }
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof Tt2kDataType ) {
+                Tt2kDataType other = (Tt2kDataType) o;
+                return this.leapSecondLastUpdated_ ==
+                       other.leapSecondLastUpdated_;
+            }
+            else {
+                return false;
             }
         }
     }

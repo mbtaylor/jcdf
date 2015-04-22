@@ -38,9 +38,6 @@ public abstract class TtScaler {
     /** Number of milliseconds in a day. */
     private static final double MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
 
-    /** Date of the J2000 epoch (2000-01-01T12:00:00) as a Unix time. */
-    private static final double J2000_UNIXMILLIS = 946728000000.0;
-
     /** Date of the J2000 epoch as a Modified Julian Date. */
     private static final double J2000_MJD = 51544.5;
 
@@ -49,6 +46,9 @@ public abstract class TtScaler {
 
     /** TT is ahead of TAI by approximately 32.184 seconds. */
     private static final double TT_TAI_MILLIS = 32184;
+
+    /** Date of the J2000 epoch (2000-01-01T12:00:00) as a Unix time. */
+    public static final double J2000_UNIXMILLIS = 946728000000.0;
 
     /**
      * Environment variable to locate external leap seconds file ({@value}).

@@ -61,7 +61,7 @@ public class Variable {
         buf_ = vdr.getBuf();
         recFact_ = recFact;
         isZVariable_ = vdr.getRecordType() == 8;
-        dataType_ = DataType.getDataType( vdr.dataType );
+        dataType_ = DataType.getDataType( vdr.dataType, cdfInfo );
         recordVariance_ = Record.hasBit( vdr_.flags, 0 );
         int[] dimSizes = isZVariable_ ? vdr.zDimSizes : cdfInfo.getRDimSizes();
         boolean[] dimVarys = vdr.dimVarys;

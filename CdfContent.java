@@ -51,7 +51,8 @@ public class CdfContent {
         // Store global format information.
         boolean rowMajor = Record.hasBit( cdr.flags, 0 );
         int[] rDimSizes = gdr.rDimSizes;
-        cdfInfo_ = new CdfInfo( rowMajor, rDimSizes );
+        int leapSecondLastUpdated = gdr.leapSecondLastUpdated;
+        cdfInfo_ = new CdfInfo( rowMajor, rDimSizes, leapSecondLastUpdated );
 
         // Read the rVariable and zVariable records.
         VariableDescriptorRecord[] rvdrs =
@@ -230,7 +231,7 @@ public class CdfContent {
     private static AttributeEntry
             readEntry( AttributeEntryDescriptorRecord aedr,
                        CdfInfo info ) throws IOException {
-        DataType dataType = DataType.getDataType( aedr.dataType );
+        DataType dataType = DataType.getDataType( aedr.dataType, info );
         final int nitem;
         final int nelPerItem;
         final int[] dimSizes;
