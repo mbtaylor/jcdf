@@ -21,7 +21,7 @@ public class GlobalDescriptorRecord extends Record {
     @CdfField public final int nzVars;
     @CdfField @OffsetField public final long uirHead;
     @CdfField public final int rfuC;
-    @CdfField public final int rfuD;
+    @CdfField public final int leapSecondLastUpdated;
     @CdfField public final int rfuE;
     @CdfField public final int[] rDimSizes;
 
@@ -45,7 +45,7 @@ public class GlobalDescriptorRecord extends Record {
         this.nzVars = buf.readInt( ptr );
         this.uirHead = buf.readOffset( ptr );
         this.rfuC = checkIntValue( buf.readInt( ptr ), 0 );
-        this.rfuD = checkIntValue( buf.readInt( ptr ), -1 );
+        this.leapSecondLastUpdated = buf.readInt( ptr );
         this.rfuE = checkIntValue( buf.readInt( ptr ), -1 );
         this.rDimSizes = readIntArray( buf , ptr, this.rNumDims );
         checkEndRecord( ptr );

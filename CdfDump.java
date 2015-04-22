@@ -186,7 +186,7 @@ public class CdfDump {
         sbuf.append( spaces( 4 ) );
         sbuf.append( name )
             .append( ":" );
-        sbuf.append( spaces( 20 - sbuf.length() ) );
+        sbuf.append( spaces( 28 - sbuf.length() ) );
         if ( value == null ) {
         }
         else if ( value.getClass().isArray() ) {
