@@ -3,7 +3,7 @@ JAVAC = javac
 JAVA = java
 JAR = jar
 JAVADOC = javadoc
-VERSION = 1.0
+VERSION = 1.1
 
 JARFILE = jcdf.jar
 
