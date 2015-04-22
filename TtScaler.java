@@ -70,6 +70,7 @@ public abstract class TtScaler {
      * <p>Array initialiser lifted from gsfc.nssdc.cdf.util.CDFTT2000
      * source code.  That derives it from
      * http://maia.usno.navy.mil/ser7/tai-utc.dat.
+     * See also http://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt.
      */
     private static final double[][] LTS = new double[][] {
         { 1960,  1,  1,  1.4178180, 37300.0, 0.0012960 },
@@ -111,7 +112,8 @@ public abstract class TtScaler {
         { 1999,  1,  1, 32.0,           0.0, 0.0       },
         { 2006,  1,  1, 33.0,           0.0, 0.0       },
         { 2009,  1,  1, 34.0,           0.0, 0.0       },
-        { 2012,  7,  1, 35.0,           0.0, 0.0       }
+        { 2012,  7,  1, 35.0,           0.0, 0.0       },
+        { 2015,  7,  1, 36.0,           0.0, 0.0       },
     };
     private static TtScaler[] ORDERED_INSTANCES;
 
