@@ -11,7 +11,9 @@ WWW_FILES = $(JARFILE) javadocs index.html cdflist.html cdfdump.html
 WWW_DIR = /homeb/mbt/public_html/jcdf
 
 TEST_JARFILE = jcdf_test.jar
-TEST_CDFS = data/*.cdf
+TEST_CDFS = data/example1.cdf data/example2.cdf data/test.cdf data/local/*.cdf
+TEST_BADLEAP = data/test_badleap.cdf
+LEAPSECONDS = data/CDFLeapSeconds.txt
 CDFLIBDIR = /mbt/local/lib
 CDFJARDIR = /mbt/local/jars
 
@@ -110,9 +112,9 @@ updatewww: $(WWW_DIR)/index.html
 $(WWW_DIR)/index.html: index.html
 	cp index.html $@
 
-test: extest othertest convtest
+test: extest othertest badleaptest convtest
 
-convtest: $(JARFILE) $(TEST_JARFILE) $(TEST_CDFS)
+convtest: $(JARFILE) $(TEST_JARFILE)
 	rm -rf tmp; \
 	mkdir tmp; \
 	for f in $(TEST_CDFS); \
@@ -132,10 +134,28 @@ extest: $(JARFILE) $(TEST_JARFILE)
              data/example1.cdf data/example2.cdf data/test.cdf
 
 othertest: $(JARFILE) $(TEST_JARFILE)
+	# There is an error in the NASA java implementation at v3.6.0.3:
+	# it doesn't have the 2015 leap year in it, which means this test
+	# would fail.  So import the updated leap seconds table with the
+	# environment variable so it works.  When the NASA lib is fixed
+	# this can be removed.
 	env LD_LIBRARY_PATH=$(CDFLIBDIR) \
+            CDF_LEAPSECONDSTABLE=$(LEAPSECONDS) \
 	java -ea \
              -classpath $(JARFILE):$(TEST_JARFILE):$(CDFJARDIR)/cdfjava.jar \
              uk.ac.bristol.star.cdf.test.OtherTest
+
+badleaptest: $(JARFILE) data/test_badleap.cdf
+	# This one should run OK
+	java -classpath $(JARFILE) uk.ac.bristol.star.cdf.util.CdfDump \
+             $(TEST_BADLEAP) >/dev/null
+	# but this one should report that the file's leap seconds table
+	# is out of date and exit with a RuntimeException
+	if java -classpath $(JARFILE) \
+                uk.ac.bristol.star.cdf.util.CdfList -data \
+                $(TEST_BADLEAP) >/dev/null 2>&1; then \
+            should_have_failed; \
+        fi
 
 clean:
 	rm -rf $(JARFILE) $(TEST_JARFILE) tmp \

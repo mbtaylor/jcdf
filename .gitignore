@@ -6,4 +6,4 @@ cdfdump.html
 tmp/
 javadocs/
 .*.swp
-data/*.cdf
+data/local/*.cdf
