@@ -13,9 +13,7 @@ WWW_DIR = /homeb/mbt/public_html/jcdf
 TEST_JARFILE = jcdf_test.jar
 TEST_CDFS = data/example1.cdf data/example2.cdf data/test.cdf data/local/*.cdf
 TEST_BADLEAP = data/test_badleap.cdf
-LEAPSECONDS = data/CDFLeapSeconds.txt
-CDFLIBDIR = /mbt/local/lib
-CDFJARDIR = /mbt/local/jars
+NASACDFJAR = nasa/cdfjava_3.6.0.4.jar
 
 JSRC = \
        BankBuf.java \
@@ -134,15 +132,11 @@ extest: $(JARFILE) $(TEST_JARFILE)
              data/example1.cdf data/example2.cdf data/test.cdf
 
 othertest: $(JARFILE) $(TEST_JARFILE)
-	# There is an error in the NASA java implementation at v3.6.0.3:
-	# it doesn't have the 2015 leap year in it, which means this test
-	# would fail.  So import the updated leap seconds table with the
-	# environment variable so it works.  When the NASA lib is fixed
-	# this can be removed.
-	env LD_LIBRARY_PATH=$(CDFLIBDIR) \
-            CDF_LEAPSECONDSTABLE=$(LEAPSECONDS) \
+	# Note this test only works with the cdfjava.jar file from NASA's
+	# CDF v3.6.0.4 release.  Earlier versions lacked the 2015 leap year,
+	# which caused the test to fail.
 	java -ea \
-             -classpath $(JARFILE):$(TEST_JARFILE):$(CDFJARDIR)/cdfjava.jar \
+             -classpath $(JARFILE):$(TEST_JARFILE):$(NASACDFJAR) \
              uk.ac.bristol.star.cdf.test.OtherTest
 
 badleaptest: $(JARFILE) data/test_badleap.cdf
