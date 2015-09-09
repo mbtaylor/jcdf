@@ -72,8 +72,11 @@ In particular:
     The library imposes no restriction on file size,
     so &gt;2Gb files should be OK for v3 CDF files (CDF v2 did not
     support 64-bit addressing) as long as a 64-bit JVM is in use.
-    However, I haven't tested on large files, because I haven't seen one yet.
-    Contributions welcome.
+    At JCDF v1.2 I didn't have any large files to test on,
+    and there was a bug which caused a failure.
+    Jeremy Faden kindly pointed me at some large CDFs
+    which allowed me to identify and fix the bug,
+    so at v1.2 and beyond this is tested and working.
     </li>
 <li><strong>Compression:</strong>
     All formats supported (GZIP, HUFF, AHUFF, RLE).
@@ -192,6 +195,8 @@ for the current version (v1.1) can be found here:
     </ul></dd>
 <dt><strong>Version 1.2</strong></dt>
 <dd><ul>
+    <li>Fix a bug that caused a failure when accessing large (&gt;2Gb) files.
+        </li>
     <li>Update tests to use NASA's CDF library v3.6.0.4;
         this fixes a missing leap second bug, which simplifies the tests
         somewhat.</li>

@@ -469,7 +469,7 @@ public abstract class BankBuf implements Buf {
 
         private final FileChannel channel_;
         private final long size_;
-        private final int bankSize_;
+        private final long bankSize_;
         private final Bank[] banks_;
 
         /**
