@@ -106,7 +106,7 @@ public class OtherTest {
     private static String nasaFormatTimeTt2000( long tt2knanos ) {
         if ( ! triedNasa_ ) {
             try {
-                Class ttClazz =
+                Class<?> ttClazz =
                     Class.forName( "gsfc.nssdc.cdf.util.CDFTT2000" );
                 nasaConvMethod_ =
                     ttClazz.getMethod( "toUTCstring", long.class );
