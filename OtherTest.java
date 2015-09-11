@@ -59,6 +59,7 @@ public class OtherTest {
         assertTt( 284040066183000023L, "2008-12-31T23:59:60.999000023" );
         assertTt( 284040066184000000L, "2009-01-01T00:00:00.000000000" );
         assertTt( 284040066185000000L, "2009-01-01T00:00:00.001000000" );
+        assertTt( 284040065307456789L, "2008-12-31T23:59:60.123456789" );
 
         // Special values.
         assertTt( Long.MIN_VALUE, "9999-12-31T23:59:59.999999999" );
@@ -84,6 +85,7 @@ public class OtherTest {
 
         checkWithNasa( Long.MIN_VALUE / 2 );
         checkWithNasa( Long.MAX_VALUE / 2 );
+        checkWithNasa( 284040065307456789L );
 
         // The NASA library v3.4 appeared to be wrong here: it reported
         // a date of 1707-09-22T11:37:39.106448384 for values larger
