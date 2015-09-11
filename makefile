@@ -1,9 +1,12 @@
 
+VERSION = 1.2+
 JAVAC = javac
 JAVA = java
 JAR = jar
 JAVADOC = javadoc
-VERSION = 1.2+
+
+# If you're building with java8, you can uncomment this to reduce warnings
+# JAVADOC_FLAGS = -Xdoclint:all,-missing
 
 JARFILE = jcdf.jar
 
@@ -79,7 +82,8 @@ docs: $(WWW_FILES)
 javadocs: $(JSRC) package-info.java
 	rm -rf javadocs
 	mkdir javadocs
-	$(JAVADOC) -quiet -d javadocs $(JSRC) package-info.java
+	$(JAVADOC) $(JAVADOC_FLAGS) -quiet \
+                   -d javadocs $(JSRC) package-info.java
 
 index.html: jcdf.xhtml
 	xmllint -noout jcdf.xhtml && \
