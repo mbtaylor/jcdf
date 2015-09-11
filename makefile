@@ -131,17 +131,26 @@ convtest: $(JARFILE) $(TEST_JARFILE)
         done
 
 extest: $(JARFILE) $(TEST_JARFILE)
-	java -ea -classpath $(JARFILE):$(TEST_JARFILE) \
-             uk.ac.bristol.star.cdf.test.ExampleTest \
-             data/example1.cdf data/example2.cdf data/test.cdf
+	jargs="-ea \
+               -classpath $(JARFILE):$(TEST_JARFILE) \
+               uk.ac.bristol.star.cdf.test.ExampleTest \
+               data/example1.cdf data/example2.cdf data/test.cdf" && \
+	java -Duser.timezone=GMT $$jargs && \
+	java -Duser.timezone=PST $$jargs && \
+	java -Duser.timezone=EET $$jargs && \
+        java $$jargs
 
 othertest: $(JARFILE) $(TEST_JARFILE)
 	# Note this test only works with the cdfjava.jar file from NASA's
 	# CDF v3.6.0.4 release.  Earlier versions lacked the 2015 leap year,
 	# which caused the test to fail.
-	java -ea \
-             -classpath $(JARFILE):$(TEST_JARFILE):$(NASACDFJAR) \
-             uk.ac.bristol.star.cdf.test.OtherTest
+	jargs="-ea \
+               -classpath $(JARFILE):$(TEST_JARFILE):$(NASACDFJAR) \
+               uk.ac.bristol.star.cdf.test.OtherTest" && \
+	java -Duser.timezone=GMT $$jargs && \
+	java -Duser.timezone=PST $$jargs && \
+	java -Duser.timezone=EET $$jargs && \
+	java $$jargs
 
 badleaptest: $(JARFILE) data/test_badleap.cdf
 	# This one should run OK
