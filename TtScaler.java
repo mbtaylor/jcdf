@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,6 +48,9 @@ public abstract class TtScaler {
 
     /** TT is ahead of TAI by approximately 32.184 seconds. */
     private static final double TT_TAI_MILLIS = 32184;
+
+    /** Fixed time zone. */
+    private static final TimeZone UTC = TimeZone.getTimeZone( "UTC" );
 
     /** Date of the J2000 epoch (2000-01-01T12:00:00) as a Unix time. */
     public static final double J2000_UNIXMILLIS = 946728000000.0;
@@ -581,8 +586,10 @@ public abstract class TtScaler {
          * @return   TT millis since J2000
          */
         public long getDateTt2kMillis() {
-             long unixMillis = new GregorianCalendar( year_, month_ - 1, dom_)
-                              .getTimeInMillis();
+             GregorianCalendar gcal = new GregorianCalendar( UTC, Locale.UK );
+             gcal.clear();
+             gcal.set( year_, month_ - 1, dom_ );
+             long unixMillis = gcal.getTimeInMillis();
              return (long) unixToTt2kMillis( unixMillis, fixOffset_,
                                              scaleBase_, scaleFactor_ );
         }

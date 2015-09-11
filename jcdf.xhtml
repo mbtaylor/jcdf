@@ -201,6 +201,14 @@ for the current version (v1.2) can be found here:
         this fixes a missing leap second bug, which simplifies the tests
         somewhat.</li>
     </ul></dd>
+<dt><strong>Next version</strong></dt>
+<dd><ul>
+    <li>Fix a bug in leap second handling - it was sensitive to the JVM's
+        default time zone, and only ran correctly if the default time zone
+        matched UTC.  The error in formatting TIME_TT2000 data values
+        was previously a second out within up to a day of the
+        occurrence of a leap second.</li>
+    </ul></dd>
 </dl>
 
 <h2>Context</h2>
@@ -226,7 +234,8 @@ I can probably fix it.
 </p>
 
 <p>My thanks to Michael Liu and Robert Candey at the NASA CDF office
-for encouragement and help with some of the testing and implementation.
+for encouragement and help with some of the testing and implementation,
+and to Jeremy Faden for discussions and help with testing.
 </p>
 
 <p>Bugs, questions, feedback, enhancement requests welcome to
