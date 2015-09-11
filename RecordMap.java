@@ -14,7 +14,7 @@ import uk.ac.bristol.star.cdf.CdfFormatException;
  * <pre>
  *     int ient = recMap.getEntryIndex(irec);
  *     Object value =
- *            ient >= 0
+ *            ient &gt;= 0
  *          ? readBuffer(recMap.getBuf(ient), recMap.getOffset(ient,irec))
  *          : NO_STORED_VALUE;
  * </pre>
