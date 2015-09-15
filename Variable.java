@@ -215,6 +215,16 @@ public class Variable {
     }
 
     /**
+     * Returns the VariableDescriptorRecord on which this Variable instance
+     * is based.
+     *
+     * @return  variable descriptor record (rVDR or zVDR)
+     */
+    public VariableDescriptorRecord getDescriptor() {
+        return vdr_;
+    }
+
+    /**
      * Creates a workspace array suitable for use with this variable's
      * reading methods.
      * The returned array is a 1-dimensional array of a primitive type
