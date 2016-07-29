@@ -1,5 +1,5 @@
 
-VERSION = 1.2-1
+VERSION = 1.2-1+
 JAVAC = javac
 JAVA = java
 JAR = jar
@@ -17,6 +17,7 @@ TEST_JARFILE = jcdf_test.jar
 TEST_CDFS = data/example1.cdf data/example2.cdf data/test.cdf data/local/*.cdf
 TEST_BADLEAP = data/test_badleap.cdf
 NASACDFJAR = nasa/cdfjava_3.6.0.4.jar
+NASALEAPSECFILE = nasa/CDFLeapSeconds.txt
 
 JSRC = \
        BankBuf.java \
@@ -114,6 +115,9 @@ updatewww: $(WWW_DIR)/index.html
 $(WWW_DIR)/index.html: index.html
 	cp index.html $@
 
+$(NASALEAPSECFILE):
+	curl 'http://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt' >$@
+
 test: extest othertest badleaptest convtest
 
 convtest: $(JARFILE) $(TEST_JARFILE)
@@ -140,13 +144,11 @@ extest: $(JARFILE) $(TEST_JARFILE)
 	java -Duser.timezone=EET $$jargs && \
         java $$jargs
 
-othertest: $(JARFILE) $(TEST_JARFILE)
-	# Note this test only works with the cdfjava.jar file from NASA's
-	# CDF v3.6.0.4 release.  Earlier versions lacked the 2015 leap year,
-	# which caused the test to fail.
+othertest: $(JARFILE) $(TEST_JARFILE) $(NASACDFJAR) $(NASALEAPSECFILE)
 	jargs="-ea \
                -classpath $(JARFILE):$(TEST_JARFILE):$(NASACDFJAR) \
                uk.ac.bristol.star.cdf.test.OtherTest" && \
+	export CDF_LEAPSECONDSTABLE=$(NASALEAPSECFILE) && \
 	java -Duser.timezone=GMT $$jargs && \
 	java -Duser.timezone=PST $$jargs && \
 	java -Duser.timezone=EET $$jargs && \
