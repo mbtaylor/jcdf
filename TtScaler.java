@@ -119,6 +119,7 @@ public abstract class TtScaler {
         { 2009,  1,  1, 34.0,           0.0, 0.0       },
         { 2012,  7,  1, 35.0,           0.0, 0.0       },
         { 2015,  7,  1, 36.0,           0.0, 0.0       },
+        { 2017,  1,  1, 37.0,           0.0, 0.0       },
     };
     private static TtScaler[] ORDERED_INSTANCES;
 
