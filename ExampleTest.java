@@ -14,10 +14,11 @@ import uk.ac.bristol.star.cdf.VariableAttribute;
 import uk.ac.bristol.star.cdf.EpochFormatter;
 
 /**
- * Tests the contents of two of the example files
- * (example1.cdf and example2.cdf) from the samples directory of the
- * CDF distribution.  The assertions in this file were written by
- * examining the output of cdfdump by eye.
+ * Tests the contents of three of the example files
+ * (samples/example1.cdf, samples/example2.cdf, cdfjava/examples/test.cdf)
+ * from the NASA CDF software distribution.
+ * The assertions in this file were written by examining the output
+ * of cdfdump by eye.
  */
 public class ExampleTest {
 
@@ -53,7 +54,8 @@ public class ExampleTest {
 
         assert readShapedRecord( vars[ 0 ], 0, true )
               .equals( new Integer( 23 ) );
-        assert readShapedRecord( vars[ 0 ], 1, true ) == null;
+        assert readShapedRecord( vars[ 0 ], 1, true )
+              .equals( new Integer( 24 ) );
         assert readShapedRecord( vars[ 0 ], 2, true ) == null;
         assert Arrays.equals( (short[]) readShapedRecord( vars[ 1 ], 0, true ),
                               shortSequence( -90, 1, 181 ) );
@@ -227,8 +229,8 @@ public class ExampleTest {
         assert Arrays.equals( new short[] { (short) 100, (short) 200,
                                             (short) 300 },
                               (short[]) readShapedRecord( longVar, 0, true ) );
-        assert Arrays.equals( new short[] { (short) -99, (short) -99,
-                                            (short) -99 },
+        assert Arrays.equals( new short[] { (short) -32767, (short) -32767,
+                                            (short) -32767 },
                               (short[]) readShapedRecord( longVar, 1, true ) );
 
         Variable nameVar = vars[ 8 ];
@@ -238,9 +240,9 @@ public class ExampleTest {
 
         Variable tempVar = vars[ 9 ];
         assert "Temp".equals( tempVar.getName() );
-        assert Arrays.equals( new float[] { 55.5f, 0f, 66.6f },
+        assert Arrays.equals( new float[] { 55.5f, -1e30f, 66.6f },
                               (float[]) readShapedRecord( tempVar, 0, true ) );
-        assert Arrays.equals( new float[] { 0f, 0f, 0f },
+        assert Arrays.equals( new float[] { -1e30f, -1e30f, -1e30f },
                               (float[]) readShapedRecord( tempVar, 1, true ) );
 
         Variable epVar = vars[ 15 ];
@@ -257,13 +259,13 @@ public class ExampleTest {
 
         Variable ttVar = vars[ 18 ];
         assert "tt2000".equals( ttVar.getName() );
-        assert "2008-12-31T23:59:58.123456789"
+        assert "2015-06-30T23:59:58.123456789"
               .equals( epf.formatTimeTt2000( (Long)
                                              readShapedRecord( ttVar, 0 ) ) );
-        assert "2008-12-31T23:59:60.123456789"
+        assert "2015-06-30T23:59:60.123456789"
               .equals( epf.formatTimeTt2000( (Long)
                                              readShapedRecord( ttVar, 2 ) ) );
-        assert "2009-01-01T00:00:00.123456789"
+        assert "2015-07-01T00:00:00.123456789"
               .equals( epf.formatTimeTt2000( (Long)
                                              readShapedRecord( ttVar, 3 ) ) );
     }
@@ -312,12 +314,19 @@ public class ExampleTest {
 
 
     /**
-     * Main method.  Run with locations of the following files as arguments:
-     *    cdf34_1-dist/samples/example1.cdf
-     *    cdf34_1-dist/samples/example2.cdf
-     *    cdf34_1-dist/cdfjava/examples/test.cdf
-     * as arguments.  Use -help for help.
-     * Tests are made using java assertions, so this test must be
+     * Main method.  Run with locations of the following files from the
+     * NASA CDF software distribution as arguments:
+     *    samples/example1.cdf
+     *    samples/example2.cdf
+     *    cdfjava/examples/test.cdf
+     * The versions of these files assumed here probably correspond to
+     * CDF V3.6.5 (hence the above files are in subdirs of cdf36_5-dist/).
+     * However these files were supplied by the CDF office prior to
+     * V3.6.5 release, so changes are possible.
+     *
+     * <p>Use -help for help.
+     *
+     * <p>Tests are made using java assertions, so this test must be
      * run with java assertions enabled.  If it's not, it will fail anyway.
      */
     public static void main( String[] args ) throws IOException {
