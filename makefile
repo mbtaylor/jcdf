@@ -116,7 +116,7 @@ $(WWW_DIR)/index.html: index.html
 	cp index.html $@
 
 $(NASALEAPSECFILE):
-	curl 'http://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt' >$@
+	curl 'https://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt' >$@
 
 test: build extest othertest badleaptest convtest
 
