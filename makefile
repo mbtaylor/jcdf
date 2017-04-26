@@ -118,7 +118,7 @@ $(WWW_DIR)/index.html: index.html
 $(NASALEAPSECFILE):
 	curl 'http://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt' >$@
 
-test: extest othertest badleaptest convtest
+test: build extest othertest badleaptest convtest
 
 convtest: $(JARFILE) $(TEST_JARFILE)
 	rm -rf tmp; \
@@ -154,7 +154,7 @@ othertest: $(JARFILE) $(TEST_JARFILE) $(NASACDFJAR) $(NASALEAPSECFILE)
 	java -Duser.timezone=EET $$jargs && \
 	java $$jargs
 
-badleaptest: $(JARFILE) data/test_badleap.cdf
+badleaptest: $(JARFILE) $(TEST_BADLEAP)
 	# This one should run OK
 	java -classpath $(JARFILE) uk.ac.bristol.star.cdf.util.CdfDump \
              $(TEST_BADLEAP) >/dev/null
