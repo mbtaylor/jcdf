@@ -73,6 +73,7 @@ TEST_JSRC = \
        ExampleTest.java \
        SameTest.java \
        OtherTest.java \
+       BufTest.java \
 
 build: jar docs
 
@@ -118,7 +119,7 @@ $(WWW_DIR)/index.html: index.html
 $(NASALEAPSECFILE):
 	curl 'https://cdf.gsfc.nasa.gov/html/CDFLeapSeconds.txt' >$@
 
-test: build extest othertest badleaptest convtest
+test: build buftest extest othertest badleaptest convtest
 
 convtest: $(JARFILE) $(TEST_JARFILE)
 	rm -rf tmp; \
@@ -153,6 +154,11 @@ othertest: $(JARFILE) $(TEST_JARFILE) $(NASACDFJAR) $(NASALEAPSECFILE)
 	java -Duser.timezone=PST $$jargs && \
 	java -Duser.timezone=EET $$jargs && \
 	java $$jargs
+
+buftest: $(JARFILE) $(TEST_JARFILE)
+	java -ea \
+             -classpath $(JARFILE):$(TEST_JARFILE) \
+             uk.ac.bristol.star.cdf.test.BufTest
 
 badleaptest: $(JARFILE) $(TEST_BADLEAP)
 	# This one should run OK
