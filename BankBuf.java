@@ -95,7 +95,7 @@ public abstract class BankBuf implements Buf {
     public int readUnsignedByte( Pointer ptr ) throws IOException {
         long pos = ptr.getAndIncrement( 1 );
         Bank bank = getBank( pos, 1 );
-        return bank.byteBuffer_.get( bank.adjust( pos ) );
+        return bank.byteBuffer_.get( bank.adjust( pos ) ) & 0xff;
     }
 
     public int readInt( Pointer ptr ) throws IOException {
@@ -408,10 +408,10 @@ public abstract class BankBuf implements Buf {
                     byte[] tmp = new byte[ count ];
                     int bankOff = (int) ( offset - starts_[ ibank ] );
                     int tmpOff = 0;
+                    int n =  (int)(ends_[ ibank ] - offset);                    
                     while ( count > 0 ) {
-                        int n = (int)
-                                Math.min( count, ends_[ ibank ] - bankOff );
-                        ByteBuffer bbuf = banks_[ ibank ].byteBuffer_;
+
+                    	ByteBuffer bbuf = banks_[ ibank ].byteBuffer_;
                         synchronized ( bbuf ) {
                             bbuf.position( bankOff );
                             bbuf.get( tmp, tmpOff, n );
@@ -419,7 +419,10 @@ public abstract class BankBuf implements Buf {
                         count -= n;
                         tmpOff += n;
                         bankOff = 0;
-                        ibank++;
+                        ibank++;                        
+                        
+                        long bankSize_ = ends_[ ibank ] - starts_[ ibank ];                        
+                        n = (int)((count > bankSize_)?bankSize_:count);
                     }
                     return new Bank( ByteBuffer.wrap( tmp ), offset,
                                      isBigendian() );
@@ -508,25 +511,31 @@ public abstract class BankBuf implements Buf {
             // This should be a fairly unusual occurrence.
             // Build a temporary bank to satisfy the request and return it.
             else {
+            	
                 byte[] tmp = new byte[ count ];
-                int bankOff = count - over;
+                
+                int bankOff = (int)(bankSize_- count + over);
                 int tmpOff = 0;
-                while ( count > 0 ) {
-                    int n = (int)
-                        Math.min( count, ( ibank + 1 ) * bankSize_ - bankOff );
+                int n = count - over; 
+                
+                while ( count > 0 ){
+                	
                     ByteBuffer bbuf = getBankByIndex( ibank ).byteBuffer_;
-                    synchronized ( bbuf ) {
+                    
+                    synchronized ( bbuf ){
                         bbuf.position( bankOff );
                         bbuf.get( tmp, tmpOff, n );
                     }
+                    
                     count -= n;
                     tmpOff += n;
                     bankOff = 0;
                     ibank++;
+                    
+                    n = (int)((count > bankSize_)?bankSize_:count);                    
                 }
-                return new Bank( ByteBuffer.wrap( tmp ), offset,
-                                 isBigendian() );
-            }
+                return new Bank( ByteBuffer.wrap( tmp ), offset, isBigendian() );   
+            }            
         }
 
         public List<Bank> getExistingBanks() {
