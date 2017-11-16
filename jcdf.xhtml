@@ -220,6 +220,11 @@ for the current version (v1.2-2) can be found here:
     </ul></dd>
 <dt><strong>Next version</strong></dt>
 <dd><ul>
+    <li>Fix bugs in low-level reading code (<code>BankBuf</code>):
+        unsigned bytes could be read wrong in some cases, and 
+        data could be read wrong near the boundaries of multi-buffer files
+        (only likely to show up for files &gt;2Gbyte).
+        Thanks to Lukas Kvasnica (Brno) for identifying and fixing these.</li>
     <li>Some minor adjustments to the build/test framework to accommodate
         Debian packaging (mostly replacement of test data files encumbered
         by NASA copyright statement).
