@@ -408,9 +408,8 @@ public abstract class BankBuf implements Buf {
                     byte[] tmp = new byte[ count ];
                     int bankOff = (int) ( offset - starts_[ ibank ] );
                     int tmpOff = 0;
-                    int n =  (int)(ends_[ ibank ] - offset);                    
+                    int n = (int) ( ends_[ ibank ] - offset );
                     while ( count > 0 ) {
-
                     	ByteBuffer bbuf = banks_[ ibank ].byteBuffer_;
                         synchronized ( bbuf ) {
                             bbuf.position( bankOff );
@@ -419,10 +418,9 @@ public abstract class BankBuf implements Buf {
                         count -= n;
                         tmpOff += n;
                         bankOff = 0;
-                        ibank++;                        
-                        
-                        long bankSize_ = ends_[ ibank ] - starts_[ ibank ];                        
-                        n = (int)((count > bankSize_)?bankSize_:count);
+                        ibank++;
+                        n = (int) Math.min( count,
+                                            ends_[ ibank ] - starts_[ ibank ] );
                     }
                     return new Bank( ByteBuffer.wrap( tmp ), offset,
                                      isBigendian() );
@@ -511,31 +509,25 @@ public abstract class BankBuf implements Buf {
             // This should be a fairly unusual occurrence.
             // Build a temporary bank to satisfy the request and return it.
             else {
-            	
                 byte[] tmp = new byte[ count ];
-                
-                int bankOff = (int)(bankSize_- count + over);
+                int bankOff = (int) ( bankSize_ - count + over );
                 int tmpOff = 0;
-                int n = count - over; 
-                
+                int n = count - over;
                 while ( count > 0 ){
-                	
                     ByteBuffer bbuf = getBankByIndex( ibank ).byteBuffer_;
-                    
                     synchronized ( bbuf ){
                         bbuf.position( bankOff );
                         bbuf.get( tmp, tmpOff, n );
                     }
-                    
                     count -= n;
                     tmpOff += n;
                     bankOff = 0;
                     ibank++;
-                    
-                    n = (int)((count > bankSize_)?bankSize_:count);                    
+                    n = (int) Math.min( count, bankSize_ );
                 }
-                return new Bank( ByteBuffer.wrap( tmp ), offset, isBigendian() );   
-            }            
+                return new Bank( ByteBuffer.wrap( tmp ), offset,
+                                 isBigendian() );
+            }
         }
 
         public List<Bank> getExistingBanks() {
