@@ -157,7 +157,7 @@ javadocs, and this documentation, and to run some tests.
 </p>
 
 <p>Pre-built copies of the jar file and documentation
-for the current version (v1.2-2) can be found here:
+for the current version (v1.2-3) can be found here:
 </p>
 <ul>
 <li><a href="jcdf.jar">jcdf.jar</a></li>
@@ -232,19 +232,19 @@ for the current version (v1.2-2) can be found here:
 <dd><ul>
     <li>2017-01-01 leap second added to internal leap second table.</li>
     </ul></dd>
-<dt><strong>Next version</strong></dt>
+<dt><strong>Version 1.2-3 (16 Nov 2017)</strong></dt>
 <dd><ul>
     <li>Fix bugs in low-level reading code (<code>BankBuf</code>):
         unsigned bytes could be read wrong in some cases, and 
         data could be read wrong near the boundaries of multi-buffer files
         (only likely to show up for files &gt;2Gbyte).
         Thanks to Lukas Kvasnica (Brno) for identifying and fixing these.</li>
+    <li>Add unit tests to test the supplied <code>Buf</code>
+        implementations.</li>
     <li>Some minor adjustments to the build/test framework to accommodate
         Debian packaging (mostly replacement of test data files encumbered
         by NASA copyright statement).
         No change to distributed library code.</li>
-    <li>Add unit tests to test the supplied <code>Buf</code>
-        implementations.</li>
     </ul></dd>
 </dl>
 
@@ -262,8 +262,9 @@ the science archive group at ESA's European Space Astronomy Centre (ESAC).
  >/<a href="http://www.starlink.ac.uk/stil/">STIL</a>
 to enable access to CDF tables alongside other tabular data formats
 by that software.
-It is also under consideration (Aug 2014) for use within ESA's
-<a href="http://spitfire.estec.esa.int/pubtrac/ODI/">ODI</a> project.
+It is believed to be in some use also at ESAC and elsewhere.
+If anybody out there is using it and is willing to be listed here,
+let me know.
 </p>
 
 <p>It is licenced under the LGPL, though if you need a different licence
