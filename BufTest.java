@@ -89,6 +89,16 @@ public class BufTest {
             checkBuf( BankBuf.createMultiBankBuf( inchan, nbyte, banksize,
                                                   isBit64, isBigEndian ) );
         }
+        inchan.close();
+
+        FileChannel copychan = new FileInputStream( tmpFile ).getChannel();
+        assert copychan.size() == nbyte;
+        ByteBuffer copybuf = ByteBuffer.allocate( nbyte );
+        copychan.read( copybuf );
+        copychan.close();
+        assert copybuf.position() == nbyte;
+        checkBuf( new SimpleNioBuf( copybuf, isBit64, isBigEndian ) );
+
         tmpFile.delete();
     }
 
