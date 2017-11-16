@@ -52,8 +52,22 @@ sequence of CDF records.
 it only reads them.
 </p>
 
+<h2>Implementation Notes</h2>
+
 <p>JCDF is based on NIO mapped ByteBuffers, it's expected to be reasonably
 fast, but I haven't done any benchmarking.
+</p>
+
+<p>Use of mapped buffers leads to efficient serial and random I/O, but
+does have some associated problems concerning release of allocated resources.
+For reasons that are quite
+<a href="http://bugs.java.com/bugdatabase/view_bug.do?bug_id=4724038">complicated</a>,
+it is hard to release mapped buffers after use, which means that for instance
+files you have read using JCDF may be hard to delete,
+and that reading large files may leak significant amounts of virtual memory.
+There are some more or less nasty ways to work round this in user code or
+in the library.  If these issues cause practical problems for library users, 
+you are encouraged to contact me by email or open a github issue.
 </p>
 
 <h2>Implementation Status</h2>
