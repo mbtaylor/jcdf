@@ -1,5 +1,6 @@
 
 VERSION = 1.2-3
+VERSION_ = 1.2.3
 JAVAC = javac
 JAVA = java
 JAR = jar
@@ -18,6 +19,11 @@ TEST_CDFS = data/example1.cdf data/example2.cdf data/test.cdf data/local/*.cdf
 TEST_BADLEAP = data/test_badleap.cdf
 NASACDFJAR = nasa/cdfjava_3.6.0.4.jar
 NASALEAPSECFILE = nasa/CDFLeapSeconds.txt
+
+ARTIFACT_PKG = jcdf-$(VERSION_)
+ARTIFACTS = $(ARTIFACT_PKG).jar \
+            $(ARTIFACT_PKG)-sources.jar \
+            $(ARTIFACT_PKG)-javadoc.jar
 
 JSRC = \
        BankBuf.java \
@@ -75,11 +81,13 @@ TEST_JSRC = \
        OtherTest.java \
        BufTest.java \
 
-build: jar docs
+build: jar docs artifacts
 
 jar: $(JARFILE)
 
 docs: $(WWW_FILES)
+
+artifacts: artifacts.zip
 
 javadocs: $(JSRC) package-info.java
 	rm -rf javadocs
@@ -174,7 +182,8 @@ badleaptest: $(JARFILE) $(TEST_BADLEAP)
 
 clean:
 	rm -rf $(JARFILE) $(TEST_JARFILE) tmp \
-               index.html javadocs cdflist.html cdfdump.html
+               index.html javadocs cdflist.html cdfdump.html \
+               $(ARTIFACTS) artifacts.zip \
 
 $(JARFILE): $(JSRC)
 	rm -rf tmp
@@ -190,4 +199,16 @@ $(TEST_JARFILE): $(JARFILE) $(TEST_JSRC)
 	$(JAVAC) -Xlint:unchecked -d tmp -classpath $(JARFILE) $(TEST_JSRC) \
             && $(JAR) cf $@ -C tmp .
 	rm -rf tmp
+
+artifacts.zip: $(ARTIFACTS)
+	jar cfM $@ $(ARTIFACTS)
+
+$(ARTIFACT_PKG).jar: $(JARFILE)
+	cp $(JARFILE) $@
+
+$(ARTIFACT_PKG)-sources.jar: $(JSRC)
+	$(JAR) cf $@ $(JSRC)
+
+$(ARTIFACT_PKG)-javadoc.jar: javadocs
+	$(JAR) cf $@ -C javadocs .
 
