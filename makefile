@@ -188,7 +188,7 @@ clean:
 $(JARFILE): $(JSRC)
 	rm -rf tmp
 	mkdir -p tmp
-	$(JAVAC) -Xlint:unchecked -d tmp $(JSRC) \
+	$(JAVAC) -Xlint:unchecked -target 1.5 -d tmp $(JSRC) \
             && echo "$(VERSION)" >tmp/uk/ac/bristol/star/cdf/jcdf.version \
             && $(JAR) cf $@ -C tmp .
 	rm -rf tmp
