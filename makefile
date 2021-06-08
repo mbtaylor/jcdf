@@ -7,7 +7,7 @@ JAR = jar
 JAVADOC = javadoc
 
 # If you're building with java8, you can uncomment this to reduce warnings
-# JAVADOC_FLAGS = -Xdoclint:all,-missing
+JAVADOC_FLAGS = -Xdoclint:all,-missing
 
 JARFILE = jcdf.jar
 
@@ -24,6 +24,13 @@ ARTIFACT_PKG = jcdf-$(VERSION_)
 ARTIFACTS = $(ARTIFACT_PKG).jar \
             $(ARTIFACT_PKG)-sources.jar \
             $(ARTIFACT_PKG)-javadoc.jar
+
+# See https://central.sonatype.org/publish/publish-manual/
+# Uses gpg and ~/.m2/settings.xml
+SIGN_AND_DEPLOY = \
+    mvn gpg:sign-and-deploy-file \
+       -Durl=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ \
+       -DrepositoryId=ossrh -DpomFile=pom.xml
 
 JSRC = \
        BankBuf.java \
@@ -180,15 +187,29 @@ badleaptest: $(JARFILE) $(TEST_BADLEAP)
             should_have_failed; \
         fi
 
+uploadmaven: $(ARTIFACTS)
+	$(SIGN_AND_DEPLOY) -Dfile=$(ARTIFACT_PKG).jar
+	$(SIGN_AND_DEPLOY) -Dfile=$(ARTIFACT_PKG)-sources.jar \
+                           -Dclassifier=sources
+	$(SIGN_AND_DEPLOY) -Dfile=$(ARTIFACT_PKG)-javadoc.jar \
+                           -Dclassifier=javadoc
+	@echo
+	@echo "Now close and release from staging repository https://s01.oss.sonatype.org/"
+	@echo "see https://central.sonatype.org/publish/release/"
+
 clean:
 	rm -rf $(JARFILE) $(TEST_JARFILE) tmp \
                index.html javadocs cdflist.html cdfdump.html \
                $(ARTIFACTS) artifacts.zip \
+               $(ARTIFACT_PKG).jar.asc \
+               $(ARTIFACT_PKG)-sources.jar.asc \
+               $(ARTIFACT_PKG)-javadoc.jar.asc \
+               pom.xml.asc
 
 $(JARFILE): $(JSRC)
 	rm -rf tmp
 	mkdir -p tmp
-	$(JAVAC) -Xlint:unchecked -target 1.5 -d tmp $(JSRC) \
+	$(JAVAC) -Xlint:unchecked -source 1.5 -target 1.5 -d tmp $(JSRC) \
             && echo "$(VERSION)" >tmp/uk/ac/bristol/star/cdf/jcdf.version \
             && $(JAR) cf $@ -C tmp .
 	rm -rf tmp

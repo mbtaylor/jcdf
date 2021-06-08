@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>uk.ac.starlink</groupId>
+  <artifactId>jcdf</artifactId>
+  <version>1.2.3</version>
+  <packaging>jar</packaging>
+
+  <name>JCDF</name>
+  <description>Pure Java reader library for NASA CDF format</description>
+  <url>http://www.star.bristol.ac.uk/~mbt/jcdf/</url>
+
+  <licenses>
+    <license>
+      <name>GNU LGPLv3</name>
+      <url>https://www.gnu.org/licenses/lgpl-3.0.en.html</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Mark Taylor</name>
+      <email>m.b.taylor@bristol.ac.uk</email>
+      <organization>University of Bristol</organization>
+      <organizationUrl>http://www.star.bristol.ac.uk/~mbt/</organizationUrl>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/mbtaylor/jcdf.git</connection>
+    <developerConnection>scm:git:ssh://github.com:mbtaylor/jcdf.git</developerConnection>
+    <url>https://github.com/mbtaylor/jcdf</url>
+  </scm>
+
+</project>
