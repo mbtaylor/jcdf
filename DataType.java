@@ -296,7 +296,7 @@ public abstract class DataType {
             buf.readDataBytes( offset, n, (byte[]) array );
         }
         public Object getScalar( Object array, int index ) {
-            return new Byte( ((byte[]) array)[ index ] );
+            return Byte.valueOf( ((byte[]) array)[ index ] );
         }
     }
 
@@ -312,7 +312,7 @@ public abstract class DataType {
             buf.readDataShorts( offset, n, (short[]) array );
         }
         public Object getScalar( Object array, int index ) {
-            return new Short( ((short[]) array)[ index ] );
+            return Short.valueOf( ((short[]) array)[ index ] );
         }
     }
 
@@ -328,7 +328,7 @@ public abstract class DataType {
             buf.readDataInts( offset, n, (int[]) array );
         }
         public Object getScalar( Object array, int index ) {
-            return new Integer( ((int[]) array)[ index ] );
+            return Integer.valueOf( ((int[]) array)[ index ] );
         }
     }
 
@@ -344,7 +344,7 @@ public abstract class DataType {
             buf.readDataLongs( offset, n, (long[]) array );
         }
         public Object getScalar( Object array, int index ) {
-            return new Long( ((long[]) array)[ index ] );
+            return Long.valueOf( ((long[]) array)[ index ] );
         }
     }
 
@@ -366,7 +366,7 @@ public abstract class DataType {
             }
         }
         public Object getScalar( Object array, int index ) {
-            return new Short( ((short[]) array)[ index ] );
+            return Short.valueOf( ((short[]) array)[ index ] );
         }
     }
 
@@ -392,7 +392,7 @@ public abstract class DataType {
             }
         }
         public Object getScalar( Object array, int index ) {
-            return new Integer( ((int[]) array)[ index ] );
+            return Integer.valueOf( ((int[]) array)[ index ] );
         }
     }
 
@@ -421,7 +421,7 @@ public abstract class DataType {
             }
         }
         public Object getScalar( Object array, int index ) {
-            return new Long( ((long[]) array )[ index ] );
+            return Long.valueOf( ((long[]) array )[ index ] );
         }
     }
 
@@ -437,7 +437,7 @@ public abstract class DataType {
             buf.readDataFloats( offset, n, (float[]) array );
         }
         public Object getScalar( Object array, int index ) {
-            return new Float( ((float[]) array)[ index ] );
+            return Float.valueOf( ((float[]) array)[ index ] );
         }
     }
 
@@ -453,7 +453,7 @@ public abstract class DataType {
             buf.readDataDoubles( offset, n, (double[]) array );
         }
         public Object getScalar( Object array, int index ) {
-            return new Double( ((double[]) array)[ index ] );
+            return Double.valueOf( ((double[]) array)[ index ] );
         }
     }
 
