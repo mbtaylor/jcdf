@@ -40,11 +40,11 @@ public class AttributeDescriptorRecord extends Record {
         this.num = buf.readInt( ptr );
         this.nGrEntries = buf.readInt( ptr );
         this.maxGrEntry = buf.readInt( ptr );
-        this.rfuA = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuA = buf.readInt( ptr );
         this.azEdrHead = buf.readOffset( ptr );
         this.nZEntries = buf.readInt( ptr );
         this.maxZEntry = buf.readInt( ptr );
-        this.rfuE = checkIntValue( buf.readInt( ptr ), -1 );
+        this.rfuE = buf.readInt( ptr );
         this.name = buf.readAsciiString( ptr, nameLeng );
         checkEndRecord( ptr );
     }

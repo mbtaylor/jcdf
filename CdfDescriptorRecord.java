@@ -36,11 +36,11 @@ public class CdfDescriptorRecord extends Record {
         this.release = buf.readInt( ptr );
         this.encoding = buf.readInt( ptr );
         this.flags = buf.readInt( ptr );
-        this.rfuA = checkIntValue( buf.readInt( ptr ), 0 );
-        this.rfuB = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuA = buf.readInt( ptr );
+        this.rfuB = buf.readInt( ptr );
         this.increment = buf.readInt( ptr );
-        this.rfuD = checkIntValue( buf.readInt( ptr ), -1 );
-        this.rfuE = checkIntValue( buf.readInt( ptr ), -1 );
+        this.rfuD = buf.readInt( ptr );
+        this.rfuE = buf.readInt( ptr );
         int crLeng = versionAtLeast( 2, 5 ) ? 256 : 1945;
         this.copyright = toLines( buf.readAsciiString( ptr, crLeng ) );
         checkEndRecord( ptr );

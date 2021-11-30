@@ -96,24 +96,6 @@ public abstract class Record {
     }
 
     /**
-     * Checks that an integer has a known fixed value.
-     * If not, a warning may be emitted.
-     * This performs an assertion-like function.
-     * The actual value is returned as a convenience.
-     *
-     * @param  actualValue  value to test
-     * @param  fixedValue  value to compare against
-     * @return   <code>actualValue</code>
-     */
-    protected int checkIntValue( int actualValue, int fixedValue ) {
-        if ( actualValue != fixedValue ) {
-            warnFormat( "Unexpected fixed value " + actualValue + " != "
-                       + fixedValue );
-        }
-        return actualValue;
-    }
-
-    /**
      * Checks that a pointer is positioned at the end of this record.
      * If not, a warning may be emitted.
      * This performs an assertion-like function.

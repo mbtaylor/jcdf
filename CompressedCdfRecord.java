@@ -26,7 +26,7 @@ public class CompressedCdfRecord extends Record {
         Pointer ptr = plan.createContentPointer();
         this.cprOffset = buf.readOffset( ptr );
         this.uSize = buf.readOffset( ptr );
-        this.rfuA = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuA = buf.readInt( ptr );
         dataOffset_ = ptr.get();
     }
 

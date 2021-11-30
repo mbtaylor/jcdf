@@ -44,9 +44,9 @@ public class GlobalDescriptorRecord extends Record {
         this.rNumDims = buf.readInt( ptr );
         this.nzVars = buf.readInt( ptr );
         this.uirHead = buf.readOffset( ptr );
-        this.rfuC = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuC = buf.readInt( ptr );
         this.leapSecondLastUpdated = buf.readInt( ptr );
-        this.rfuE = checkIntValue( buf.readInt( ptr ), -1 );
+        this.rfuE = buf.readInt( ptr );
         this.rDimSizes = readIntArray( buf , ptr, this.rNumDims );
         checkEndRecord( ptr );
     }

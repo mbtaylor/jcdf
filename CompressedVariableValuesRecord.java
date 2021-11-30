@@ -24,7 +24,7 @@ public class CompressedVariableValuesRecord extends Record {
         super( plan, "CVVR", 13 );
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
-        this.rfuA = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuA = buf.readInt( ptr );
         this.cSize = buf.readOffset( ptr );
         dataOffset_ = ptr.get();
     }

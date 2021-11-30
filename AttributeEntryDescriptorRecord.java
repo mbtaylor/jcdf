@@ -41,11 +41,11 @@ public abstract class AttributeEntryDescriptorRecord extends Record {
         this.dataType = buf.readInt( ptr );
         this.num = buf.readInt( ptr );
         this.numElems = buf.readInt( ptr );
-        this.rfuA = checkIntValue( buf.readInt( ptr ), 0 );
-        this.rfuB = checkIntValue( buf.readInt( ptr ), 0 );
-        this.rfuC = checkIntValue( buf.readInt( ptr ), 0 );
-        this.rfuD = checkIntValue( buf.readInt( ptr ), -1 );
-        this.rfuE = checkIntValue( buf.readInt( ptr ), -1 );
+        this.rfuA = buf.readInt( ptr );
+        this.rfuB = buf.readInt( ptr );
+        this.rfuC = buf.readInt( ptr );
+        this.rfuD = buf.readInt( ptr );
+        this.rfuE = buf.readInt( ptr );
         valueOffset_ = ptr.get();
     }
 

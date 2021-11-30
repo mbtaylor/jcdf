@@ -25,7 +25,7 @@ public class SparsenessParametersRecord extends Record {
         Buf buf = plan.getBuf();
         Pointer ptr = plan.createContentPointer();
         this.sArraysType = buf.readInt( ptr );
-        this.rfuA = checkIntValue( buf.readInt( ptr ), 0 );
+        this.rfuA = buf.readInt( ptr );
         this.pCount = buf.readInt( ptr );
         this.sArraysParms = readIntArray( buf, ptr, this.pCount );
         checkEndRecord( ptr );

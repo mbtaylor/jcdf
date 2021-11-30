@@ -57,9 +57,9 @@ public abstract class VariableDescriptorRecord extends Record {
         this.vxrTail = buf.readOffset( ptr );
         this.flags = buf.readInt( ptr );
         this.sRecords = buf.readInt( ptr );
-        this.rfuB = checkIntValue( buf.readInt( ptr ), 0 );
-        this.rfuC = checkIntValue( buf.readInt( ptr ), -1 );
-        this.rfuF = checkIntValue( buf.readInt( ptr ), -1 );
+        this.rfuB = buf.readInt( ptr );
+        this.rfuC = buf.readInt( ptr );
+        this.rfuF = buf.readInt( ptr );
         this.numElems = buf.readInt( ptr );
         this.num = buf.readInt( ptr );
         this.cprOrSprOffset = buf.readOffset( ptr );
