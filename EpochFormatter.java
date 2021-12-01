@@ -58,8 +58,16 @@ public class EpochFormatter {
      *         field (YYYYMMDD, or -1 for unused, or 0 for no leap seconds)
      */
     public EpochFormatter( int leapSecondLastUpdated ) {
+
+        /* Add a half day on here to avoid leap-second-sensitive errors in
+         * working out what epoch the supplied date actually corresponds to.
+         * Leap second table epochs are not in any case sensitive to
+         * differences of less than a day (and are most unlikely to be
+         * issued with a frequency close to daily).  If the accumulated
+         * number of leap seconds approaches half a day, this offset should
+         * be increased; also, Hi from the distant past! */
         long lastDataLeapUnixMillis =
-            getLastDataLeapUnixMillis( leapSecondLastUpdated );
+            getLastDataLeapUnixMillis( leapSecondLastUpdated ) + HALF_DAY;
 
         /* If we know about leap seconds later than the last known one
          * supplied (presumably acquired from a data file),
