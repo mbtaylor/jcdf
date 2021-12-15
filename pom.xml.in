@@ -7,7 +7,7 @@
 
   <groupId>uk.ac.starlink</groupId>
   <artifactId>jcdf</artifactId>
-  <version>1.2.3</version>
+  <version>__VERSION__</version>
   <packaging>jar</packaging>
 
   <name>JCDF</name>

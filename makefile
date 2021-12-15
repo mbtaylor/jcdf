@@ -187,7 +187,10 @@ badleaptest: $(JARFILE) $(TEST_BADLEAP)
             should_have_failed; \
         fi
 
-uploadmaven: $(ARTIFACTS)
+pom.xml:
+	sed 's/__VERSION__/$(VERSION_)/g' <pom.xml.in >$@
+
+uploadmaven: $(ARTIFACTS) pom.xml
 	$(SIGN_AND_DEPLOY) -Dfile=$(ARTIFACT_PKG).jar
 	$(SIGN_AND_DEPLOY) -Dfile=$(ARTIFACT_PKG)-sources.jar \
                            -Dclassifier=sources
@@ -204,7 +207,7 @@ clean:
                $(ARTIFACT_PKG).jar.asc \
                $(ARTIFACT_PKG)-sources.jar.asc \
                $(ARTIFACT_PKG)-javadoc.jar.asc \
-               pom.xml.asc
+               pom.xml pom.xml.asc
 
 $(JARFILE): $(JSRC)
 	rm -rf tmp
