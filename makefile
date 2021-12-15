@@ -12,7 +12,7 @@ JAVADOC_FLAGS = -Xdoclint:all,-missing
 JARFILE = jcdf.jar
 
 WWW_FILES = $(JARFILE) javadocs index.html cdflist.html cdfdump.html
-WWW_DIR = /homeb/mbt/public_html/jcdf
+WWW_DIR = /home/mbt/public_html/jcdf
 
 TEST_JARFILE = jcdf_test.jar
 TEST_CDFS = data/example1.cdf data/example2.cdf data/test.cdf data/local/*.cdf
