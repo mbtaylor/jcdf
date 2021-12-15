@@ -1,6 +1,6 @@
 
-VERSION = 1.2-3
-VERSION_ = 1.2.3
+VERSION = 1.2-4
+VERSION_ = 1.2.4
 JAVAC = javac
 JAVA = java
 JAR = jar
