@@ -12,7 +12,7 @@
 
   <name>JCDF</name>
   <description>Pure Java reader library for NASA CDF format</description>
-  <url>http://www.star.bristol.ac.uk/~mbt/jcdf/</url>
+  <url>https://www.star.bristol.ac.uk/mbt/jcdf/</url>
 
   <licenses>
     <license>
@@ -26,7 +26,7 @@
       <name>Mark Taylor</name>
       <email>m.b.taylor@bristol.ac.uk</email>
       <organization>University of Bristol</organization>
-      <organizationUrl>http://www.star.bristol.ac.uk/~mbt/</organizationUrl>
+      <organizationUrl>https://www.star.bristol.ac.uk/mbt/</organizationUrl>
     </developer>
   </developers>
   <scm>
