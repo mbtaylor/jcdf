@@ -90,17 +90,22 @@ public class RecordMap {
      * @return  index of entry covering <code>irec</code>, or a negative
      *          value if no entry covers it
      */
-    public synchronized int getEntryIndex( int irec ) {
+    public int getEntryIndex( int irec ) {
 
         // There's a good chance that the answer is the same as the last
         // time somebody asked, so first of all do the cheap test to find
         // out if that's the case.  If so, return the cached one.
         // Otherwise, do the work to find out the right answer.
-        if ( ! lastBlock_.contains( irec ) ) {
-            lastBlock_ = calculateBlock( irec );
+        // Although this may be called from multiple threads it's harmless
+        // since Block instances are immutable and having the wrong value
+        // has only performance not correctness implications.
+        Block block = lastBlock_;
+        if ( ! block.contains( irec ) ) {
+            block = calculateBlock( irec );
+            lastBlock_ = block;
         }
-        assert lastBlock_.contains( irec );
-        return lastBlock_.ient_;
+        assert block.contains( irec );
+        return block.ient_;
     }
 
     /**
