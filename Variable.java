@@ -44,7 +44,7 @@ public class Variable {
     private final Object shapedPadValueRowMajor_;
     private final Object shapedPadValueColumnMajor_;
     private final String summaryTxt_;
-    private RecordReader recordReader_;
+    private volatile RecordReader recordReader_;
 
     /**
      * Constructor.
@@ -305,11 +305,18 @@ public class Variable {
      *
      * @return  record reader
      */
-    private synchronized RecordReader getRecordReader() throws IOException {
-        if ( recordReader_ == null ) {
-            recordReader_ = createRecordReader();
+    private RecordReader getRecordReader() throws IOException {
+        RecordReader rdr = recordReader_;
+        if ( rdr == null ) {
+            synchronized ( this ) {
+                rdr = recordReader_;
+                if ( rdr == null ) {
+                    rdr = createRecordReader();
+                    recordReader_ = rdr;
+                }
+            }
         }
-        return recordReader_;
+        return rdr;
     }
 
     /**
