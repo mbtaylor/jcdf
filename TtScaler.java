@@ -121,7 +121,6 @@ public abstract class TtScaler {
         { 2015,  7,  1, 36.0,           0.0, 0.0       },
         { 2017,  1,  1, 37.0,           0.0, 0.0       },
     };
-    private static TtScaler[] ORDERED_INSTANCES;
 
     /**
      * Constructor.
@@ -313,11 +312,8 @@ public abstract class TtScaler {
      *
      * @return  ordered list of time scalers
      */
-    public static synchronized TtScaler[] getTtScalers() {
-        if ( ORDERED_INSTANCES == null ) {
-            ORDERED_INSTANCES = createTtScalers();
-        }
-        return ORDERED_INSTANCES.clone();
+    public static TtScaler[] getTtScalers() {
+        return InstancesHolder.ORDERED_INSTANCES.clone();
     }
 
     /**
@@ -460,6 +456,15 @@ public abstract class TtScaler {
             }
         }
         return list.toArray( new LtEntry[ 0 ] );
+    }
+
+    /**
+     * Lazy initialiser holder class idiom.
+     * Class is initialised, hence initialiser is called, only when
+     * the static member is actually used.
+     */
+    private static class InstancesHolder {
+        static final TtScaler[] ORDERED_INSTANCES = createTtScalers();
     }
 
     /**
