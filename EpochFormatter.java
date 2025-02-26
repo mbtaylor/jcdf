@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 /**
  * Does string formatting of epoch values in various representations.
- * The methods of this object are not in general thread-safe.
+ * The methods of this object are thread-safe.
  *
  * @author   Mark Taylor
  * @since    21 Jun 2013
@@ -112,7 +112,7 @@ public class EpochFormatter {
     public String formatEpoch( double epoch ) {
         long unixMillis = (long) ( epoch + AD0_UNIX_MILLIS );
         Date date = new Date( unixMillis );
-        return epochMilliFormat_.format( date );
+        return formatDate( epochMilliFormat_, date );
     }
 
     /**
@@ -130,7 +130,7 @@ public class EpochFormatter {
             return "??";
         }
         String result = new StringBuffer( 32 )
-            .append( epochSecFormat_.format( date ) )
+            .append( formatDate( epochSecFormat_, date ) )
             .append( '.' )
             .append( prePadWithZeros( plusPicos, 12 ) )
             .toString();
@@ -197,7 +197,7 @@ public class EpochFormatter {
         final String txt;
         if ( leapMillis < 0 ) {
             Date date = new Date( unixMillis );
-            txt = epochMilliFormat_.format( date );
+            txt = formatDate( epochMilliFormat_, date );
         }
 
         // However if we happen to fall during a leap second, we have to
@@ -207,7 +207,7 @@ public class EpochFormatter {
         // in a minute.
         else {
             Date date = new Date( unixMillis - 1000 );
-            txt = epochMilliFormat_.format( date )
+            txt = formatDate( epochMilliFormat_, date )
                  .replaceFirst( ":59\\.", ":60." );
         }
 
@@ -226,6 +226,8 @@ public class EpochFormatter {
 
         // Use the most recently used value as the best guess.
         // There's a good chance it's the right one.
+        // iLastTtScaler_ is not guarded by locks, so it could get a stale
+        // value, but it's only an optimisation guess, so that wouldn't matter.
         int index = TtScaler
                    .getScalerIndex( tt2kMillis, TT_SCALERS, iLastTtScaler_ );
         iLastTtScaler_ = index;
@@ -244,6 +246,17 @@ public class EpochFormatter {
         fmt.setTimeZone( UTC );
         fmt.setCalendar( new GregorianCalendar( UTC, Locale.UK ) );
         return fmt;
+    }
+
+    /**
+     * Formats a date with a given formatter in a thread-safe way.
+     *
+     * @param  format  format
+     * @param  date   date
+     * @return  formatted date
+     */
+    private static String formatDate( DateFormat format, Date date ) {
+        return ((DateFormat) format.clone()).format( date );
     }
 
     /**

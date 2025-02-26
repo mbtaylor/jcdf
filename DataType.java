@@ -475,17 +475,11 @@ public abstract class DataType {
         }
         @Override
         public String formatScalarValue( Object value ) {
-            synchronized ( formatter_ ) {
-                return formatter_
-                      .formatTimeTt2000( ((Long) value).longValue() );
-            }
+            return formatter_.formatTimeTt2000( ((Long) value).longValue() );
         }
         @Override
         public String formatArrayValue( Object array, int index ) {
-            synchronized ( formatter_ ) {
-                return formatter_
-                      .formatTimeTt2000( ((long[]) array)[ index ] );
-            }
+            return formatter_.formatTimeTt2000( ((long[]) array)[ index ] );
         }
         @Override
         public int hashCode() {
@@ -541,15 +535,11 @@ public abstract class DataType {
         }
         @Override
         public String formatScalarValue( Object value ) {
-            synchronized ( formatter_ ) {
-                return formatter_.formatEpoch( ((Double) value).doubleValue() );
-            }
+            return formatter_.formatEpoch( ((Double) value).doubleValue() );
         }
         @Override
         public String formatArrayValue( Object array, int index ) {
-            synchronized ( formatter_ ) {
-                return formatter_.formatEpoch( ((double[]) array)[ index ] );
-            }
+            return formatter_.formatEpoch( ((double[]) array)[ index ] );
         }
     }
 
@@ -573,17 +563,13 @@ public abstract class DataType {
         @Override
         public String formatScalarValue( Object value ) {
             double[] v2 = (double[]) value;
-            synchronized ( formatter_ ) {
-                return formatter_.formatEpoch16( v2[ 0 ], v2[ 1 ] );
-            }
+            return formatter_.formatEpoch16( v2[ 0 ], v2[ 1 ] );
         }
         @Override
         public String formatArrayValue( Object array, int index ) {
             double[] darray = (double[]) array;
-            synchronized ( formatter_ ) {
-                return formatter_.formatEpoch16( darray[ index ],
-                                                 darray[ index + 1 ] );
-            }
+            return formatter_.formatEpoch16( darray[ index ],
+                                             darray[ index + 1 ] );
         }
     }
 }
