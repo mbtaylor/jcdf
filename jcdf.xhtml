@@ -157,7 +157,7 @@ javadocs, and this documentation, and to run some tests.
 </p>
 
 <p>Pre-built copies of the jar file and documentation
-for the current version (v1.2-4) can be found here:
+for the current version (v1.2-5) can be found here:
 </p>
 <ul>
 <li><a href="jcdf.jar">jcdf.jar</a></li>
@@ -259,6 +259,13 @@ for the current version (v1.2-4) can be found here:
         field from the Global Descriptor Record; this could cause a
         RuntimeException with a message about the library leap second table
         being out of date during TT2000 date formatting.</li>
+    </ul></dd>
+<dt><strong>Version 1.2-5 (27 Feb 2025)</strong></dt>
+<dd><ul>
+    <li>Performance improvements achieved by removing synchronized blocks
+        in the code.  Read performance typically improved by about 40%
+        for large files.</li>
+    <li><code>EpochFormatter</code> class instances are now thread-safe.</li>
     </ul></dd>
 </dl>
 
