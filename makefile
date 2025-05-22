@@ -19,18 +19,13 @@ TEST_CDFS = data/example1.cdf data/example2.cdf data/test.cdf data/local/*.cdf
 TEST_BADLEAP = data/test_badleap.cdf
 NASACDFJAR = nasa/cdfjava_3.6.0.4.jar
 NASALEAPSECFILE = nasa/CDFLeapSeconds.txt
+SETTINGS = /home/mbt/.m2/settings.xml
 
 ARTIFACT_PKG = jcdf-$(VERSION_)
-ARTIFACTS = $(ARTIFACT_PKG).jar \
+ARTIFACTS = $(ARTIFACT_PKG).pom \
+            $(ARTIFACT_PKG).jar \
             $(ARTIFACT_PKG)-sources.jar \
-            $(ARTIFACT_PKG)-javadoc.jar
-
-# See https://central.sonatype.org/publish/publish-manual/
-# Uses gpg and ~/.m2/settings.xml
-SIGN_AND_DEPLOY = \
-    mvn gpg:sign-and-deploy-file \
-       -Durl=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ \
-       -DrepositoryId=ossrh -DpomFile=pom.xml
+            $(ARTIFACT_PKG)-javadoc.jar \
 
 JSRC = \
        BankBuf.java \
@@ -88,13 +83,11 @@ TEST_JSRC = \
        OtherTest.java \
        BufTest.java \
 
-build: jar docs artifacts
+build: jar docs
 
 jar: $(JARFILE)
 
 docs: $(WWW_FILES)
-
-artifacts: artifacts.zip
 
 javadocs: $(JSRC) package-info.java
 	rm -rf javadocs
@@ -105,6 +98,49 @@ javadocs: $(JSRC) package-info.java
 index.html: jcdf.xhtml
 	xmllint -noout jcdf.xhtml && \
 	xmllint -html jcdf.xhtml >index.html
+
+# Uploads a bundle of artifacts to the Sonatype central repository ready
+# for publication.  
+# See https://central.sonatype.org/publish/publish-portal-api/
+uploadmaven: central-bundle.zip central-token
+	curl --header "Authorization: Bearer `cat central-token`" \
+             --form bundle=@central-bundle.zip \
+             https://central.sonatype.com/api/v1/publisher/upload
+	@echo
+	@echo "Now go to https://central.sonatype.com/publishing/deployments"
+
+# Construct a bearer token from the relevant username/password in the
+# maven settings file.  It's a base64-encoded username:password string.
+central-token: $(SETTINGS)
+	touch $@
+	chmod 600 $@
+	( xmllint -xpath '//server[id="central"]/username/text()' $(SETTINGS); \
+	  echo :; \
+	  xmllint -xpath '//server[id="central"]/password/text()' $(SETTINGS) )\
+        | tr -d '\n' \
+        | base64 \
+        > $@
+	
+# Construct an artifact bundle ready for upload to the Sonatype central
+# repository.  It has to be in a constrained format.
+# See https://central.sonatype.org/publish/publish-portal-upload/
+central-bundle.zip: $(ARTIFACT_PKG).pom $(ARTIFACT_PKG).jar \
+                    $(ARTIFACT_PKG)-sources.jar $(ARTIFACT_PKG)-javadoc.jar
+	rm -rf tmp
+	mkdir tmp
+	cd tmp
+	mkdir -p tmp/uk/ac/starlink/jcdf/$(VERSION_)
+	cp $(ARTIFACT_PKG).pom $(ARTIFACT_PKG).jar \
+           $(ARTIFACT_PKG)-sources.jar $(ARTIFACT_PKG)-javadoc.jar \
+           tmp/uk/ac/starlink/jcdf/$(VERSION_)/
+	cd tmp/uk/ac/starlink/jcdf/$(VERSION_); \
+        for f in *.pom *.jar; do \
+           gpg -ab $$f; \
+           md5sum $$f | sed 's/ .*//' > $$f.md5; \
+           sha1sum $$f | sed 's/ .*//' > $$f.sha1; \
+        done
+	jar cMf $@ -C tmp uk
+	jar tf $@ | sort
 
 cdflist.html: $(JARFILE)
 	./examples.sh \
@@ -187,27 +223,10 @@ badleaptest: $(JARFILE) $(TEST_BADLEAP)
             should_have_failed; \
         fi
 
-pom.xml:
-	sed 's/__VERSION__/$(VERSION_)/g' <pom.xml.in >$@
-
-uploadmaven: $(ARTIFACTS) pom.xml
-	$(SIGN_AND_DEPLOY) -Dfile=$(ARTIFACT_PKG).jar
-	$(SIGN_AND_DEPLOY) -Dfile=$(ARTIFACT_PKG)-sources.jar \
-                           -Dclassifier=sources
-	$(SIGN_AND_DEPLOY) -Dfile=$(ARTIFACT_PKG)-javadoc.jar \
-                           -Dclassifier=javadoc
-	@echo
-	@echo "Now close and release from staging repository https://s01.oss.sonatype.org/"
-	@echo "see https://central.sonatype.org/publish/release/"
-
 clean:
 	rm -rf $(JARFILE) $(TEST_JARFILE) tmp \
                index.html javadocs cdflist.html cdfdump.html \
-               $(ARTIFACTS) artifacts.zip \
-               $(ARTIFACT_PKG).jar.asc \
-               $(ARTIFACT_PKG)-sources.jar.asc \
-               $(ARTIFACT_PKG)-javadoc.jar.asc \
-               pom.xml pom.xml.asc
+               $(ARTIFACTS).zip central-bundle.zip central-token \
 
 $(JARFILE): $(JSRC)
 	rm -rf tmp
@@ -224,8 +243,8 @@ $(TEST_JARFILE): $(JARFILE) $(TEST_JSRC)
             && $(JAR) cf $@ -C tmp .
 	rm -rf tmp
 
-artifacts.zip: $(ARTIFACTS)
-	jar cfM $@ $(ARTIFACTS)
+$(ARTIFACT_PKG).pom:
+	sed 's/__VERSION__/$(VERSION_)/g' <pom.xml.in >$@
 
 $(ARTIFACT_PKG).jar: $(JARFILE)
 	cp $(JARFILE) $@
